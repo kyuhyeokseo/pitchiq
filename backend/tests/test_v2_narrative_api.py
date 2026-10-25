@@ -269,6 +269,38 @@ def test_broadcast_caption_takes_the_approved_plans_observed_outcome(client):
     assert bc["on_air"] == [fan[0], fan[1], fan[at]]
 
 
+def test_the_fan_caption_keeps_both_sides_when_an_agent_reorders_the_plan(client):
+    # seen on the live app: the Producer moved the exposed sentence behind a second restricted one, and a caption
+    # chosen by position ("first two, then the outcome") dropped what the press left open
+    c = client
+    clip = load_clip("clip_001")
+    rid, H, _ = _create(c)
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.end_s, "expected_epoch": 1}, headers=H)
+    view = _complete_insight(c, rid, H)
+    iid, ep = view["insight"]["insight_id"], view["insight"]["episode_id"]
+    s = STORE.sessions[rid]
+    ins = s.revisions[iid][-1]
+    pk = next(p for p in s.analyzer.packets[ep] if p.evidence_hash == ins.evidence_hash)
+    dim = {cl.claim_id: cl.dimension for cl in pk.claims}
+    side = lambda x: dim.get(x.claim_id) if x.claim_id else None  # noqa: E731
+    fan = ins.producer_plan.variant("fan", "en").sentences
+    exp = next(i for i, x in enumerate(fan) if side(x) == "exposed")
+    order = [x for i, x in enumerate(fan) if i != exp]
+    order.insert(2, fan[exp])
+    assert [side(x) for x in order[:3]] == ["restricted", "restricted", "exposed"]
+    plan = ins.producer_plan.model_copy(update={"variants": [
+        v.model_copy(update={"sentences": order}) if v.audience == "fan" else v for v in ins.producer_plan.variants]})
+    s._attach_cloud(pk, s.epoch, ins.analyst_plan, plan, {"trace_id": "trace_reordered"}, "foundry_live")
+    _approve_latest(c, rid, H, iid)
+    texts = next(i for i in c.get(f"/api/replays/{rid}/insights", headers=H).json()
+                 if i["insight"]["insight_id"] == iid)["texts"]["fan_en"]
+    bc = c.get(f"/api/replays/{rid}/overlays", params={"episode_id": ep, "surface": "broadcast", "audience": "fan",
+                                                        "language": "en"}, headers=H).json()
+    outcome = next(i for i, x in enumerate(order) if x.template_key.startswith("outcome.")
+                   and x.template_key != "outcome.pending")
+    assert bc["on_air"] == [texts[0], texts[2], texts[outcome]]  # taken away, what it cost, what happened
+
+
 def test_an_approval_holds_only_for_its_own_revision_and_evidence_across_seeks(client):
     c = client
     clip = load_clip("clip_001")

@@ -165,7 +165,7 @@ Also built: an MCP server (Model Context Protocol, an open standard) that expose
 | Holdout: counter-examples | Wrong emphasis in 1 of 72 (target 0). | 2026-10-23 | Same report |
 | Holdout: abstention | On the 72 clips where exposure was expected, the story stayed partial or unmatched in 1. | 2026-10-23 | Same report |
 | Analysis latency | p50 7.9 ms, p95 9.4 ms per 5 Hz step (target: p95 under 200 ms) | 2026-10-23 | 12,669 frames, single process, CPU on an HPC compute node, during the holdout run |
-| Tests | 268 passed | 2026-10-25 | `make test` |
+| Tests | 269 passed | 2026-10-25 | `make test` |
 | Browser walkthrough | 62 of 62 checks passed, no browser console errors | 2026-10-25 | Headless Chromium drives the real UI in offline mode (`make walkthrough`), including two checks over a slow link (400 ms per request). See `docs/walkthrough/report.json` and the screenshots |
 | Deployed app | Managed identity reached Foundry: an Ask answered in 5.9 s with 2 tool calls, a Recap in 8.2 s, both validated; `/mcp` listed its 5 tools over HTTPS; a 1× replay streamed over the WebSocket. | 2026-10-24 | Calls from the development machine to the public URL. Log: [`docs/foundry_live/MEASUREMENTS.md`](docs/foundry_live/MEASUREMENTS.md) |
 

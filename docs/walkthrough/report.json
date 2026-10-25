@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:35937",
+  "base": "http://127.0.0.1:38795",
   "checks": [
     {
       "check": "health endpoint",
@@ -29,7 +29,7 @@
     {
       "check": "live overlay elements drawn from backend",
       "ok": true,
-      "detail": "18 elements"
+      "detail": "19 elements"
     },
     {
       "check": "A live: the player on the ball is drawn on top",
@@ -299,7 +299,7 @@
     {
       "check": "live overlay is drawn over a slow link (400 ms per request)",
       "ok": true,
-      "detail": "17 elements"
+      "detail": "16 elements"
     },
     {
       "check": "Play right after a clip switch over a slow link starts the new clip",
@@ -317,5 +317,5 @@
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-25T17:52:16Z"
+  "time_utc": "2026-10-25T18:37:49Z"
 }

@@ -313,20 +313,32 @@ def overlays(rid: str, episode_id: str, audience: Literal["fan", "analyst"] = "a
             "analyzed_through_s": pk.episode.analyzed_until_s, "episode_revision": pk.episode.revision,
             "insight_revision": ins.revision if ins else None, "texts": texts}
     if approved is not None:
-        body["on_air"] = _on_air(approved, texts, audience, language)
+        body["on_air"] = _on_air(approved, pk, texts, audience, language)
     return body
 
 
-def _on_air(ins: InsightRevision, texts: dict[str, list[str]], audience: str, language: str) -> list[str]:
-    """The broadcast caption. Fans get what was taken away, what it cost and what happened, in the plan's own order;
-    analysts get up to six sentences."""
+def _on_air(ins: InsightRevision, pk, texts: dict[str, list[str]], audience: str, language: str) -> list[str]:
+    """The broadcast caption. Fans get what was taken away, what it cost and what happened: the first restricted
+    sentence, the first exposed one and the observed outcome, chosen by what they say (an agent may reorder the plan)
+    and told in the plan's order; the next sentences fill in when one is missing. Analysts get up to six sentences."""
     lines = texts.get(f"{audience}_{language}", [])
     if audience != "fan":
         return lines[:6]
     plan = next((v for v in ins.producer_plan.variants if v.audience == audience and v.language == language), None)
-    at = next((i for i, x in enumerate(plan.sentences if plan else [])
-               if x.template_key.startswith("outcome.") and x.template_key != "outcome.pending"), -1)
-    return [lines[0], lines[1], lines[at]] if at > 2 else lines[:3]
+    dim = {c.claim_id: c.dimension for c in pk.claims}
+
+    def kind(x) -> str:
+        if x.template_key.startswith("outcome."):
+            return "outcome" if x.template_key != "outcome.pending" else "pending"
+        return dim.get(x.claim_id, "other") if x.claim_id else "other"
+    kinds = [kind(x) for x in (plan.sentences if plan else [])][:len(lines)]
+    picked = [next((i for i, k in enumerate(kinds) if k == want), None) for want in ("restricted", "exposed", "outcome")]
+    chosen = {i for i in picked if i is not None}
+    for i in range(len(lines)):  # fill up to three in plan order
+        if len(chosen) >= 3:
+            break
+        chosen.add(i)
+    return [lines[i] for i in sorted(chosen)]
 
 
 @app.get("/api/replays/{rid}/insights")

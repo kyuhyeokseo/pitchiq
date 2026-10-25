@@ -114,3 +114,12 @@ the Express mode to the workload-profiles mode, see `infra/README.md`):
 | 1x replay of `clip_001` over `wss://` | 23.8 s of play in 23.8 s, then the clip-end snapshot |
 | Ask after the replay, same question | a moment, 3 validated sentences, 5.8 s, 3 tool calls, no repair |
 | Recap after the replay (fan, EN) | 2 moments, validated, `foundry_live`, 9.1 s |
+
+### Browser walkthrough against the public URL (image `sha-6c98218`, 2026-10-25 about 14:20 US Eastern)
+
+`evaluation/walkthrough/walkthrough.py --base-url <public URL>` from an HPC compute node, Foundry on: 58 checks
+passed, 0 failed, no browser console errors. With Foundry on, the four checks of particular template sentences are kept
+as information instead of pass or fail, because the agents may choose other validated sentences: the agents chose other
+sentences in 3 of them and the expected sentence appeared in 1. The run used 81 of the 300 daily Foundry runs (counter
+after the run; the counter restarts with each deployment). `/api/health` reported `build.sha` 6c98218, `/api/clips`
+12 clips and `/mcp` 5 tools.
