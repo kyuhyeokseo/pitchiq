@@ -1,0 +1,135 @@
+# PitchIQ synthetic scenario recipes (Family A: flank overlap / underlap / negatives).
+#
+# Everything in this file is GENERATOR-PRIVATE. Recipe names, intents, truth
+# labels and defender responses are written only to data/private_truth/ and
+# never into public tracking, events, manifests, APIs or agent evidence.
+#
+# Geometry is written in the generator's canonical frame: the attacking team
+# attacks toward +x and the action flank is the low-y touchline. The exporter
+# mirrors (left flank) and rotates (attack direction -1) into world
+# coordinates, so one recipe covers both flanks and both directions.
+# Ranges are [min, max] sampled uniformly. Units: metres, seconds, m/s.
+
+generator_version: "0.2.0"
+schema_version: "1.0"
+
+clip:
+  min_duration_s: 12.0
+  max_duration_s: 25.0
+
+attack:                       # sampled from the attack RNG stream
+  carrier_start: {x: [58, 65], y: [19, 26]}
+  winger_start:  {x: [73, 79], y: [5, 9]}
+  fullback_start: {x: [52, 60], y: [7, 12]}
+  t_pass_in_s: [2.4, 4.2]
+  pass_speed_mps: [13.0, 18.0]
+  run_delay_after_release_s: [1.6, 3.0]
+  run_speed_mps: [7.0, 8.4]
+  decide_after_receive_s: [3.4, 4.8]
+  tail_s: [2.4, 3.6]
+
+defense:                      # sampled from the defense RNG stream
+  react_lag_s: [0.4, 1.0]     # observation lag for defender decisions
+  mark_dx_m: [1.2, 2.4]       # goal-side offset when marking
+  mark_dy_m: [0.6, 1.6]       # inside offset when marking
+  profiles:
+    # Fullback leaves the winger to follow the runner; the covering midfielder
+    # holds his zone and does not track the third-man run into the channel.
+    mark_runner: {lb_speed_mps: [7.6, 8.4], tracker_lag_s: [1.0, 1.6], tracker_speed_mps: [4.5, 5.5],
+                  cover_tracks_third_man: false}
+    # Fullback stays with the winger; the wide midfielder tracks the runner.
+    hold_line:   {lb_speed_mps: [6.0, 7.0], tracker_lag_s: [0.2, 0.5], tracker_speed_mps: [8.0, 8.6],
+                  cover_tracks_third_man: true, lcm_lag_s: [0.2, 0.4], lcm_speed_mps: [7.2, 8.0]}
+    # Fullback follows, then hands the runner over and returns.
+    switch_mark: {lb_speed_mps: [7.2, 8.0], tracker_lag_s: [0.4, 0.8], tracker_speed_mps: [7.4, 8.2],
+                  cover_tracks_third_man: true, lcm_lag_s: [0.5, 0.9], lcm_speed_mps: [6.0, 7.0],
+                  handover_dx_m: [6.0, 10.0]}
+
+recipes:
+  overlap_follow:
+    run_mode: overlap
+    pattern_truth: overlap
+    generator_intent: overlap_run
+    defender_response: [mark_runner]
+    params: {run_beyond_m: [9, 14], lane_y_m: [2.0, 4.0], winger_drive_m: {x: [2, 5], y: [4, 7]},
+             winger_drive_speed_mps: [2.4, 3.4], third_man_run: true}
+  overlap_hold:
+    run_mode: overlap
+    pattern_truth: overlap
+    generator_intent: overlap_run
+    defender_response: [hold_line]
+    params: {run_beyond_m: [9, 14], lane_y_m: [2.0, 4.0], winger_drive_m: {x: [2, 5], y: [4, 7]},
+             winger_drive_speed_mps: [2.4, 3.4], third_man_run: true}
+  overlap_switch:
+    run_mode: overlap
+    pattern_truth: overlap
+    generator_intent: overlap_run
+    defender_response: [switch_mark]
+    params: {run_beyond_m: [9, 14], lane_y_m: [2.0, 4.0], winger_drive_m: {x: [2, 5], y: [4, 7]},
+             winger_drive_speed_mps: [2.4, 3.4], third_man_run: true}
+  underlap:
+    run_mode: underlap
+    pattern_truth: underlap
+    generator_intent: underlap_run
+    defender_response: [mark_runner, hold_line, switch_mark]
+    params: {run_beyond_m: [8, 13], inside_offset_m: [8, 12], winger_drive_m: {x: [2, 5], y: [-1, 1]},
+             winger_drive_speed_mps: [2.0, 3.0], third_man_run: false}
+  # ---- hard negatives: forward fullback movement WITHOUT an overlap/underlap ----
+  support_no_pass:            # fullback advances on the outside but stays behind the winger
+    run_mode: support
+    pattern_truth: none
+    generator_intent: support_run
+    defender_response: [mark_runner, hold_line, switch_mark]
+    params: {support_gap_m: [4.0, 8.0], lane_y_m: [2.5, 6.0], winger_drive_m: {x: [2, 5], y: [3, 6]},
+             winger_drive_speed_mps: [2.0, 3.0], third_man_run: false}
+  parallel_run:               # winger and fullback advance together, no positional exchange
+    run_mode: parallel
+    pattern_truth: none
+    generator_intent: parallel_advance
+    defender_response: [mark_runner, hold_line, switch_mark]
+    params: {winger_run_m: [10, 14], parallel_gap_m: [6.0, 9.0], inside_offset_m: [4.0, 7.0],
+             third_man_run: false}
+  aborted_overlap:            # overlap run starts, then is abandoned before passing the winger
+    run_mode: aborted
+    pattern_truth: none
+    generator_intent: overlap_run_aborted
+    defender_response: [mark_runner, hold_line, switch_mark]
+    params: {run_beyond_m: [9, 14], lane_y_m: [2.0, 4.0], abort_gap_m: [10.0, 13.0],
+             winger_drive_m: {x: [2, 5], y: [4, 7]}, winger_drive_speed_mps: [2.4, 3.4],
+             third_man_run: false}
+  circulation:                # ball circulates centrally; flank actors hold position
+    run_mode: none
+    pattern_truth: none
+    generator_intent: circulation
+    defender_response: [hold_line]
+    params: {n_passes: [3, 5], third_man_run: false}
+
+# Relative sampling weights for randomized datasets.
+dataset_mix:
+  overlap_follow: 2
+  overlap_hold: 2
+  overlap_switch: 1
+  underlap: 2
+  support_no_pass: 1
+  parallel_run: 1
+  aborted_overlap: 1
+  circulation: 1
+
+# Curated demo fixtures: cinematic but honest. Each clip is still produced by
+# the same seeded engine; nothing here is shown to the detector or the UI.
+# DISCLOSURE: base_seed 20261025 was SELECTED under generator v0.1.0 (2 of 300
+# candidate seeds passed) so that c01 shows a clear "defense holds" case and
+# c02 a clear "fullback follows, channel opens" case. It still gives that
+# contrast under v0.2.0; the seed search was not re-run. Typical behaviour
+# across random seeds is in evaluation/reports/generator_sanity_seeds60.txt.
+demo_fixtures:
+  - scenario_id: scenario_a
+    match_id: synthetic_blue_red_01
+    title: "Blue FC vs Red United - synthetic match, flank build-ups"
+    base_seed: 20261025
+    blue_attack_direction_period1: 1
+    clips:
+      - {clip_id: c01, recipe: overlap_hold,    attacking_team: blue, flank: right, start_match_s: 1205.0}
+      - {clip_id: c02, recipe: overlap_follow,  attacking_team: blue, flank: right, start_match_s: 1928.0}
+      - {clip_id: c03, recipe: aborted_overlap, attacking_team: blue, flank: left,  start_match_s: 2410.0}
+      - {clip_id: c04, recipe: underlap,        attacking_team: red,  flank: left,  start_match_s: 3302.0}

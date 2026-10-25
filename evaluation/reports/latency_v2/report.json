@@ -1,0 +1,89 @@
+{
+ "host": "hpc-login-node",
+ "time_utc": "2026-10-22T04:56:16Z",
+ "what": "in-process: analysis step + live overlay request per frame (no network, no rendering)",
+ "analysis_step_ms": {
+  "p50": 9.35,
+  "p95": 12.11,
+  "max": 144.24,
+  "n": 1038
+ },
+ "live_overlay_request_ms": {
+  "p50": 4.99,
+  "p95": 9.42,
+  "max": 246.65,
+  "n": 843
+ },
+ "per_frame_update_ms": {
+  "p50": 14.32,
+  "p95": 19.62,
+  "max": 259.78,
+  "n": 1038
+ },
+ "targets": {
+  "analysis_p95_ms": 200,
+  "ui_update_p95_ms": 300
+ },
+ "per_clip": {
+  "clip_001": {
+   "frames": 119,
+   "update_ms_p50": 17.38,
+   "update_ms_p95": 23.31
+  },
+  "clip_002": {
+   "frames": 99,
+   "update_ms_p50": 14.75,
+   "update_ms_p95": 21.52
+  },
+  "clip_003": {
+   "frames": 78,
+   "update_ms_p50": 13.39,
+   "update_ms_p95": 18.61
+  },
+  "clip_004": {
+   "frames": 120,
+   "update_ms_p50": 15.17,
+   "update_ms_p95": 17.73
+  },
+  "clip_005": {
+   "frames": 99,
+   "update_ms_p50": 12.29,
+   "update_ms_p95": 14.66
+  },
+  "clip_006": {
+   "frames": 77,
+   "update_ms_p50": 14.01,
+   "update_ms_p95": 16.76
+  },
+  "clip_007": {
+   "frames": 69,
+   "update_ms_p50": 13.73,
+   "update_ms_p95": 16.62
+  },
+  "clip_008": {
+   "frames": 82,
+   "update_ms_p50": 14.4,
+   "update_ms_p95": 16.48
+  },
+  "clip_009": {
+   "frames": 74,
+   "update_ms_p50": 14.06,
+   "update_ms_p95": 16.5
+  },
+  "clip_010": {
+   "frames": 75,
+   "update_ms_p50": 14.11,
+   "update_ms_p95": 15.83
+  },
+  "clip_011": {
+   "frames": 77,
+   "update_ms_p50": 15.42,
+   "update_ms_p95": 18.4
+  },
+  "clip_012": {
+   "frames": 69,
+   "update_ms_p50": 14.01,
+   "update_ms_p95": 16.24
+  }
+ }
+}

@@ -1,0 +1,70 @@
+{
+  "clip_id": "clip_007",
+  "generator_version": "defense-0.5.0",
+  "seed": 7,
+  "private_config": {
+    "family": "D",
+    "variant": "main",
+    "seed": 7,
+    "attacking_team": "blue",
+    "attack_direction": 1,
+    "start_s": 415.0
+  },
+  "family": "D",
+  "variant": "main",
+  "story": {
+    "start": "lcb_ball_arrive",
+    "families": [
+      "press_vs_depth",
+      "central_screen"
+    ],
+    "used": false,
+    "restricted_any": [
+      "central_routes_screened",
+      "short_options_screened"
+    ],
+    "exposed": [],
+    "window_clip_s": [
+      3.6,
+      9.0
+    ],
+    "executed": true
+  },
+  "generator_intent": "four_player_lane_cut_press",
+  "expected": {
+    "restricted": [
+      "short_options_screened",
+      "central_routes_screened"
+    ],
+    "exposed": [
+      "accessible_free_receiver"
+    ],
+    "free_man_used": false,
+    "suppressed": [],
+    "attacking_response": "long_kick",
+    "defensive_adjustment": "back_line_wins_ball"
+  },
+  "params": {
+    "lag_s": 0.368
+  },
+  "roles": {
+    "presser": "D:ST",
+    "second_striker": "D:RW",
+    "target": "A:LCB",
+    "free_man": "A:RCB"
+  },
+  "markers_match_s": {
+    "release_0_t": 417.0,
+    "lcb_ball_release_t": 417.0,
+    "arrive_0_t": 418.6,
+    "lcb_ball_arrive_t": 418.6,
+    "release_1_t": 421.4,
+    "kick_release_t": 421.4,
+    "interception_t": 424.0,
+    "arrive_1_t": 424.0,
+    "kick_arrive_t": 424.0,
+    "end_t": 429.0
+  },
+  "attacking_team_id": "blue",
+  "defending_team_id": "red"
+}

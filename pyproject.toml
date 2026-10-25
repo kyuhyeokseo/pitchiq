@@ -1,0 +1,45 @@
+[project]
+name = "pitchiq"
+version = "0.2.0"
+description = "PitchIQ Defensive Intelligence - defensive trade-off analysis on synthetic tracking (hackathon prototype)"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic==2.14.1",
+    "numpy==2.5.4",
+    "pyyaml==6.0.3",
+    "scipy==1.18.1",
+    "fastapi==0.157.0",
+    "uvicorn[standard]==0.54.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "matplotlib==3.11.2",
+    "httpx==0.28.1",
+    "playwright==1.64.0",
+]
+
+# Microsoft Foundry agents (app-owned Agent over FoundryChatClient). Without it the app runs offline.
+foundry = [
+    "agent-framework-foundry==1.15.0",
+    "azure-identity==1.26.0",
+]
+
+# The read-only match tools as a Model Context Protocol server (app.agents.mcp_server).
+mcp = [
+    "mcp==2.3.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
+addopts = "-ra"

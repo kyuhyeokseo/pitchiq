@@ -1,0 +1,109 @@
+{
+  "dataset": "data/generated/eval_s4242",
+  "clips": 200,
+  "tracked_minutes": 45.84,
+  "confusion_truth_vs_pred": {
+    "none->none": 74,
+    "overlap->overlap": 95,
+    "underlap->underlap": 31
+  },
+  "per_class": {
+    "overlap": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 95
+    },
+    "underlap": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 31
+    },
+    "none": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 74
+    }
+  },
+  "false_alarms_other_pairs": 0,
+  "false_alarms_per_tracked_minute": 0.0,
+  "detection_lag_s_after_crossing": {
+    "median": 0.4,
+    "p95": 0.4
+  },
+  "analysis_step_ms": {
+    "p50": 0.031,
+    "p95": 0.043
+  },
+  "load_s": 10.75,
+  "significance_by_true_response": {
+    "overlap/hold_line": {
+      "n": 34,
+      "suggested_rate": 0.029,
+      "score_median": 0.339,
+      "gap_delta_m_median": -3.14,
+      "gap_delta_m_p25_p75": [
+        -3.73,
+        -1.59
+      ],
+      "new_option_lane_rate": 0.059
+    },
+    "overlap/mark_runner": {
+      "n": 34,
+      "suggested_rate": 1.0,
+      "score_median": 0.726,
+      "gap_delta_m_median": 10.04,
+      "gap_delta_m_p25_p75": [
+        8.24,
+        11.73
+      ],
+      "new_option_lane_rate": 0.147
+    },
+    "overlap/switch_mark": {
+      "n": 27,
+      "suggested_rate": 0.37,
+      "score_median": 0.507,
+      "gap_delta_m_median": 1.36,
+      "gap_delta_m_p25_p75": [
+        -0.89,
+        3.08
+      ],
+      "new_option_lane_rate": 0.111
+    },
+    "underlap/hold_line": {
+      "n": 12,
+      "suggested_rate": 0.583,
+      "score_median": 0.62,
+      "gap_delta_m_median": 2.33,
+      "gap_delta_m_p25_p75": [
+        0.38,
+        3.8
+      ],
+      "new_option_lane_rate": 0.083
+    },
+    "underlap/mark_runner": {
+      "n": 11,
+      "suggested_rate": 0.0,
+      "score_median": 0.361,
+      "gap_delta_m_median": -0.82,
+      "gap_delta_m_p25_p75": [
+        -2.7,
+        -0.56
+      ],
+      "new_option_lane_rate": 0.091
+    },
+    "underlap/switch_mark": {
+      "n": 8,
+      "suggested_rate": 0.25,
+      "score_median": 0.512,
+      "gap_delta_m_median": 1.2,
+      "gap_delta_m_p25_p75": [
+        0.16,
+        2.68
+      ],
+      "new_option_lane_rate": 0.125
+    }
+  }
+}

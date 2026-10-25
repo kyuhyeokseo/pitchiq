@@ -1,0 +1,34 @@
+| case | seed | engine | story matched / complete / used | frozen players | team-mate clusters | tightly marked (mean / max) | unpressured stalls | offside receptions | width / depth in possession |
+|---|---|---|---|---|---|---|---|---|---|
+| A:main | 7 | rule | True / True / True | 9 | 0 | 0.47 / 0.9 | 0 | 0 | 53.6 / 37.9 |
+| A:main | 7 | hybrid | False / False / False | 0 | 0 | 0.52 / 1.0 | 0 | 0 | 48.3 / 38.3 |
+| A:main | 100 | rule | True / True / True | 15 | 0 | 0.46 / 0.9 | 0 | 0 | 53.8 / 37.9 |
+| A:main | 100 | hybrid | True / True / True | 8 | 0 | 0.5 / 1.0 | 0 | 0 | 47.3 / 40.4 |
+| A:main | 101 | rule | True / False / False | 13 | 0 | 0.46 / 0.8 | 0 | 0 | 56.3 / 37.6 |
+| A:main | 101 | hybrid | True / True / True | 13 | 0 | 0.47 / 0.8 | 0 | 0 | 49.3 / 38.6 |
+| A:main | 102 | rule | True / True / True | 9 | 0 | 0.52 / 1.0 | 0 | 0 | 54.1 / 38.2 |
+| A:main | 102 | hybrid | True / True / True | 2 | 0 | 0.51 / 0.8 | 0 | 0 | 47.5 / 40.8 |
+| A:cover | 7 | rule | True / False / False | 1 | 0 | 0.48 / 0.8 | 1 | 0 | 53.2 / 37.9 |
+| A:cover | 7 | hybrid | False / False / False | 1 | 2 | 0.56 / 0.9 | 0 | 0 | 48.4 / 38.4 |
+| A:cover | 100 | rule | True / False / False | 9 | 0 | 0.5 / 0.8 | 1 | 0 | 52.9 / 38.0 |
+| A:cover | 100 | hybrid | True / False / False | 9 | 0 | 0.47 / 0.9 | 0 | 0 | 47.2 / 39.8 |
+| A:cover | 101 | rule | True / False / False | 6 | 0 | 0.47 / 0.9 | 1 | 0 | 55.8 / 37.9 |
+| A:cover | 101 | hybrid | True / False / False | 12 | 1 | 0.53 / 0.8 | 0 | 0 | 49.1 / 38.7 |
+| A:cover | 102 | rule | True / False / False | 3 | 0 | 0.51 / 0.8 | 0 | 0 | 53.8 / 38.5 |
+| A:cover | 102 | hybrid | True / False / False | 2 | 0 | 0.47 / 0.8 | 0 | 0 | 47.4 / 40.7 |
+| B:main | 7 | rule | True / True / True | 8 | 0 | 0.2 / 0.4 | 0 | 0 | 56.8 / 50.1 |
+| B:main | 7 | hybrid | True / True / False | 10 | 0 | 0.19 / 0.4 | 0 | 0 | 48.3 / 49.8 |
+| B:main | 100 | rule | True / True / False | 12 | 0 | 0.2 / 0.4 | 0 | 0 | 56.8 / 49.9 |
+| B:main | 100 | hybrid | True / True / False | 11 | 0 | 0.16 / 0.4 | 0 | 0 | 47.4 / 50.1 |
+| B:main | 101 | rule | True / True / True | 10 | 0 | 0.18 / 0.4 | 0 | 0 | 55.1 / 48.6 |
+| B:main | 101 | hybrid | True / True / False | 12 | 0 | 0.16 / 0.4 | 0 | 0 | 47.7 / 46.2 |
+| B:main | 102 | rule | True / True / True | 7 | 0 | 0.19 / 0.4 | 0 | 0 | 56.9 / 51.4 |
+| B:main | 102 | hybrid | True / True / False | 7 | 0 | 0.16 / 0.4 | 0 | 0 | 47.8 / 50.7 |
+| C:main | 7 | rule | True / True / True | 9 | 0 | 0.1 / 0.2 | 0 | 0 | 58.4 / 34.9 |
+| C:main | 7 | hybrid | True / True / True | 12 | 1 | 0.11 / 0.2 | 0 | 0 | 53.6 / 34.8 |
+| C:main | 100 | rule | True / True / True | 8 | 0 | 0.11 / 0.3 | 0 | 0 | 58.7 / 35.2 |
+| C:main | 100 | hybrid | True / True / True | 13 | 1 | 0.11 / 0.2 | 0 | 0 | 53.7 / 34.3 |
+| C:main | 101 | rule | True / True / True | 8 | 0 | 0.09 / 0.2 | 0 | 0 | 56.6 / 33.6 |
+| C:main | 101 | hybrid | True / True / True | 10 | 1 | 0.1 / 0.2 | 0 | 0 | 51.9 / 33.3 |
+| C:main | 102 | rule | True / True / True | 6 | 0 | 0.1 / 0.2 | 0 | 0 | 58.9 / 35.3 |
+| C:main | 102 | hybrid | True / True / True | 13 | 1 | 0.1 / 0.2 | 0 | 0 | 53.9 / 35.2 |

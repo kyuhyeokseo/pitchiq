@@ -1,0 +1,10 @@
+flowchart TD
+  gather["gather (Start)"];
+  recap_agent["recap_agent"];
+  check["check"];
+  render["render"];
+  fallback["fallback"];
+  gather --> recap_agent;
+  recap_agent --> check;
+  check --> render;
+  check --> fallback;

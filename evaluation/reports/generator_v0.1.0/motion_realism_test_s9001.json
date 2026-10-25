@@ -1,0 +1,23 @@
+{
+  "scenario_dir": "data/generated/test_s9001",
+  "run_chord_deviation_m": {
+    "n": 110,
+    "median": 0.14,
+    "p10": 0.03,
+    "p90": 0.26
+  },
+  "final_third_receiver_speed_1s_after_mps": {
+    "n": 115,
+    "median": 1.0,
+    "p10": 0.57,
+    "p90": 1.0
+  },
+  "final_third_receiver_freeze_rate": 0.922,
+  "winger_speed_1s_after_pass_mps": {
+    "n": 165,
+    "median": 0.6,
+    "p10": 0.6,
+    "p90": 0.6
+  },
+  "winger_freeze_rate": 0.921
+}

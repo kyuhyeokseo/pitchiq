@@ -1,0 +1,917 @@
+{
+ "model": "MotionGNN (shared 1-layer GRU 64 + 2 GNN layers 64 + shared decoder, Laplace location and scale, goal-conditioned)",
+ "splits": {
+  "train": [
+   "DFL-MAT-J03WMX",
+   "DFL-MAT-J03WN1",
+   "DFL-MAT-J03WPY",
+   "DFL-MAT-J03WQQ",
+   "DFL-MAT-J03WR9"
+  ],
+  "val": [
+   "DFL-MAT-J03WOH"
+  ],
+  "test": [
+   "DFL-MAT-J03WOY"
+  ]
+ },
+ "segment_stats": {
+  "train": {
+   "DFL-MAT-J03WMX": {
+    "frames": 29194,
+    "in_play": 17071,
+    "kept": 15228,
+    "cut_status": 103,
+    "cut_possession": 397,
+    "cut_roster": 0
+   },
+   "DFL-MAT-J03WN1": {
+    "frames": 28313,
+    "in_play": 13672,
+    "kept": 682,
+    "cut_status": 8,
+    "cut_possession": 33,
+    "cut_roster": 0
+   },
+   "DFL-MAT-J03WPY": {
+    "frames": 29243,
+    "in_play": 16292,
+    "kept": 14982,
+    "cut_status": 97,
+    "cut_possession": 317,
+    "cut_roster": 0
+   },
+   "DFL-MAT-J03WQQ": {
+    "frames": 28470,
+    "in_play": 16881,
+    "kept": 11365,
+    "cut_status": 55,
+    "cut_possession": 195,
+    "cut_roster": 0
+   },
+   "DFL-MAT-J03WR9": {
+    "frames": 29363,
+    "in_play": 17065,
+    "kept": 15901,
+    "cut_status": 92,
+    "cut_possession": 274,
+    "cut_roster": 0
+   }
+  },
+  "val": {
+   "DFL-MAT-J03WOH": {
+    "frames": 27443,
+    "in_play": 14390,
+    "kept": 13154,
+    "cut_status": 101,
+    "cut_possession": 297,
+    "cut_roster": 0
+   }
+  },
+  "test": {
+   "DFL-MAT-J03WOY": {
+    "frames": 28508,
+    "in_play": 15256,
+    "kept": 13599,
+    "cut_status": 112,
+    "cut_possession": 342,
+    "cut_roster": 0
+   }
+  }
+ },
+ "windows": {
+  "train": {
+   "one_step": 44688,
+   "rollout_2s": 9657
+  },
+  "val": {
+   "one_step": 4828,
+   "rollout_2s": 1614
+  },
+  "test": {
+   "one_step": 4970,
+   "rollout_2s": 1652
+  }
+ },
+ "settings": {
+  "hist_steps": 15,
+  "dt_s": 0.2,
+  "roll_steps": 10,
+  "goal_steps_stage1": [
+   5,
+   20
+  ],
+  "goal_steps_stage2": [
+   15,
+   25
+  ],
+  "processed": "$PITCHIQ_EXTERNAL/idsse/processed",
+  "out": "$PITCHIQ_EXTERNAL/models/motion_v3",
+  "epochs1": 40,
+  "epochs2": 30,
+  "patience": 3,
+  "batch": 512,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "seed": 0,
+  "max_minutes": 300.0,
+  "roll_stride": 4,
+  "stochastic": true,
+  "nll_weight": 0.1,
+  "goal": true,
+  "goal_drop": 0.15
+ },
+ "conditioning": "ball = context node with a supplied path (observed in evaluation, controller in generation)",
+ "device": "cpu",
+ "gpu": null,
+ "parameters": 133956,
+ "history": [
+  {
+   "epoch": 0,
+   "stage": 1,
+   "train_loss": -0.1961,
+   "val_one_step": {
+    "pos_err_m": 0.04,
+    "dv_err_mps": 0.1964,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.254,
+    "fde_1s": 0.501,
+    "ade_2s": 0.577,
+    "fde_2s": 1.128,
+    "ade_2s_team_in_possession": 0.547,
+    "ade_2s_defending_team": 0.606
+   },
+   "elapsed_s": 182.5
+  },
+  {
+   "epoch": 1,
+   "stage": 1,
+   "train_loss": -0.4124,
+   "val_one_step": {
+    "pos_err_m": 0.0365,
+    "dv_err_mps": 0.1791,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.238,
+    "fde_1s": 0.475,
+    "ade_2s": 0.557,
+    "fde_2s": 1.116,
+    "ade_2s_team_in_possession": 0.533,
+    "ade_2s_defending_team": 0.582
+   },
+   "elapsed_s": 331.9
+  },
+  {
+   "epoch": 2,
+   "stage": 1,
+   "train_loss": -0.5247,
+   "val_one_step": {
+    "pos_err_m": 0.0314,
+    "dv_err_mps": 0.1532,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.224,
+    "fde_1s": 0.46,
+    "ade_2s": 0.555,
+    "fde_2s": 1.149,
+    "ade_2s_team_in_possession": 0.532,
+    "ade_2s_defending_team": 0.579
+   },
+   "elapsed_s": 467.2
+  },
+  {
+   "epoch": 3,
+   "stage": 1,
+   "train_loss": -0.5851,
+   "val_one_step": {
+    "pos_err_m": 0.0294,
+    "dv_err_mps": 0.1433,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.223,
+    "fde_1s": 0.464,
+    "ade_2s": 0.559,
+    "fde_2s": 1.153,
+    "ade_2s_team_in_possession": 0.531,
+    "ade_2s_defending_team": 0.587
+   },
+   "elapsed_s": 604.1
+  },
+  {
+   "epoch": 4,
+   "stage": 1,
+   "train_loss": -0.6544,
+   "val_one_step": {
+    "pos_err_m": 0.0284,
+    "dv_err_mps": 0.1385,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.214,
+    "fde_1s": 0.449,
+    "ade_2s": 0.544,
+    "fde_2s": 1.132,
+    "ade_2s_team_in_possession": 0.521,
+    "ade_2s_defending_team": 0.568
+   },
+   "elapsed_s": 739.7
+  },
+  {
+   "epoch": 5,
+   "stage": 1,
+   "train_loss": -0.6722,
+   "val_one_step": {
+    "pos_err_m": 0.0288,
+    "dv_err_mps": 0.1405,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.229,
+    "fde_1s": 0.485,
+    "ade_2s": 0.608,
+    "fde_2s": 1.306,
+    "ade_2s_team_in_possession": 0.585,
+    "ade_2s_defending_team": 0.631
+   },
+   "elapsed_s": 868.7
+  },
+  {
+   "epoch": 6,
+   "stage": 1,
+   "train_loss": -0.6931,
+   "val_one_step": {
+    "pos_err_m": 0.0277,
+    "dv_err_mps": 0.135,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.208,
+    "fde_1s": 0.436,
+    "ade_2s": 0.534,
+    "fde_2s": 1.122,
+    "ade_2s_team_in_possession": 0.514,
+    "ade_2s_defending_team": 0.555
+   },
+   "elapsed_s": 1013.2
+  },
+  {
+   "epoch": 7,
+   "stage": 1,
+   "train_loss": -0.7015,
+   "val_one_step": {
+    "pos_err_m": 0.0282,
+    "dv_err_mps": 0.1373,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.223,
+    "fde_1s": 0.477,
+    "ade_2s": 0.605,
+    "fde_2s": 1.316,
+    "ade_2s_team_in_possession": 0.576,
+    "ade_2s_defending_team": 0.634
+   },
+   "elapsed_s": 1152.7
+  },
+  {
+   "epoch": 8,
+   "stage": 1,
+   "train_loss": -0.7008,
+   "val_one_step": {
+    "pos_err_m": 0.0274,
+    "dv_err_mps": 0.1332,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.204,
+    "fde_1s": 0.428,
+    "ade_2s": 0.52,
+    "fde_2s": 1.081,
+    "ade_2s_team_in_possession": 0.495,
+    "ade_2s_defending_team": 0.544
+   },
+   "elapsed_s": 1283.9
+  },
+  {
+   "epoch": 9,
+   "stage": 1,
+   "train_loss": -0.7183,
+   "val_one_step": {
+    "pos_err_m": 0.0275,
+    "dv_err_mps": 0.1339,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.207,
+    "fde_1s": 0.437,
+    "ade_2s": 0.544,
+    "fde_2s": 1.16,
+    "ade_2s_team_in_possession": 0.526,
+    "ade_2s_defending_team": 0.562
+   },
+   "elapsed_s": 1411.4
+  },
+  {
+   "epoch": 10,
+   "stage": 1,
+   "train_loss": -0.7296,
+   "val_one_step": {
+    "pos_err_m": 0.027,
+    "dv_err_mps": 0.1313,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.194,
+    "fde_1s": 0.406,
+    "ade_2s": 0.489,
+    "fde_2s": 1.01,
+    "ade_2s_team_in_possession": 0.475,
+    "ade_2s_defending_team": 0.503
+   },
+   "elapsed_s": 1540.4
+  },
+  {
+   "epoch": 11,
+   "stage": 1,
+   "train_loss": -0.7374,
+   "val_one_step": {
+    "pos_err_m": 0.0269,
+    "dv_err_mps": 0.1309,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.197,
+    "fde_1s": 0.412,
+    "ade_2s": 0.502,
+    "fde_2s": 1.047,
+    "ade_2s_team_in_possession": 0.48,
+    "ade_2s_defending_team": 0.524
+   },
+   "elapsed_s": 1671.7
+  },
+  {
+   "epoch": 12,
+   "stage": 1,
+   "train_loss": -0.7473,
+   "val_one_step": {
+    "pos_err_m": 0.0268,
+    "dv_err_mps": 0.1305,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.2,
+    "fde_1s": 0.422,
+    "ade_2s": 0.523,
+    "fde_2s": 1.112,
+    "ade_2s_team_in_possession": 0.492,
+    "ade_2s_defending_team": 0.554
+   },
+   "elapsed_s": 1797.1
+  },
+  {
+   "epoch": 13,
+   "stage": 1,
+   "train_loss": -0.7467,
+   "val_one_step": {
+    "pos_err_m": 0.0262,
+    "dv_err_mps": 0.1274,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.19,
+    "fde_1s": 0.395,
+    "ade_2s": 0.474,
+    "fde_2s": 0.974,
+    "ade_2s_team_in_possession": 0.458,
+    "ade_2s_defending_team": 0.491
+   },
+   "elapsed_s": 1924.2
+  },
+  {
+   "epoch": 14,
+   "stage": 1,
+   "train_loss": -0.7561,
+   "val_one_step": {
+    "pos_err_m": 0.0263,
+    "dv_err_mps": 0.1278,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.195,
+    "fde_1s": 0.409,
+    "ade_2s": 0.496,
+    "fde_2s": 1.029,
+    "ade_2s_team_in_possession": 0.482,
+    "ade_2s_defending_team": 0.51
+   },
+   "elapsed_s": 2052.0
+  },
+  {
+   "epoch": 15,
+   "stage": 1,
+   "train_loss": -0.7642,
+   "val_one_step": {
+    "pos_err_m": 0.0263,
+    "dv_err_mps": 0.1278,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.195,
+    "fde_1s": 0.41,
+    "ade_2s": 0.501,
+    "fde_2s": 1.052,
+    "ade_2s_team_in_possession": 0.483,
+    "ade_2s_defending_team": 0.519
+   },
+   "elapsed_s": 2180.4
+  },
+  {
+   "epoch": 16,
+   "stage": 1,
+   "train_loss": -0.7638,
+   "val_one_step": {
+    "pos_err_m": 0.0259,
+    "dv_err_mps": 0.126,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.187,
+    "fde_1s": 0.39,
+    "ade_2s": 0.469,
+    "fde_2s": 0.964,
+    "ade_2s_team_in_possession": 0.452,
+    "ade_2s_defending_team": 0.485
+   },
+   "elapsed_s": 2309.6
+  },
+  {
+   "epoch": 17,
+   "stage": 1,
+   "train_loss": -0.772,
+   "val_one_step": {
+    "pos_err_m": 0.026,
+    "dv_err_mps": 0.1265,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.189,
+    "fde_1s": 0.396,
+    "ade_2s": 0.482,
+    "fde_2s": 1.004,
+    "ade_2s_team_in_possession": 0.464,
+    "ade_2s_defending_team": 0.499
+   },
+   "elapsed_s": 2435.2
+  },
+  {
+   "epoch": 18,
+   "stage": 1,
+   "train_loss": -0.7743,
+   "val_one_step": {
+    "pos_err_m": 0.0258,
+    "dv_err_mps": 0.1256,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.186,
+    "fde_1s": 0.387,
+    "ade_2s": 0.464,
+    "fde_2s": 0.954,
+    "ade_2s_team_in_possession": 0.447,
+    "ade_2s_defending_team": 0.481
+   },
+   "elapsed_s": 2562.0
+  },
+  {
+   "epoch": 19,
+   "stage": 1,
+   "train_loss": -0.7776,
+   "val_one_step": {
+    "pos_err_m": 0.0258,
+    "dv_err_mps": 0.1255,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.189,
+    "fde_1s": 0.395,
+    "ade_2s": 0.479,
+    "fde_2s": 0.998,
+    "ade_2s_team_in_possession": 0.462,
+    "ade_2s_defending_team": 0.497
+   },
+   "elapsed_s": 2687.8
+  },
+  {
+   "epoch": 20,
+   "stage": 1,
+   "train_loss": -0.7774,
+   "val_one_step": {
+    "pos_err_m": 0.0258,
+    "dv_err_mps": 0.1253,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.188,
+    "fde_1s": 0.393,
+    "ade_2s": 0.476,
+    "fde_2s": 0.989,
+    "ade_2s_team_in_possession": 0.46,
+    "ade_2s_defending_team": 0.493
+   },
+   "elapsed_s": 2814.0
+  },
+  {
+   "epoch": 21,
+   "stage": 1,
+   "train_loss": -0.7773,
+   "val_one_step": {
+    "pos_err_m": 0.0257,
+    "dv_err_mps": 0.1246,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.184,
+    "fde_1s": 0.384,
+    "ade_2s": 0.462,
+    "fde_2s": 0.953,
+    "ade_2s_team_in_possession": 0.447,
+    "ade_2s_defending_team": 0.477
+   },
+   "elapsed_s": 2950.7
+  },
+  {
+   "epoch": 22,
+   "stage": 1,
+   "train_loss": -0.7824,
+   "val_one_step": {
+    "pos_err_m": 0.0258,
+    "dv_err_mps": 0.1251,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.184,
+    "fde_1s": 0.385,
+    "ade_2s": 0.466,
+    "fde_2s": 0.966,
+    "ade_2s_team_in_possession": 0.45,
+    "ade_2s_defending_team": 0.481
+   },
+   "elapsed_s": 3102.6
+  },
+  {
+   "epoch": 23,
+   "stage": 1,
+   "train_loss": -0.7832,
+   "val_one_step": {
+    "pos_err_m": 0.0258,
+    "dv_err_mps": 0.1254,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.186,
+    "fde_1s": 0.388,
+    "ade_2s": 0.469,
+    "fde_2s": 0.973,
+    "ade_2s_team_in_possession": 0.452,
+    "ade_2s_defending_team": 0.487
+   },
+   "elapsed_s": 3286.0
+  },
+  {
+   "epoch": 24,
+   "stage": 1,
+   "train_loss": -0.787,
+   "val_one_step": {
+    "pos_err_m": 0.0258,
+    "dv_err_mps": 0.1254,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.186,
+    "fde_1s": 0.39,
+    "ade_2s": 0.472,
+    "fde_2s": 0.98,
+    "ade_2s_team_in_possession": 0.456,
+    "ade_2s_defending_team": 0.487
+   },
+   "elapsed_s": 3474.9
+  },
+  {
+   "epoch": 25,
+   "stage": 2,
+   "train_loss": 0.8701,
+   "val_one_step": {
+    "pos_err_m": 0.0257,
+    "dv_err_mps": 0.1248,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.179,
+    "fde_1s": 0.371,
+    "ade_2s": 0.435,
+    "fde_2s": 0.875,
+    "ade_2s_team_in_possession": 0.42,
+    "ade_2s_defending_team": 0.451
+   },
+   "elapsed_s": 3887.9
+  },
+  {
+   "epoch": 26,
+   "stage": 2,
+   "train_loss": 0.8616,
+   "val_one_step": {
+    "pos_err_m": 0.0257,
+    "dv_err_mps": 0.1249,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.179,
+    "fde_1s": 0.37,
+    "ade_2s": 0.435,
+    "fde_2s": 0.877,
+    "ade_2s_team_in_possession": 0.419,
+    "ade_2s_defending_team": 0.451
+   },
+   "elapsed_s": 4310.0
+  },
+  {
+   "epoch": 27,
+   "stage": 2,
+   "train_loss": 0.8482,
+   "val_one_step": {
+    "pos_err_m": 0.0258,
+    "dv_err_mps": 0.1251,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.179,
+    "fde_1s": 0.371,
+    "ade_2s": 0.437,
+    "fde_2s": 0.881,
+    "ade_2s_team_in_possession": 0.42,
+    "ade_2s_defending_team": 0.453
+   },
+   "elapsed_s": 4742.1
+  },
+  {
+   "epoch": 28,
+   "stage": 2,
+   "train_loss": 0.8488,
+   "val_one_step": {
+    "pos_err_m": 0.0259,
+    "dv_err_mps": 0.1257,
+    "n": 4828
+   },
+   "val_rollout_2s": {
+    "n": 1614,
+    "ade_1s": 0.181,
+    "fde_1s": 0.375,
+    "ade_2s": 0.445,
+    "fde_2s": 0.903,
+    "ade_2s_team_in_possession": 0.427,
+    "ade_2s_defending_team": 0.463
+   },
+   "elapsed_s": 5169.3
+  }
+ ],
+ "val": {
+  "goal_share": 0.893,
+  "no_goal": {
+   "one_step": {
+    "pos_err_m": 0.0302,
+    "dv_err_mps": 0.1475,
+    "n": 4828
+   },
+   "rollout_all": {
+    "n": 1614,
+    "ade_1s": 0.22,
+    "fde_1s": 0.477,
+    "ade_2s": 0.664,
+    "fde_2s": 1.594,
+    "ade_2s_team_in_possession": 0.646,
+    "ade_2s_defending_team": 0.683
+   }
+  },
+  "one_step": {
+   "pos_err_m": 0.0257,
+   "dv_err_mps": 0.1248,
+   "n": 4828
+  },
+  "rollout_all": {
+   "n": 1614,
+   "ade_1s": 0.179,
+   "fde_1s": 0.371,
+   "ade_2s": 0.435,
+   "fde_2s": 0.875,
+   "ade_2s_team_in_possession": 0.42,
+   "ade_2s_defending_team": 0.451
+  },
+  "rollout_buildup": {
+   "n": 690,
+   "ade_1s": 0.164,
+   "fde_1s": 0.337,
+   "ade_2s": 0.395,
+   "fde_2s": 0.792,
+   "ade_2s_team_in_possession": 0.387,
+   "ade_2s_defending_team": 0.402
+  },
+  "rollout_middle": {
+   "n": 696,
+   "ade_1s": 0.188,
+   "fde_1s": 0.39,
+   "ade_2s": 0.455,
+   "fde_2s": 0.909,
+   "ade_2s_team_in_possession": 0.436,
+   "ade_2s_defending_team": 0.475
+  },
+  "rollout_final": {
+   "n": 228,
+   "ade_1s": 0.199,
+   "fde_1s": 0.415,
+   "ade_2s": 0.496,
+   "fde_2s": 1.024,
+   "ade_2s_team_in_possession": 0.47,
+   "ade_2s_defending_team": 0.523
+  },
+  "rollout_all_sampled": {
+   "n": 1614,
+   "ade_2s": 0.617,
+   "fde_2s": 1.222
+  }
+ },
+ "test": {
+  "goal_share": 0.9,
+  "no_goal": {
+   "one_step": {
+    "pos_err_m": 0.0298,
+    "dv_err_mps": 0.1463,
+    "n": 4970
+   },
+   "rollout_all": {
+    "n": 1652,
+    "ade_1s": 0.217,
+    "fde_1s": 0.47,
+    "ade_2s": 0.654,
+    "fde_2s": 1.568,
+    "ade_2s_team_in_possession": 0.631,
+    "ade_2s_defending_team": 0.677
+   }
+  },
+  "one_step": {
+   "pos_err_m": 0.0254,
+   "dv_err_mps": 0.1242,
+   "n": 4970
+  },
+  "rollout_all": {
+   "n": 1652,
+   "ade_1s": 0.179,
+   "fde_1s": 0.369,
+   "ade_2s": 0.434,
+   "fde_2s": 0.873,
+   "ade_2s_team_in_possession": 0.418,
+   "ade_2s_defending_team": 0.449
+  },
+  "rollout_buildup": {
+   "n": 591,
+   "ade_1s": 0.165,
+   "fde_1s": 0.339,
+   "ade_2s": 0.395,
+   "fde_2s": 0.788,
+   "ade_2s_team_in_possession": 0.389,
+   "ade_2s_defending_team": 0.402
+  },
+  "rollout_middle": {
+   "n": 805,
+   "ade_1s": 0.181,
+   "fde_1s": 0.374,
+   "ade_2s": 0.437,
+   "fde_2s": 0.875,
+   "ade_2s_team_in_possession": 0.421,
+   "ade_2s_defending_team": 0.453
+  },
+  "rollout_final": {
+   "n": 256,
+   "ade_1s": 0.202,
+   "fde_1s": 0.424,
+   "ade_2s": 0.512,
+   "fde_2s": 1.066,
+   "ade_2s_team_in_possession": 0.478,
+   "ade_2s_defending_team": 0.546
+  },
+  "rollout_all_sampled": {
+   "n": 1652,
+   "ade_2s": 0.619,
+   "fde_2s": 1.23
+  }
+ },
+ "autonomous_rollout_test": {
+  "n_starts": 126,
+  "seconds": 15.0,
+  "real": {
+   "speed_mean": 2.36,
+   "speed_p50": 2.12,
+   "speed_p95": 4.89,
+   "speed_max": 8.93,
+   "acc_p50": 1.06,
+   "acc_p95": 3.72,
+   "share_below_0_5mps": 0.041,
+   "width_in_possession": 55.6,
+   "width_defending": 40.3,
+   "depth_in_possession": 35.9,
+   "depth_defending": 30.2,
+   "defending_backline_to_midfield_m": 9.6,
+   "teammate_pairs_within_2m_for_2s": "9/11340"
+  },
+  "model": {
+   "speed_mean": 2.28,
+   "speed_p50": 2.06,
+   "speed_p95": 4.72,
+   "speed_max": 9.62,
+   "acc_p50": 1.16,
+   "acc_p95": 3.67,
+   "share_below_0_5mps": 0.046,
+   "width_in_possession": 55.7,
+   "width_defending": 40.3,
+   "depth_in_possession": 35.9,
+   "depth_defending": 30.3,
+   "defending_backline_to_midfield_m": 9.6,
+   "teammate_pairs_within_2m_for_2s": "7/11340"
+  },
+  "displacement_from_real_m": {
+   "at_2s": 0.71,
+   "at_5s": 0.68,
+   "at_end": 0.71
+  },
+  "non_finite": false,
+  "model_location_only": {
+   "speed_mean": 2.19,
+   "speed_p50": 1.97,
+   "speed_p95": 4.56,
+   "speed_max": 8.99,
+   "acc_p50": 0.67,
+   "acc_p95": 2.27,
+   "share_below_0_5mps": 0.055,
+   "width_in_possession": 55.7,
+   "width_defending": 40.3,
+   "depth_in_possession": 35.9,
+   "depth_defending": 30.2,
+   "defending_backline_to_midfield_m": 9.6,
+   "teammate_pairs_within_2m_for_2s": "6/11340"
+  },
+  "goals": "every 2 s: the real position 3 s later; none in the last 1 s",
+  "model_no_goal": {
+   "speed_mean": 1.78,
+   "speed_p50": 1.55,
+   "speed_p95": 3.96,
+   "speed_max": 8.67,
+   "acc_p50": 1.08,
+   "acc_p95": 3.4,
+   "share_below_0_5mps": 0.084,
+   "width_in_possession": 47.3,
+   "width_defending": 36.4,
+   "depth_in_possession": 36.3,
+   "depth_defending": 31.3,
+   "defending_backline_to_midfield_m": 10.0,
+   "teammate_pairs_within_2m_for_2s": "132/11340"
+  },
+  "displacement_from_real_no_goal_m": {
+   "at_2s": 2.12,
+   "at_5s": 7.38,
+   "at_end": 15.21
+  }
+ },
+ "elapsed_s": 5280.6
+}

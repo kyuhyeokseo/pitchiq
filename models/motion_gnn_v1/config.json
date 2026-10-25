@@ -1,0 +1,67 @@
+{
+ "model": "MotionGNN (shared 1-layer GRU 64 + 2 GNN layers 64 + shared decoder)",
+ "parameters": 124546,
+ "hist_steps": 15,
+ "dt_s": 0.2,
+ "rollout_train_steps": 10,
+ "max_speed_mps": 10.0,
+ "max_acc_mps2": 8.0,
+ "training": {
+  "hist_steps": 15,
+  "dt_s": 0.2,
+  "roll_steps": 10,
+  "processed": "$PITCHIQ_EXTERNAL/idsse/processed",
+  "out": "$PITCHIQ_EXTERNAL/models/motion_v1",
+  "epochs1": 40,
+  "epochs2": 30,
+  "patience": 3,
+  "batch": 512,
+  "lr": 0.001,
+  "weight_decay": 0.0001,
+  "seed": 0,
+  "max_minutes": 210.0,
+  "roll_stride": 4
+ },
+ "splits": {
+  "train": [
+   "DFL-MAT-J03WMX",
+   "DFL-MAT-J03WN1",
+   "DFL-MAT-J03WPY",
+   "DFL-MAT-J03WQQ",
+   "DFL-MAT-J03WR9"
+  ],
+  "val": [
+   "DFL-MAT-J03WOH"
+  ],
+  "test": [
+   "DFL-MAT-J03WOY"
+  ]
+ },
+ "generation": {
+  "authority": {
+   "run": 1.0,
+   "carry": 1.0,
+   "attack_ball": 1.0,
+   "sweep": 1.0,
+   "press": 0.85,
+   "chase": 0.85,
+   "press_mark": 0.6,
+   "recover": 0.5,
+   "screen": 0.5,
+   "mark": 0.4,
+   "cover": 0.35,
+   "gk": 0.3,
+   "hold": 0.0,
+   "check": 0.0
+  },
+  "free_carrier_m": 8.0,
+  "carry_speed_mps": 4.0,
+  "offside_wait_s": 2.0,
+  "receive_m": 1.0
+ },
+ "checkpoint_sha256": "485fe7650887777f01251b8fb1b2c38c70cfa5ac67208d3c2f026fc9d777c8c0",
+ "data": {
+  "citation": "Bassek, M., Rein, R., Weber, H. & Memmert, D. (2025). An integrated dataset of spatiotemporal and event data in elite soccer. Scientific Data 12, 195. https://doi.org/10.1038/s41597-025-04505-y. Data: https://doi.org/10.6084/m9.figshare.28196177 (v1).",
+  "licence": "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/), published with the DFL's authorisation"
+ }
+}

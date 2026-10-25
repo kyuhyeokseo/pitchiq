@@ -1,0 +1,79 @@
+# Tests, frontend build, then the serving image: built, smoke-tested offline, checked against the privacy boundary
+# (no generator code, evaluation or private truth inside) and pushed to GitHub Container Registry.
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install (pinned)
+        run: pip install -c infra/constraints.txt -e ".[dev,foundry,mcp]"
+      - name: Backend tests (offline; the optional torch tests skip)
+        run: python -m pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20.18.1"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Frontend typecheck and build
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund && npm run build
+
+  image:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/Dockerfile
+          load: true
+          tags: pitchiq:ci
+      - name: Smoke test (offline) and the privacy boundary inside the image
+        run: |
+          docker run -d --name pitchiq -p 8000:8000 pitchiq:ci
+          curl --retry 30 --retry-delay 2 --retry-all-errors -fsS http://127.0.0.1:8000/api/health
+          n=$(curl -fsS http://127.0.0.1:8000/api/clips | python3 -c 'import json, sys; print(len(json.load(sys.stdin)))')
+          echo "clips: $n"; test "$n" -eq 12
+          m=$(curl -fsS -X POST http://127.0.0.1:8000/mcp -H 'Content-Type: application/json' \
+                -H 'Accept: application/json, text/event-stream' \
+                -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}' \
+              | python3 -c 'import json, sys; print(len(json.load(sys.stdin)["result"]["tools"]))')
+          echo "mcp tools: $m"; test "$m" -eq 5
+          docker exec pitchiq sh -c 'test ! -e /app/backend/app/simulator && test ! -e /app/evaluation && test ! -e /app/data/private_truth && test ! -e /app/.env'
+          docker rm -f pitchiq
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push to GHCR
+        run: |
+          img="ghcr.io/${GITHUB_REPOSITORY,,}"
+          tag="sha-${GITHUB_SHA::7}"
+          docker tag pitchiq:ci "$img:$tag" && docker push "$img:$tag"
+          if [ "$GITHUB_REF" = refs/heads/main ]; then docker tag pitchiq:ci "$img:latest" && docker push "$img:latest"; fi
+          if [ "$GITHUB_REF_TYPE" = tag ]; then docker tag pitchiq:ci "$img:$GITHUB_REF_NAME" && docker push "$img:$GITHUB_REF_NAME"; fi
+          echo "pushed $img:$tag"

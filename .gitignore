@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+build/
+dist/
+
+# Secrets - never commit
+.env
+.env.*
+!.env.example
+
+# Generated datasets (reproducible from seeds; demo fixtures ARE committed)
+data/generated/
+data/private_truth/*
+!data/private_truth/scenario_a.jsonl
+
+# Frontend build output (rebuilt by scripts/build_frontend.sh and the Dockerfile)
+node_modules/
+frontend/dist/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Real tracking data (IDSSE, CC BY 4.0) and training runs: never in the repository
+external/
+*-external/
+
+# Archives and logs
+*.tar.gz
+*.log
+
+# renders of real (IDSSE) tracking used only for offline model diagnostics
+docs/diagnostics/motion_gnn_*/rollouts/

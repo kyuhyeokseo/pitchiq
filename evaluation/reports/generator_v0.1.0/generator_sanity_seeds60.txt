@@ -1,0 +1,16 @@
+recipe             n ahead>1m outside@x inside@x gapΔ5s gapΔflank      frames  final receivers
+overlap_follow    60       60        60        0    9.7       1.0   61-75    {'DM': 7, 'RCM': 33, 'ST': 15, 'RCB': 2, 'RB': 3}
+overlap_hold      60       60        60        0    4.2       0.0   61-75    {'DM': 13, 'RCM': 12, 'RCB': 11, 'ST': 19, 'RB': 5}
+overlap_switch    60       60        60        0    3.9       0.8   61-79    {'DM': 8, 'RCM': 24, 'ST': 15, 'RB': 10, 'RCB': 3}
+underlap          60       60         0       60    5.1       0.0   61-76    {'DM': 17, 'ST': 31, 'RB': 9, 'RCB': 3}
+support_no_pass   60        0         0        0    7.3       0.4   61-75    {'DM': 12, 'ST': 36, 'RB': 11, 'RCB': 1}
+parallel_run      60        0         0        0    0.5       0.0   61-73    {'ST': 8, 'DM': 43, 'RW': 9}
+aborted_overlap   60        0         0        0    5.7       0.3   61-76    {'DM': 18, 'ST': 32, 'RCB': 4, 'RB': 6}
+circulation       60        0         0        0    4.8       4.8   62-105   {None: 60}
+
+Same attack seed, defender response swapped (recipe overlap_follow attack params):
+  mark_runner  gap_delta: median= 8.2 p10= 5.2 p90=15.8 | gap_delta_flank: median= 1.4 p10= 0.0 p90= 4.7 | final={'RCM': 37, 'ST': 15, 'RB': 5, 'DM': 3}
+  switch_mark  gap_delta: median= 2.7 p10= 0.7 p90= 8.9 | gap_delta_flank: median= 0.8 p10= 0.0 p90= 2.4 | final={'RCM': 29, 'ST': 11, 'DM': 7, 'RB': 13}
+  hold_line    gap_delta: median= 4.3 p10= 0.0 p90= 6.8 | gap_delta_flank: median= 0.0 p10= 0.0 p90= 0.1 | final={'ST': 24, 'DM': 13, 'RCM': 12, 'RCB': 9, 'RB': 2}
+  gap_delta: mark_runner > hold_line in 55/60 paired seeds
+  gap_delta_flank: mark_runner > hold_line in 41/60 paired seeds

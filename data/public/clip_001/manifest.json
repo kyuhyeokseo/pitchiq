@@ -1,0 +1,164 @@
+{
+  "schema_version": "2.0",
+  "match_id": "synthetic_001",
+  "period": 1,
+  "pitch": {
+    "length_m": 105,
+    "width_m": 68
+  },
+  "tracking_hz": 5,
+  "teams": [
+    {
+      "team_id": "blue",
+      "display_name": "Blue FC",
+      "attack_direction": 1
+    },
+    {
+      "team_id": "red",
+      "display_name": "Red United",
+      "attack_direction": -1
+    }
+  ],
+  "roster": [
+    {
+      "player_id": "blue_01",
+      "team_id": "blue",
+      "jersey": 1,
+      "is_goalkeeper": true
+    },
+    {
+      "player_id": "blue_02",
+      "team_id": "blue",
+      "jersey": 2,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "blue_03",
+      "team_id": "blue",
+      "jersey": 3,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "blue_04",
+      "team_id": "blue",
+      "jersey": 4,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "blue_05",
+      "team_id": "blue",
+      "jersey": 5,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "blue_06",
+      "team_id": "blue",
+      "jersey": 6,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "blue_07",
+      "team_id": "blue",
+      "jersey": 7,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "blue_08",
+      "team_id": "blue",
+      "jersey": 8,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "blue_09",
+      "team_id": "blue",
+      "jersey": 9,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "blue_10",
+      "team_id": "blue",
+      "jersey": 10,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "blue_11",
+      "team_id": "blue",
+      "jersey": 11,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_01",
+      "team_id": "red",
+      "jersey": 1,
+      "is_goalkeeper": true
+    },
+    {
+      "player_id": "red_02",
+      "team_id": "red",
+      "jersey": 2,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_03",
+      "team_id": "red",
+      "jersey": 3,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_04",
+      "team_id": "red",
+      "jersey": 4,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_05",
+      "team_id": "red",
+      "jersey": 5,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_06",
+      "team_id": "red",
+      "jersey": 6,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_07",
+      "team_id": "red",
+      "jersey": 7,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_08",
+      "team_id": "red",
+      "jersey": 8,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_09",
+      "team_id": "red",
+      "jersey": 9,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_10",
+      "team_id": "red",
+      "jersey": 10,
+      "is_goalkeeper": false
+    },
+    {
+      "player_id": "red_11",
+      "team_id": "red",
+      "jersey": 11,
+      "is_goalkeeper": false
+    }
+  ],
+  "clips": [
+    {
+      "clip_id": "clip_001",
+      "start_s": 612.0,
+      "end_s": 635.8,
+      "checksum": "sha256:c8be3d30995b8b7807735602b24ea0f42b66be79b204719b2c301df1360a3beb"
+    }
+  ]
+}

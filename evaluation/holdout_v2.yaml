@@ -1,0 +1,29 @@
+# Holdout evaluation for the v2 defensive families (spec 16 and 17.2).
+# Fixed before the first run. If anything here or in analytics_config.yaml changes after results were seen,
+# report it as a new version with new seeds instead of overwriting the old report.
+version: holdout-v2-0.6
+seeds: [11000, 11011]        # inclusive; new seeds: 5000-5011 (0.1), 7000-7011 (0.2), 8000-8011 (0.3), 9000-9011 (0.4), 10000-10011 (0.5) used; 6000-6011 validation
+changes_from_previous:       # what changed after holdout-v2-0.5 was seen (diagnosed on validation seeds 6000-6011 only)
+  - "generator 0.5: a pass to a runner is never released offside (the trigger allows for the line stepping up), and a ball played into space rolls on until someone reaches it (no reception from 2 m away)"
+  - "generator 0.5: in C support the far winger steps into the lane to the far centre-back (left open, that square ball was the free man the support is meant to take away)"
+  - "generator 0.5: C's story players shift their feet where they wait and the carrier keeps the ball moving"
+  - "definition: D main's story accepts either restriction label (central routes screened or short options screened), as C has since 0.2; the analyzer names it by whichever it sees first on the carrier"
+changes_in_0_5:              # what changed after holdout-v2-0.4 was seen (found by the browser walkthrough, not by holdout results)
+  - "generator 0.4.1: D's double pivot holds its height and slides across, so its markers stay in the build-up zone (the D trap's 4 v 5 count)"
+  - "frontend: overlapping episodes are stacked on separate timeline rows (one bar could cover another and could not be clicked)"
+changes_in_0_4:              # what changed after holdout-v2-0.3 was seen (diagnosed on seeds 7, 100-119 and validation 6000-6011)
+  - "generator 0.4: in A, the midfield, the ball-far wide midfielder and the far full back (inside only, at the line's height) drop off a man far from the ball (loose marking, slopes from IDSSE); the striker's marker and the second centre-back stay tight"
+  - "generator 0.4: C's pivot slides across, C's midfield screen is released once the ball goes wide, E's free man waits at his height before moving into the space"
+  - "analyzer: an outcome revision after a turnover no longer pulls in the other team's state (it used to stop the analysis)"
+
+perturb:                     # reaction / spacing combinations outside the development settings
+  lag_scale: [0.75, 1.35]    # marker and plan reaction lags
+  cushion_scale: [0.85, 1.20] # goal-side marking cushions
+  speed_scale: [0.93, 1.07]  # behaviour running speeds
+  timing_scale: [0.90, 1.15] # how long a player keeps the ball before the planned pass
+  start_jitter_m: 1.0        # start positions (goalkeepers excluded)
+matching:
+  iou_min: 0.3               # episode vs designed story, same defending team and an accepted family, 1:1
+targets:                     # spec 17.2 starting targets: reported against, never assumed
+  supported_claim_precision: 0.90
+  counter_example_wrong_emphasis: 0

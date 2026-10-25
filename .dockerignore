@@ -1,0 +1,15 @@
+# The serving image gets the API source, the frontend source and the public clips - nothing else.
+**
+!pyproject.toml
+!infra/constraints.txt
+!backend/app/**
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/index.html
+!frontend/vite.config.ts
+!frontend/tsconfig.json
+!frontend/src/**
+!data/public/**
+# generator-private code and caches stay out even inside the allowed trees
+backend/app/simulator/
+**/__pycache__/

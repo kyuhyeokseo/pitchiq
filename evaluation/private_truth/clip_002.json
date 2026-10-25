@@ -1,0 +1,76 @@
+{
+  "clip_id": "clip_002",
+  "generator_version": "defense-0.5.0",
+  "seed": 7,
+  "private_config": {
+    "family": "B",
+    "variant": "main",
+    "seed": 7,
+    "attacking_team": "blue",
+    "attack_direction": -1,
+    "start_s": 2955.0,
+    "period": 2
+  },
+  "family": "B",
+  "variant": "main",
+  "story": {
+    "start": "dm_ball_arrive",
+    "families": [
+      "line_separation"
+    ],
+    "used": true,
+    "optional": [
+      "press_block_disconnected"
+    ],
+    "window_clip_s": [
+      6.4,
+      11.0
+    ],
+    "executed": true
+  },
+  "generator_intent": "high_press_deep_line",
+  "expected": {
+    "restricted": [
+      "behind_depth_reduced"
+    ],
+    "exposed": [
+      "press_block_disconnected",
+      "between_lines_receiver"
+    ],
+    "suppressed": [],
+    "attacking_response": "midfielder_into_gap",
+    "defensive_adjustment": "midfield_drop"
+  },
+  "params": {
+    "t_drop": 1.288,
+    "back_u": 76.12,
+    "t_move": 6.679,
+    "gap_spot": [
+      52.284950213210244,
+      43.646161787887834
+    ],
+    "mid_u": 44.5
+  },
+  "roles": {
+    "between_lines": "A:LCM",
+    "carrier": "A:DM",
+    "mid_drop": "D:DM"
+  },
+  "markers_match_s": {
+    "release_0_t": 2957.2,
+    "arrive_0_t": 2958.4,
+    "release_1_t": 2960.2,
+    "dm_ball_release_t": 2960.2,
+    "arrive_1_t": 2961.4,
+    "dm_ball_arrive_t": 2961.4,
+    "release_2_t": 2964.6,
+    "ten_ball_release_t": 2964.6,
+    "arrive_2_t": 2966.0,
+    "ten_ball_arrive_t": 2966.0,
+    "release_3_t": 2969.0,
+    "arrive_3_t": 2970.4,
+    "end_t": 2975.4
+  },
+  "attacking_team_id": "blue",
+  "defending_team_id": "red"
+}

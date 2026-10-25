@@ -1,0 +1,68 @@
+{
+  "clip_id": "clip_010",
+  "generator_version": "defense-0.5.0",
+  "seed": 7,
+  "private_config": {
+    "family": "E",
+    "variant": "hold",
+    "seed": 7,
+    "attacking_team": "red",
+    "attack_direction": -1,
+    "start_s": 3384.0,
+    "period": 2
+  },
+  "family": "E",
+  "variant": "hold",
+  "story": {
+    "start": "rcb_ball_arrive",
+    "families": [
+      "press_vs_depth"
+    ],
+    "used": false,
+    "optional": [],
+    "window_clip_s": [
+      2.2,
+      9.6
+    ],
+    "executed": true
+  },
+  "generator_intent": "passive_lane_screen_holds",
+  "expected": {
+    "restricted": [
+      "short_options_screened"
+    ],
+    "exposed": [],
+    "suppressed": [
+      "accessible_free_receiver"
+    ],
+    "attacking_response": "centre_back_carry",
+    "defensive_adjustment": "screen_holds"
+  },
+  "params": {
+    "t_wait": 1.719,
+    "t_out": 3.763,
+    "carry_to": [
+      28.553093883256405,
+      23.591351117429898
+    ],
+    "lag_s": 0.306
+  },
+  "roles": {
+    "carrier": "A:RCB",
+    "stepper": "D:LCM",
+    "free_man": "A:RCM"
+  },
+  "markers_match_s": {
+    "release_0_t": 3385.0,
+    "rcb_ball_release_t": 3385.0,
+    "arrive_0_t": 3386.2,
+    "rcb_ball_arrive_t": 3386.2,
+    "release_1_t": 3392.0,
+    "switch_release_t": 3392.0,
+    "arrive_1_t": 3393.6,
+    "switch_arrive_t": 3393.6,
+    "end_t": 3398.6
+  },
+  "attacking_team_id": "red",
+  "defending_team_id": "blue"
+}

@@ -1,0 +1,78 @@
+{
+  "clip_id": "clip_011",
+  "generator_version": "defense-0.5.0",
+  "seed": 7,
+  "private_config": {
+    "family": "G",
+    "variant": "main",
+    "seed": 7,
+    "attacking_team": "blue",
+    "attack_direction": -1,
+    "start_s": 1210.0
+  },
+  "family": "G",
+  "variant": "main",
+  "story": {
+    "start": "bp_arrive",
+    "families": [
+      "press_vs_depth"
+    ],
+    "used": true,
+    "optional": [
+      "accessible_free_receiver"
+    ],
+    "window_clip_s": [
+      3.2,
+      11.0
+    ],
+    "executed": true
+  },
+  "generator_intent": "back_pass_trigger_step_up",
+  "expected": {
+    "restricted": [
+      "short_options_screened"
+    ],
+    "exposed": [
+      "behind_space_exposed"
+    ],
+    "suppressed": [],
+    "attacking_response": "back_pass_then_run_in_behind",
+    "defensive_adjustment": "whole_line_steps_up"
+  },
+  "params": {
+    "t_bp": 1.719,
+    "react": 0.272,
+    "line_u": 66.723,
+    "step_u": 57.089,
+    "t_go": 3.021,
+    "run_to": [
+      86.18270223485979,
+      51.73765028670047
+    ],
+    "lag_s": 0.336
+  },
+  "roles": {
+    "carrier": "A:RCB",
+    "presser": "D:ST",
+    "runner": "A:ST",
+    "back_line": [
+      "D:LB",
+      "D:LCB",
+      "D:RCB",
+      "D:RB"
+    ]
+  },
+  "markers_match_s": {
+    "release_0_t": 1211.8,
+    "bp_release_t": 1211.8,
+    "arrive_0_t": 1213.2,
+    "bp_arrive_t": 1213.2,
+    "release_1_t": 1217.6,
+    "long_ball_release_t": 1217.6,
+    "arrive_1_t": 1221.0,
+    "long_ball_arrive_t": 1221.0,
+    "end_t": 1226.0
+  },
+  "attacking_team_id": "blue",
+  "defending_team_id": "red"
+}
