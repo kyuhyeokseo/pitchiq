@@ -1,5 +1,7 @@
 # PitchIQ: Defensive Intelligence
 
+[![CI](https://github.com/kyuhyeokseo/pitchiq/actions/workflows/ci.yml/badge.svg)](https://github.com/kyuhyeokseo/pitchiq/actions/workflows/ci.yml)
+
 **Every press takes something away and leaves something open. PitchIQ shows both, with the evidence.**
 
 Replays often blame the last defender. The real story is usually a trade-off the defence made seconds earlier: what its press took away, and what it left open. PitchIQ measures both sides in code, from what has been seen so far, on synthetic tracking and event data:
@@ -9,7 +11,7 @@ Replays often blame the last defender. The real story is usually a trade-off the
 
 Agents built with Microsoft Agent Framework on Microsoft Foundry then explain the moment to fans and analysts, in English and Korean. They can only choose among statements that code has already tied to measurements and checked. Nothing reaches the broadcast view until a producer approves that exact revision.
 
-**Live demo:** _(link added at release)_ · **Video (under 2 min):** _(link added at release)_ · **Testing guide:** _(added at release)_ · **License:** [MIT](LICENSE)
+**Live demo:** [pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io](https://pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io) (Azure Container Apps, Foundry agents on) · **Video (under 2 min):** _(link added at release)_ · **Testing guide:** _(added at release)_ · **License:** [MIT](LICENSE)
 
 ![PitchIQ pitch view of a replay moment. Pink dashed lanes ending in a stop bar are the short passes Red's press screens. A cyan hatched area marks the space behind Red's back line, where cover arrives 1.5 s late.](docs/images/hero_restricted_exposed.png)
 
@@ -32,7 +34,7 @@ What a broadcaster gets:
 1. **A human signs off.** A producer approves one exact revision together with its evidence hash. Stale evidence returns HTTP 409. The broadcast view and the export serve approved revisions only.
 2. **The model cannot invent a number or a motive.** Agents return ids. Code fills every number from the evidence and checks every choice, and the sentence templates describe what was observed, never intent.
 3. **Cost and latency are bounded and measured.** Analysis takes 9.4 ms per step (p95), and the deterministic plan is on screen at once. Cloud narration follows 4.6–7.7 s later as a new revision, for about 1 US cent per replayed clip, under one daily cap.
-4. **No keys, and a tested privacy boundary.** Sign-in uses the Azure CLI credential locally and is built for managed identity on Azure. Tests keep serving code away from the generator's private truth.
+4. **No keys, and a tested privacy boundary.** Sign-in uses the Azure CLI credential locally and the app's managed identity on Azure (the live demo). Tests keep serving code away from the generator's private truth.
 5. **Hand-off to graphics.** An approved moment exports as JSON: the evidence packet plus four overlay snapshots (Fan/Analyst × EN/KO), each tied to its frame.
 
 Most controls have tests, named in the table (all in `backend/tests/`).
@@ -46,7 +48,7 @@ Most controls have tests, named in the table (all in `backend/tests/`).
 | **Bounded time, calls and spend** | Narration: 8 s per stage, 20 s per pipeline, at most 3 model calls including the repair, 2 concurrent pipelines, at most 4 pending per replay. Ask: 45 s, at most 2 runs and 8 tool calls per question, at most 6 model round trips per run, one question at a time per replay (429), 2 questions in flight. One daily cap (`FOUNDRY_DAILY_LIMIT`) is shared by narration runs and Ask questions; beyond it the deterministic plan or answer is used. | `backend/app/agents/cloud.py` (`Limits`), `ask.py` (`AskLimits`), `gateway.py` | `test_v2_cloud.py`, `test_v2_ask.py` |
 | **No stale narration on air** | A late result is recorded in history and never attached to the broadcast view. The cache key combines the evidence hash, the prompt, template and analytics versions, and the model, so old narration never mixes with new evidence. | `backend/app/replay/session.py` (`_attach_cloud`), `backend/app/agents/cloud.py` (`cache_key`) | `test_v2_cloud.py` |
 | **Provenance and traces** | Each revision carries a `source_mode` (`foundry_live`, `foundry_cached` or `deterministic_fallback`) and a trace id. A trace records stage times, the deployment name, attempts, validation error codes and the token counts the service reported. It never records prompts or credentials. `/api/health` reports "configured" separately from "last call succeeded". | `backend/app/agents/cloud.py` (`Trace`), `ask.py` (`AskTrace`), `backend/app/api/app.py` | `test_v2_cloud.py`, `test_v2_ask.py`, `test_v2_narrative_api.py` |
-| **Sign-in without keys, no secrets in code** | Uses the Azure CLI credential locally and managed identity on Azure. `.env` is gitignored. The container definition ignores `.env` (`PITCHIQ_DOTENV=0`) and runs as a non-root user. | `backend/app/agents/gateway.py`, `.gitignore`, `infra/Dockerfile` | No test. The Azure CLI credential worked in live calls on 2026-10-24; managed identity has not run yet (no deployment). |
+| **Sign-in without keys, no secrets in code** | Uses the Azure CLI credential locally and managed identity on Azure. `.env` is gitignored. The container definition ignores `.env` (`PITCHIQ_DOTENV=0`) and runs as a non-root user. | `backend/app/agents/gateway.py`, `.gitignore`, `infra/Dockerfile` | No test. Both ran live on 2026-10-24: the Azure CLI credential in development, and the Container App's system-assigned managed identity (role: Foundry User on the Foundry resource only) on the public demo. |
 | **Privacy boundary enforced by tests** | The generator's private truth (recipes, intent, seeds, expected claims) stays out of serving code: a source scan fails the tests if serving code references it. The public clips and the health and catalog payloads are scanned for truth tokens. The image build context is a whitelist that leaves out generator code and truth. | `.dockerignore`, `infra/Dockerfile` | `test_privacy.py` (source scan), `test_v2_generator.py` (public clips), `test_v2_narrative_api.py` (payloads), `test_v2_packaging.py` (image) |
 | **Causal by construction** | The analysis at frame t reads only `[t - W, t]`, and an event counts only once it is available. Ask and MCP tools see only revisions up to the asked time. | `backend/app/replay/session.py`, `backend/app/agents/tools.py` (`View`) | `test_v2_tradeoffs.py`, `test_v2_agent_tools.py`, `test_v2_ask.py` |
 | **Session isolation and limits** | Each replay has its own token (403 on a wrong one), and a control call for an old epoch gets 409. Approvals belong to one session and one exact revision: another session never sees them, and a newer revision is suggested again. A seek resets broadcast visibility to hidden, but the approval stays valid for the exact revision and evidence hash it named. At most 20 replays are open; a new one closes the least recently used. | `backend/app/api/app.py`, `backend/app/replay/session.py` (`SessionStore`) | `test_v2_narrative_api.py`, `test_v2_sessions.py` |
@@ -109,7 +111,7 @@ flowchart TB
   EP --> RVIEW["View frozen at recap time<br/>+ viewer: audience, language,<br/>my club, followed player"]
   RVIEW --> RWF["Recap workflow (Agent Framework)<br/>gather → recap agent → code check<br/>→ render or deterministic recap"]
 
-  AZ -.-> MCP["MCP endpoint /mcp in the web app (not yet deployed)<br/>list_clips · defensive_moments · moment_evidence<br/>explain_moment · moment_history"]
+  AZ -.-> MCP["MCP endpoint /mcp on the live app<br/>list_clips · defensive_moments · moment_evidence<br/>explain_moment · moment_history"]
 ```
 
 ![Three PitchIQ side-panel cards during live Foundry runs: the moment card with narration by the Foundry agents and its agent steps (Analyst, code check, Producer, code check) with stage times; an Ask PitchIQ answer whose first choice the code check refused, then repaired and validated, with its tool calls; and a Recap built by the Recap workflow with its steps.](docs/images/foundry_agents_live.png)
@@ -134,7 +136,7 @@ flowchart TB
   - The agent picks 1–3 moments of the replay so far and 1–3 validated sentences for each, for one viewer: audience, language, their club and the player they follow.
   - Code tags each moment as "your club defending/attacking" and "involves the followed player", and requires a followed player's moment when one exists.
   - Each recap lists its workflow steps, tool calls, times and token counts.
-- **MCP server** (`backend/app/agents/mcp_server.py`) gives any MCP client five read-only tools over stdio or streamable HTTP: `list_clips`, `defensive_moments`, `moment_evidence`, `explain_moment` and `moment_history`. Like Ask, the tools only see analysis up to the requested time. It is mounted at `/mcp` in the web app (stateless streamable HTTP, JSON responses); not yet deployed. Besides localhost, it answers only the host names in `PITCHIQ_PUBLIC_HOSTS`.
+- **MCP server** (`backend/app/agents/mcp_server.py`) gives any MCP client five read-only tools over stdio or streamable HTTP: `list_clips`, `defensive_moments`, `moment_evidence`, `explain_moment` and `moment_history`. Like Ask, the tools only see analysis up to the requested time. It is mounted at `/mcp` in the web app (stateless streamable HTTP, JSON responses) and is live at `https://pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io/mcp`. Besides localhost, it answers only the host names in `PITCHIQ_PUBLIC_HOSTS`.
 
 
 ## Microsoft technology
@@ -143,14 +145,13 @@ flowchart TB
 |---|---|---|---|
 | **Microsoft Foundry**: model deployment `gpt-5-mini` (Global Standard) | Serves the model calls of all four agents | `backend/app/agents/gateway.py` | Live calls, 2026-10-24 |
 | **Microsoft Agent Framework** (`agent-framework-foundry` 1.15.0 with `agent-framework-core` 1.23.0; exact pins in `infra/constraints.txt`) | App-owned `Agent`s on `FoundryChatClient`, structured output, tool calling (Ask, Recap), and a `WorkflowBuilder` workflow with switch-case routing for the Recap | `gateway.py`, `ask.py`, `recap_workflow.py`, `cloud.py` in `backend/app/agents/` | Live calls, 2026-10-24 |
-| **Azure Identity** (`azure-identity` 1.26.0) | Sign-in without keys: `AzureCliCredential` locally, `ManagedIdentityCredential` on Azure | `backend/app/agents/gateway.py` | Azure CLI credential: live calls, 2026-10-24. Managed identity: not used yet (no deployment) |
+| **Azure Identity** (`azure-identity` 1.26.0) | Sign-in without keys: `AzureCliCredential` locally, `ManagedIdentityCredential` on Azure | `backend/app/agents/gateway.py` | Both ran live, 2026-10-24 (managed identity on the deployed app) |
+| **Azure Container Apps** (Consumption, Sweden Central) | Hosts the public demo: one container with the web app, the API, the WebSocket and `/mcp`; one replica; system-assigned managed identity; the Foundry settings and the daily cap as environment variables | `infra/README.md` (the commands used), `infra/Dockerfile` | Deployed 2026-10-24; live agent calls and MCP ran against it |
+| **GitHub Actions** and **GitHub Container Registry** | CI on every push: tests, frontend build, image build, an offline smoke test and the privacy check inside the image, then the image is pushed to `ghcr.io/kyuhyeokseo/pitchiq` (public) | `.github/workflows/ci.yml` | The first run, 2026-10-24, passed every step |
 
-Also built: an MCP server (Model Context Protocol, an open standard) that exposes the five read-only match tools; mounted at `/mcp` in the web app, not yet deployed.
+Also built: an MCP server (Model Context Protocol, an open standard) that exposes the five read-only match tools; mounted at `/mcp` in the web app and live on the demo URL.
 
-**Planned, and added to the table only once they run:**
-- Azure Container Apps hosting with a managed identity. The Dockerfile and deployment notes are in `infra/`.
-- GitHub Actions CI that builds the image and pushes it to GitHub Container Registry. The workflow is written (`.github/workflows/ci.yml`) but has not run yet.
-- Application Insights tracing of agent runs.
+**Planned, and added to the table only once it runs:** Application Insights tracing of agent runs.
 
 ## Measured results
 
@@ -159,13 +160,14 @@ Also built: an MCP server (Model Context Protocol, an open standard) that expose
 | Analyst → Producer on Foundry | 8 of 8 plans validated (1 after its single repair). 4.6–7.7 s end to end, 2.3k–4.4k input and 0.2k–0.3k output tokens, about 0.1–0.2 US cent per run. | 2026-10-24 | Live `gpt-5-mini`, reasoning effort `minimal`, 8 runs of the smoke runner (`python -m app.agents.smoke --clip …`) over 7 clips. Times and tokens come from the run trace. Cost is estimated from the reported tokens at $0.25 per 1M input and $2.00 per 1M output tokens; it is not a billing record. Log: [`docs/foundry_live/MEASUREMENTS.md`](docs/foundry_live/MEASUREMENTS.md) |
 | Ask PitchIQ on Foundry | Agent time 5.8–16.5 s in 9 smoke runs (16.5 s: an early run that needed its single repair); in 10 questions in the browser 5.0–25.0 s (median about 7 s; one run took 25 s, one needed its single repair). 2–3 tool calls, 6.2k–11.4k input and 132–257 output tokens, about 0.2–0.3 cent per question. Intent questions (EN, EN, KO) got the fixed note 3 of 3 times after the instruction was made explicit. "Will Blue score?" was declined as not yet known. | 2026-10-24 | Smoke runner with `--ask`, and questions in the real UI with Foundry on (several sessions that evening). Same log |
 | Recap workflow on Foundry | 6 of 7 runs validated: 5.0–15.5 s, 2–3 tool calls, about 2.7k–8k input and 99–229 output tokens, about 0.1–0.2 cent per recap. The other hit a transient service error and showed the deterministic recap, labelled. | 2026-10-24 | 4 smoke runs with `--recap` (EN with my club and a followed player; KO with my club) and 3 in the real UI. Same log |
-| Live 1× replay of `clip_001` | 6 of 7 episodes ended with a validated Foundry plan on their final revision. The 7th kept the deterministic plan after a Producer validation failure. 11 pipeline runs, about 1 cent per clip. | 2026-10-24 | App in Foundry mode, one full replay at 1×, per-episode sources and traces. Same log |
+| Live 1× replay of `clip_001` | 6 of 7 episodes ended with a validated Foundry plan on their final revision. The 7th kept the deterministic plan after a Producer validation failure. 11 pipeline runs, about 1 cent per clip. | 2026-10-24 | App in Foundry mode, one full replay at 1×, per-episode sources and traces. A bug found later made the replay clock run about 1.8× fast while a browser was connected (fixed, with a test), so the agents had less time than at a true 1×. Same log |
 | Holdout: story matching | All 144 synthetic clips on unseen seeds and parameter draws matched their designed story. Designed claim precision 241/242. Restricted / exposed recall 1.00 / 0.88. | 2026-10-23 | `make evaluate`, holdout-v2-0.6, deterministic narration. `evaluation/reports/holdout_v2/holdout-v2-0.6/` |
 | Holdout: counter-examples | Wrong emphasis in 1 of 72 (target 0). | 2026-10-23 | Same report |
 | Holdout: abstention | On the 72 clips where exposure was expected, the story stayed partial or unmatched in 1. | 2026-10-23 | Same report |
 | Analysis latency | p50 7.9 ms, p95 9.4 ms per 5 Hz step (target: p95 under 200 ms) | 2026-10-23 | 12,669 frames, single process, CPU on an HPC compute node, during the holdout run |
-| Tests | 260 passed | 2026-10-24 | `make test` |
-| Browser walkthrough | 59 of 59 checks passed, no browser console errors | 2026-10-24 | Headless Chromium drives the real UI in offline mode (`make walkthrough`). See `docs/walkthrough/report.json` and the screenshots |
+| Tests | 262 passed | 2026-10-24 | `make test` |
+| Browser walkthrough | 60 of 60 checks passed, no browser console errors | 2026-10-24 | Headless Chromium drives the real UI in offline mode (`make walkthrough`), including a check over a slow link (400 ms per request). See `docs/walkthrough/report.json` and the screenshots |
+| Deployed app | Managed identity reached Foundry: an Ask answered in 5.9 s with 2 tool calls, a Recap in 8.2 s, both validated; `/mcp` listed its 5 tools over HTTPS; a 1× replay streamed over the WebSocket. | 2026-10-24 | Calls from the development machine to the public URL. Log: [`docs/foundry_live/MEASUREMENTS.md`](docs/foundry_live/MEASUREMENTS.md) |
 
 All of these are small samples. The live Foundry numbers come from one day: 8 smoke runs at minimal effort (plus 4 at low effort), a handful of questions and one full replay (11 pipelines). They are not a benchmark. Earlier versions and the full evaluation are in [`docs/evaluation.md`](docs/evaluation.md).
 
@@ -188,7 +190,13 @@ Run every command from the repository root: the server reads the clips from `dat
 
 ### Offline mode (no Azure needed)
 
-Requirements: Python 3.12 and Node 20.
+With Docker, the image CI built and smoke-tested:
+
+```bash
+docker run --rm -p 8000:8000 ghcr.io/kyuhyeokseo/pitchiq:latest   # http://127.0.0.1:8000
+```
+
+From source. Requirements: Python 3.12 and Node 20.
 
 ```bash
 python3.12 -m venv .venv
@@ -232,7 +240,7 @@ make dev
 - The project endpoint is on the Foundry project's Overview page.
 - `FOUNDRY_REASONING_EFFORT=minimal` leaves margin under the 8 s stage timeout. With `low` effort, runs took 7.3–14.7 s and the Producer stage came close to 8 s.
 - `/api/health` reports `foundry_configured` (the settings are present) separately from `last_cloud_result.last_call_succeeded` (a real call worked).
-- On Azure, use `AUTH_MODE=managed_identity`.
+- On Azure, use `AUTH_MODE=managed_identity`. `infra/README.md` has the commands the live demo was deployed with.
 
 ### Try it
 
@@ -274,6 +282,7 @@ make walkthrough SRUN= # headless-browser walkthrough -> docs/walkthrough/
 - **Small live samples.** The Foundry numbers come from one day of runs (see [Measured results](#measured-results)).
 - **Demo-grade serving.**
   - Sessions live in memory (one replica, one worker). A restart clears them and resets the daily-cap counter.
+  - The live demo runs in Sweden Central on 0.5 vCPU, with a daily cap of 300 Foundry runs; beyond it the deterministic plans and answers are shown, labelled.
   - At most 20 replays are open at once. When another starts, the least recently used one is closed, and its viewer starts a fresh replay (approvals in it are lost). Replays close after 30 minutes without a client action, or after 10 if no connection is open.
   - The approval gate is a preview control within one session, not a broadcast permission system. There is no login or role-based access yet.
 
@@ -281,11 +290,12 @@ make walkthrough SRUN= # headless-browser walkthrough -> docs/walkthrough/
 
 | Built and verified | Planned for this release, not done yet |
 |---|---|
-| Causal analytics, trade-off episodes, overlays, the evidence panel, approval, the broadcast view, JSON export | Public deployment on Azure Container Apps with a managed identity, plus the live URL |
-| Analyst → Producer and Ask PitchIQ agents, with live Foundry calls | CI: the workflow is written (`.github/workflows/ci.yml`) but has not run; the image on GitHub Container Registry follows its first run |
-| Fan and Analyst wording in EN and KO | Agent tracing in Application Insights |
-| MCP server (stdio and streamable HTTP), mounted at `/mcp` in the web app | MCP on the public URL (with the deployment) |
-| Holdout evaluation, backend tests, browser walkthrough; My club and Follow a player; the Recap workflow | The demo video |
+| Causal analytics, trade-off episodes, overlays, the evidence panel, approval, the broadcast view, JSON export | Agent tracing in Application Insights |
+| Analyst → Producer and Ask PitchIQ agents, with live Foundry calls | The demo video |
+| Fan and Analyst wording in EN and KO; My club and Follow a player; the Recap workflow | |
+| MCP server (stdio and streamable HTTP), mounted at `/mcp` and live on the demo URL | |
+| Public deployment on Azure Container Apps with a managed identity; CI with the image on GitHub Container Registry | |
+| Holdout evaluation, backend tests, browser walkthrough | |
 
 ## Repository map
 
@@ -303,8 +313,8 @@ make walkthrough SRUN= # headless-browser walkthrough -> docs/walkthrough/
 | `data/public/` | The 12 synthetic clips: `manifest.json`, `tracking.jsonl`, `events.jsonl` |
 | `evaluation/` | Holdout runner, private truth (offline evaluation only), reports, browser walkthrough |
 | `docs/` | [`design.md`](docs/design.md) (design summary), [`evaluation.md`](docs/evaluation.md) (evaluation history), `walkthrough/` (browser walkthrough report and screenshots), `foundry_live/` (live measurement log and screenshot), `images/` (README images), `diagnostics/` (offline review renders of synthetic clips and of the optional movement model) |
-| `infra/` | Dockerfile, pinned constraints, Azure Container Apps notes (not deployed yet) |
-| `.github/workflows/` | CI workflow: tests, frontend build, image build with an offline smoke test and a privacy check, push to GitHub Container Registry (not run yet) |
+| `infra/` | Dockerfile, pinned constraints, and the Azure Container Apps deployment commands |
+| `.github/workflows/` | CI workflow: tests, frontend build, image build with an offline smoke test and a privacy check, push to GitHub Container Registry |
 | `models/` | Optional MotionGNN movement-model checkpoints from an offline experiment. Not the default generator and not in the image |
 | `scripts/` | Build and helper scripts |
 | v1 prototype | The off-ball overlap prototype from spec v1, kept for later work: `backend/app/{schemas,ingestion,broadcast}/`, `backend/app/analytics/{patterns,significance,pipeline}.py`, `data/fixtures/`, `docs/analytics.md`, `docs/schemas.md` |

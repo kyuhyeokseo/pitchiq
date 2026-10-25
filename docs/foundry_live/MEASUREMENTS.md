@@ -53,6 +53,11 @@ the deterministic recap.
 
 ## Live replay at 1x (clip_001, 23.8 s of play, 7 episodes)
 
+Correction, found later the same evening: while a browser was connected, the replay clock ran about 1.8x fast (each
+sync moved the clock up to the nearest frame, and the WebSocket loop syncs every 0.1 s). These replays were therefore
+shorter in wall time than a true 1x, which gave the agents less time, not more. Fixed with a test
+(`test_playback_keeps_wall_time_when_the_socket_syncs_often`).
+
 | Version | Episodes whose final revision got a Foundry plan | Pipelines | Settled after the clip ended |
 |---|---|---|---|
 | before per-episode coalescing | 2/7 (main moment skipped: queue full of soon-stale jobs) | 7 | - |
@@ -80,3 +85,22 @@ that evening, two questions each) and, in the last three sessions, one recap eac
   reached. The gap between browser and agent time in session 5 (9.4 s) was not investigated.
 - Each answer shows its tool calls and the code check in the UI. Screenshots: `ask_and_narration_live.png` (session 5)
   and, combined from the same session, `../images/foundry_agents_live.png`.
+
+## Deployed app (Azure Container Apps, managed identity)
+
+The image CI built for commit `a0cbfea`, on Azure Container Apps in Sweden Central (0.5 vCPU, 1 GiB, one replica),
+signing in to Foundry with its system-assigned managed identity (role: Foundry User on the Foundry resource). Calls from
+the development machine to the public URL, 2026-10-24 (about 23:05-23:10 US Eastern).
+
+| Call | Result |
+|---|---|
+| `/api/health` before any call | `foundry_configured: true`, `last_call_succeeded: null` |
+| Ask before the first moment | declined (`no_moment_yet`) by the live agent, 5.1 s in the browser-less client, `foundry_live`; then `last_call_succeeded: true` |
+| `POST /mcp` `tools/list` over HTTPS | 200, 5 tools |
+| 1x replay of `clip_001` over `wss://` | streamed to the clip-end snapshot, but in 13.4 s for 23.8 s of play: the clock bug above, found here |
+| Ask after the replay: "What did the defence shut down, and what did it cost them?" | a moment, 3 validated sentences, 5.9 s, 2 tool calls, no repair |
+| Recap after the replay (fan, EN) | 3 moments, validated, `foundry_live`, 8.2 s |
+
+The first browser walkthrough against the public URL stopped at the live-overlay check: over that link a newer live
+overlay request was always in flight, and the client drew only the answer to the latest request, so nothing was drawn.
+The fix and a slow-link check (400 ms per request) are in the next commit; see `docs/evaluation.md`.

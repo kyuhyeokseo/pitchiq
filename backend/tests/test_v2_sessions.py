@@ -100,3 +100,15 @@ def test_the_socket_tells_the_client_when_the_clip_ends(client):
     finally:
         STORE.delete(rid)  # ends the server loop whatever happened above
     assert stopped, "no snapshot after the clip ended"
+
+
+def test_playback_keeps_wall_time_when_the_socket_syncs_often(client):
+    # the WebSocket loop syncs every 0.1 s; at 1x, 10 s of wall time must play 10 s of the clip, not more
+    rid, _ = _create(client)
+    s = STORE.sessions[rid]
+    with s.lock:
+        s.playing, t0, c0 = True, s.last_wall, s.clock_s
+    for i in range(1, 101):
+        s.sync(now=t0 + 0.1 * i)
+    assert s.clock_s - c0 == pytest.approx(10.0, abs=1e-6)
+    assert s.clip.frames[s.cursor_k].match_time_s <= s.clock_s + 1e-9  # never a frame from after the clock

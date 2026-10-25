@@ -215,9 +215,15 @@ export function App() {
   const liveKey = view === "live" && surface === "inspector_preview" ? frame?.frame_ref.frame_index : -1;
   const liveSentAt = useRef(0);
   const overlaySeq = useRef(0);
+  const overlayDrawn = useRef(0);
+  const overlayKey = useRef("");
   useEffect(() => {
+    overlayKey.current = "";
     if (!session || !ep) { setOverlay(null); return; }
     if (surface === "broadcast" && !approved) { setOverlay(null); return; }
+    // what an answer is for, apart from the live frame: an answer for anything else is never drawn
+    const key = [session.replay_id, ep.episode_id, ep.revision, audience, language, focus, view, surface, selRev].join("|");
+    overlayKey.current = key;
     const mode = surface === "broadcast" || view === "replay" ? "retrospective_replay" : "live";
     // live: at most one request per 150 ms but never starved (at 2x a new frame arrives every 100 ms)
     const wait = mode === "live" ? Math.max(0, 150 - (performance.now() - liveSentAt.current)) : 0;
@@ -231,7 +237,10 @@ export function App() {
         display_mode: mode,
         revision: mode === "retrospective_replay" && surface !== "broadcast" ? selRev ?? undefined : undefined,
       }).then(async (o) => {
-        if (seq !== overlaySeq.current) return;  // a newer request was sent: never draw an older answer over it
+        // over a slow link several live requests are in flight, so draw every answer newer than the one on screen
+        // (waiting for the latest would draw nothing); never draw an older answer over a newer one
+        if (key !== overlayKey.current || seq <= overlayDrawn.current) return;
+        overlayDrawn.current = seq;
         setOverlay(o);
         if (o.overlay.display_mode === "retrospective_replay") setReplayFrame(await api.frame(session, o.frame_index));
       }).catch((e) => { if (!(e instanceof ApiError && e.status === 404)) setError(String(e)); });

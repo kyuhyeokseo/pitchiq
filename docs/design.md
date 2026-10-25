@@ -298,5 +298,5 @@ Results: [`docs/evaluation.md`](evaluation.md).
 | Personalisation (end of the architecture) | Fan/Analyst × EN/KO; My club (moments marked as your club defending or attacking) and Follow a player (ring, measured speed, timeline filter), computed in the UI from the episode summaries. |
 | A short session recap (P0) | A deterministic recap endpoint (`GET /api/replays/{id}/recap`). There is no recap screen or recap agent yet. |
 | Origin check (spec 19) | Not implemented. Session tokens, TTL, input limits (questions up to 280 characters, speed 0.25-4×, seek inside the clip) and the cap are in place. |
-| Azure Container Apps deployment | Dockerfile and notes in `infra/`; not deployed yet. A CI workflow (`.github/workflows/ci.yml`) is written but has not run. |
+| Azure Container Apps deployment | Deployed 2026-10-24 (one replica, system-assigned managed identity, Sweden Central); commands in `infra/README.md`. CI (`.github/workflows/ci.yml`) builds, smoke-tests and pushes the image to GitHub Container Registry. |
 | Video under 2 minutes (P0) | Not recorded yet |

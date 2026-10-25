@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:42251",
+  "base": "http://127.0.0.1:34251",
   "checks": [
     {
       "check": "health endpoint",
@@ -64,7 +64,7 @@
     {
       "check": "A exposed: pitch labels do not overlap or leave the pitch",
       "ok": true,
-      "detail": "{\"n\": 2, \"overlaps\": 0, \"outside\": 0}"
+      "detail": "{\"n\": 4, \"overlaps\": 0, \"outside\": 0}"
     },
     {
       "check": "inspector shows the metrics behind the clicked area",
@@ -292,14 +292,19 @@
       "detail": "sessions 1, sockets 1"
     },
     {
+      "check": "live overlay is drawn over a slow link (400 ms per request)",
+      "ok": true,
+      "detail": "19 elements"
+    },
+    {
       "check": "no browser console errors",
       "ok": true,
       "detail": ""
     }
   ],
   "console_errors": [],
-  "passed": 59,
+  "passed": 60,
   "failed": 0,
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-25T01:25:51Z"
+  "time_utc": "2026-10-25T03:42:35Z"
 }

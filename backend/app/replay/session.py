@@ -9,6 +9,7 @@ shared through a global cache keyed by evidence hash.
 
 from __future__ import annotations
 
+import math
 import secrets
 import threading
 import time
@@ -188,8 +189,10 @@ class ReplaySession:
                 if self.clock_s >= self.clip.end_s - 1e-9:
                     self.playing = False
             self.last_wall = now
-            return self._advance_to(self.clip.frame_at(self.clock_s) if self.clock_s < self.clip.end_s
-                                    else len(self.clip.frames) - 1)
+            # the last frame at or before the clock: rounding to the nearest frame would move the clock up to it on
+            # every call, and the WebSocket loop calls this every 0.1 s
+            k = math.floor((self.clock_s - self.clip.start_s) * self.clip.meta.tracking_hz + 1e-6)
+            return self._advance_to(min(max(k, 0), len(self.clip.frames) - 1))
 
     # ------------------------------------------------------------ controls
     def control(self, action: str, value: float | None, expected_epoch: int) -> None:

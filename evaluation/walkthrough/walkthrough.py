@@ -1,8 +1,9 @@
 """Real browser walkthrough of the built app (run on a compute node, not a login node).
 
     PYTHONPATH=backend python evaluation/walkthrough/walkthrough.py --out docs/walkthrough
+    PYTHONPATH=backend python evaluation/walkthrough/walkthrough.py --out <dir> --base-url https://<deployed host>
 
-Starts uvicorn on a free local port, drives headless Chromium through the
+Starts uvicorn on a free local port (or uses --base-url), drives headless Chromium through the
 P0 flow (load -> play -> live overlay -> replay moment -> evidence inspector
 -> Fan/KO -> approve -> broadcast -> negative clip), saves screenshots and a
 JSON report of every check, then stops the server. Nothing here is mocked:
@@ -60,11 +61,11 @@ def free_port() -> int:
         return s.getsockname()[1]
 
 
-def wait_health(url: str, server: subprocess.Popen, timeout: float = 300.0) -> dict:
+def wait_health(url: str, server: subprocess.Popen | None, timeout: float = 300.0) -> dict:
     # a cold compute node can take minutes to import the app from a slow shared filesystem
     t0 = time.time()
     while time.time() - t0 < timeout:
-        if server.poll() is not None:
+        if server is not None and server.poll() is not None:
             raise RuntimeError(f"server exited with code {server.returncode}")
         try:
             with urllib.request.urlopen(url + "/api/health", timeout=5) as r:
@@ -79,14 +80,20 @@ def wait_health(url: str, server: subprocess.Popen, timeout: float = 300.0) -> d
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=ROOT / "docs" / "walkthrough")
+    ap.add_argument("--base-url", help="check an app that is already running (such as the deployed one) instead of "
+                                       "starting a local server")
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
-    port = free_port()
-    env = {**os.environ, "PYTHONPATH": str(ROOT / "backend"), "PUBLIC_DATA_DIR": str(ROOT / "data" / "public"),
-           "FRONTEND_DIST": str(ROOT / "frontend" / "dist"), "LLM_MODE": os.environ.get("LLM_MODE", "offline")}
-    server = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.api.app:app", "--host", "127.0.0.1", "--port",
-                               str(port), "--workers", "1", "--log-level", "warning"], cwd=ROOT, env=env)
-    base = f"http://127.0.0.1:{port}"
+    server = None
+    if args.base_url:
+        base = args.base_url.rstrip("/")
+    else:
+        port = free_port()
+        env = {**os.environ, "PYTHONPATH": str(ROOT / "backend"), "PUBLIC_DATA_DIR": str(ROOT / "data" / "public"),
+               "FRONTEND_DIST": str(ROOT / "frontend" / "dist"), "LLM_MODE": os.environ.get("LLM_MODE", "offline")}
+        server = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.api.app:app", "--host", "127.0.0.1", "--port",
+                                   str(port), "--workers", "1", "--log-level", "warning"], cwd=ROOT, env=env)
+        base = f"http://127.0.0.1:{port}"
     checks: list[dict] = []
     console: list[str] = []
 
@@ -402,6 +409,22 @@ def main() -> int:
                 h = json.loads(r.read())
             check("25 clip switches free their replays (no 429, at most 2 open)", h["sessions"] <= 2,
                   f"sessions {h['sessions']}, sockets {h['sockets']}")
+
+            # a viewer far from the server: at 400 ms a request, several live overlay requests are in flight at once
+            # and the pitch must still draw their answers
+            slow = browser.new_page(viewport={"width": 1500, "height": 1000})
+            slow.on("pageerror", lambda e: console.append(f"pageerror (slow link): {e}"))
+            slow.context.new_cdp_session(slow).send("Network.emulateNetworkConditions", {
+                "offline": False, "latency": 400, "downloadThroughput": -1, "uploadThroughput": -1})
+            slow.goto(base + "/")
+            slow.wait_for_function("document.querySelectorAll('svg.pitch g.pl').length === 22", timeout=60000)
+            slow.select_option("select[aria-label=Speed]", "1")
+            slow.get_by_role("button", name="Play", exact=True).click()
+            slow.wait_for_selector(".ep.complete_tradeoff", timeout=30000)
+            drawn = slow.wait_for_function("document.querySelectorAll('svg.pitch .ov').length || 0", timeout=15000)
+            check("live overlay is drawn over a slow link (400 ms per request)", drawn.json_value() > 0,
+                  f"{drawn.json_value()} elements")
+            slow.close()
             browser.close()
         check("no browser console errors", not console, "; ".join(console[:5]))
     except Exception as e:  # record where it stopped; the report is still written
@@ -409,11 +432,12 @@ def main() -> int:
         check("walkthrough ran to the end", False,
               f"{type(e).__name__} at line {here[-1] if here else '?'}: {str(e).splitlines()[0][:200]}")
     finally:
-        server.terminate()
-        try:
-            server.wait(timeout=10)
-        except subprocess.TimeoutExpired:
-            server.kill()
+        if server is not None:
+            server.terminate()
+            try:
+                server.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                server.kill()
     report = {"base": base, "checks": checks, "console_errors": console,
               "passed": sum(c["ok"] for c in checks), "failed": sum(not c["ok"] for c in checks),
               "host": os.environ.get("PITCHIQ_HOST_LABEL") or ("hpc-compute-node" if os.environ.get("SLURM_JOB_ID") else "workstation"), "time_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
