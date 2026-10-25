@@ -31,14 +31,14 @@ In D, the variant named `main` is the trap, which is the counter-example.
 - Analysis step wall time: p50 7.9 ms, p95 9.4 ms over 12,669 frames (single process, HPC compute node).
 - Narration plans: 1510/1510 valid. The holdout runs deterministic narration only, with no model calls.
 
-**Tests and browser walkthrough** (2026-10-24):
-- `make test`: 269 passed on 2026-10-25 (226 before the MCP endpoint, the Recap workflow and personalisation; then the clip-end snapshot and replay clock tests; then the approved-revision broadcast, agent-changes and repeated-recap-lead tests).
-- Headless-browser walkthrough in offline mode: 59 passed, 0 failed, no browser console errors. It includes Ask PitchIQ and Recap checks, Studio details, My club and Follow a player, and 25 clip switches that leave at most 2 replays open. See `docs/walkthrough/report.json` and the screenshots in `docs/walkthrough/`.
+**Tests and browser walkthrough** (2026-10-25):
+- `make test`: 270 passed on 2026-10-25 (226 before the MCP endpoint, the Recap workflow and personalisation; then the clip-end snapshot and replay clock tests; then the approved-revision broadcast, agent-changes, repeated-recap-lead, fan-caption and prompt-injection tests).
+- Headless-browser walkthrough in offline mode: 62 passed, 0 failed, no browser console errors. Against the public URL (Foundry on, image `sha-6c98218`): 58 passed, 0 failed, with the 4 checks of particular template sentences kept as information. It includes Ask PitchIQ and Recap checks, Studio details, My club and Follow a player, and 25 clip switches that leave at most 2 replays open. The offline run's `report.json` and screenshots are in `docs/walkthrough/`; the public-URL run is logged in `docs/foundry_live/MEASUREMENTS.md` (its report was not committed).
 
 **Live Foundry agents** (2026-10-24) were measured separately, with the smoke runner (`python -m app.agents.smoke`) and in the real UI. The full log is in [`docs/foundry_live/MEASUREMENTS.md`](foundry_live/MEASUREMENTS.md). Costs are estimates from the reported tokens at $0.25 per 1M input and $2.00 per 1M output tokens, not billing records.
 - Analyst → Producer, `gpt-5-mini` with reasoning effort `minimal`: 8/8 validated (1 after a repair) over 7 clips. 4.6–7.7 s end to end, 2.3k–4.4k input and 0.2k–0.3k output tokens, about 0.1–0.2 US cent per run.
 - With `low` effort: 4/4 validated (1 after a repair) over 4 clips, 7.3–14.7 s, about 0.2–0.4 cent per run.
-- Ask PitchIQ: 5.8–9.8 s of agent time in smoke runs and 5.0–10.5 s in the browser, 2–3 tool calls, about 0.2–0.3 cent per question.
+- Ask PitchIQ: 5.8–16.5 s of agent time in smoke runs, and 5.0–25.0 s of agent time (up to 34.4 s in the browser) in the UI, 2–5 tool calls (5 in the early run that needed a repair), about 0.2–0.5 cent per question (0.5 cent for that run: 17.5k input and 304 output tokens).
   - After the instruction was made explicit, intent questions (en, en, ko) opened with the fixed "does not read minds" note in 3 of 3 runs. One earlier run answered without it.
   - "Will Blue score?" was declined as not yet known.
 - Live 1× replay of `clip_001`: 6/7 episodes got a Foundry plan on their final revision. The seventh failed Producer validation after its repair and kept the fallback. There were 11 pipeline runs, at about 1 cent per clip.

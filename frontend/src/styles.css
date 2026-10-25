@@ -67,7 +67,7 @@ select option { background: var(--panel); color: var(--fg); }
 .desk:has(.badge.bc) > .rail { display: none; }
 .stage { display: grid; gap: 10px; min-width: 0; align-content: start; }
 
-/* toolbar: PL tray segmented controls; preferences quieter, on the right */
+/* toolbar: tray segmented controls; preferences quieter, on the right */
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .seg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 8px; background: var(--rule); }
 .seg button { border: 0; border-radius: 4px; padding: 6px 12px; color: var(--fg); background: transparent; }

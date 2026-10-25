@@ -57,6 +57,19 @@ Check after deploying:
    `last_cloud_result.last_call_succeeded` becomes true after a real call. An identity that exists is not necessarily
    allowed to call the project, and a new role assignment can take a few minutes.
 2. `POST /mcp` with `{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}` lists 5 tools.
-3. The browser walkthrough against the public URL, on a machine with Playwright:
+3. `/api/health` reports `build.sha`, the commit the image was built from (CI passes it as a build argument), so the
+   live build can be identified.
+4. The browser walkthrough against the public URL, on a machine with Playwright:
    `PYTHONPATH=backend .venv/bin/python evaluation/walkthrough/walkthrough.py --out <dir> --base-url https://$FQDN`.
-   Its "at most 2 replays open" check assumes nobody else is using the app at the time.
+   With Foundry on, the checks of particular template sentences are kept as information (the agents may choose other
+   validated sentences), so a clean run reads 58 passed and 0 failed. Its "at most 2 replays open" check assumes
+   nobody else is using the app at the time.
+
+Rollback: deploy the last verified image tag the same way (`az containerapp update ... --image
+ghcr.io/kyuhyeokseo/pitchiq:sha-<commit>`); only the image changes.
+
+Uptime: `.github/workflows/probe.yml` checks the public URL every 30 minutes with GET requests only (status, Foundry
+enabled, 12 clips; never a replay, so never a Foundry call). Set the repository variable `DEPLOYED_SHA` to the deployed
+commit and the probe also fails when the live build differs. GitHub reports a failed scheduled run to the user who
+last changed the workflow's schedule (by email if that user's Actions notifications allow it); confirm this once with
+a manual run.

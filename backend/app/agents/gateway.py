@@ -1,4 +1,4 @@
-"""Microsoft Foundry gateway: the only module that knows the Agent Framework SDK (spec 12.3).
+"""Microsoft Foundry gateway: builds the Agent Framework agents (spec 12.3); with recap_workflow.py, the only code that imports the Agent Framework SDK.
 
 Uses the app-owned agent path: ``agent_framework.Agent`` over ``agent_framework.foundry.FoundryChatClient``
 (packages ``agent-framework-foundry`` 1.15.0 / ``agent-framework-core`` 1.23.0, the optional ``foundry`` extra;

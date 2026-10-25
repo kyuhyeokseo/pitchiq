@@ -2,7 +2,11 @@
 
 The analyzer only ever receives frames up to the cursor and events whose
 ``available_at_s`` has passed. Seek starts a new epoch and rebuilds the
-analysis from the clip start without any cloud call. Review decisions and
+analysis from the clip start; the rebuilt revisions go to the cloud pipeline
+again under the usual rules (one job per episode, only the latest revision is
+sent next; a cached plan comes back at once and attaches only if its revision
+is still the latest, otherwise a new run starts under the daily cap). Review
+decisions and
 broadcast visibility live in the session; immutable packets and plans may be
 shared through a global cache keyed by evidence hash.
 """

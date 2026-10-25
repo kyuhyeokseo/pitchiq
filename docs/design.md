@@ -2,7 +2,7 @@
 
 This is an English summary of the internal implementation spec, `PitchIQ_Defensive_Intelligence_Implementation_Spec_v2.md` (v2.0, dated 2026-10-21, written in Korean). That spec is the design baseline for this repository.
 
-The spec's numbers are starting defaults for a synthetic demo, not validated football thresholds. The values in use are in `backend/app/analytics/analytics_config.yaml`. Where the build differs from the spec, [As built](#as-built-2026-10-24) says so.
+The spec's numbers are starting defaults for a synthetic demo, not validated football thresholds. The values in use are in `backend/app/analytics/analytics_config.yaml`. Where the build differs from the spec, [As built](#as-built-2026-10-25) says so.
 
 ## 1. Product
 
@@ -174,7 +174,7 @@ The spec defines twelve claim codes, each with a minimum evidence gate. Ten are 
   - A result that arrives after the evidence cutoff becomes a new revision.
 - **Story priority:**
   - The formula is 0.35·support + 0.25·change magnitude + 0.25·ball relevance + 0.15·novelty.
-  - It starts with gates of support ≥ 0.65 and priority ≥ 0.6.
+  - The spec's gates (support ≥ 0.65, priority ≥ 0.6) are not applied in the build: priority only ranks moments, and the UI follows the highest-priority complete trade-off.
   - An outcome never changes the priority of the past.
 
 ## 7. Overlay and approval
@@ -226,7 +226,7 @@ The spec defines twelve claim codes, each with a minimum evidence gate. Ten are 
 - **No unmeasured claims:** the spec makes no claim that two agents beat one prompt until that is measured.
 - **SDK path:**
   - Agents are app-owned: `Agent` running on `agent_framework.foundry.FoundryChatClient` (`agent-framework-foundry`).
-  - Only the gateway module knows SDK types.
+  - Only `gateway.py` (the agents) and `recap_workflow.py` (the Recap workflow) import the Agent Framework SDK.
   - Authentication uses the Azure CLI credential locally and managed identity on Azure.
   - Access is confirmed only by a real call.
 
@@ -247,7 +247,7 @@ The spec defines twelve claim codes, each with a minimum evidence gate. Ten are 
 - **Speed:** playback speed changes only the match clock. Cloud timeouts are measured in wall time.
 - **Spec demo defaults:** 30 min idle TTL, at most 20 sessions, one worker, one replica.
 
-Sections 9 and 11 describe the spec. Where the build differs (seek and approvals, ended sessions, the session limit), see [As built](#as-built-2026-10-24).
+Sections 9 and 11 describe the spec. Where the build differs (seek and approvals, ended sessions, the session limit), see [As built](#as-built-2026-10-25).
 
 ## 10. Evaluation plan
 
@@ -281,22 +281,23 @@ Results: [`docs/evaluation.md`](evaluation.md).
   - In the open demo, approval controls the broadcast preview inside one session. It is not a real broadcast permission system.
   - Login, role-based access and distributed state come later.
 
-## As built (2026-10-24)
+## As built (2026-10-25)
 
 | Spec | Build |
 |---|---|
 | Families A, B and C with counter-examples; clips of 24-36 s | Six set-ups (A, B, C, D, E, G; the letters are design labels, and there is no F), each with a counter-example; 12 clips of about 14-24 s (13.8-24.0 s). The set-ups are described in [`evaluation.md`](evaluation.md#set-ups). |
 | Twelve claim codes | Ten are computed. `weak_side_accessible` and `second_ball_support_gap` are in the contract allowlist but not computed yet. |
 | Analyst and Producer read the packet through per-item tools (`get_claim`, `get_metric`, ...) | The packet is in the prompt, and Analyst and Producer have no tools. The Producer chooses sentence-option ids per audience, shared by both languages (`prompts-0.2.0`). |
-| Two agents | Plus Ask PitchIQ, a question-answering agent with three read-only tools bound to the question time. Plus an MCP server with five read-only tools (mounted at `/mcp` in the web app; not yet deployed). |
+| Two agents | Plus Ask PitchIQ, a question-answering agent with three read-only tools bound to the question time. Plus a Recap agent inside an Agent Framework workflow, and an MCP server with five read-only tools (mounted at `/mcp` in the web app and live on the public demo). |
 | Outcome window from episode activation | Each exposed claim gets its own outcome window, starting from when it was first claimed |
-| Cloud call cap | One daily cap (`FOUNDRY_DAILY_LIMIT`) shared by narration runs and Ask questions, plus a one-question-at-a-time limit per replay for Ask |
+| Cloud call cap | One daily cap (`FOUNDRY_DAILY_LIMIT`) shared by narration runs, Ask questions and recaps, plus a one-question-or-recap-at-a-time limit per replay |
 | Evidence store module `evidence/store.py` | Hashing lives in `backend/app/contracts/evidence.py` |
+| Rebuilt without any cloud call | The rebuilt revisions go to the cloud pipeline again under the usual rules (one job per episode; a newer revision waits and only the latest is sent). A plan cached for the same evidence hash comes back at once and attaches only if its revision is still the latest; otherwise a new Foundry run starts and counts against the daily cap. |
 | Approvals are not carried into the new epoch | A seek resets broadcast visibility to hidden, but an approval stays valid for the exact revision and evidence hash it named. A rebuilt revision with the same number and hash is still approved after a seek, so the broadcast view and export can serve it again. A newer revision is suggested again. |
 | 410 when a session has ended | A deleted or evicted replay returns 404 on REST; its WebSocket closes with code 4410 |
 | At most 20 sessions; 429 over the limit | At most 20 replays. A new one closes the least recently used instead of being refused. Replays close after 30 min without a client action, or after 10 min without one if no WebSocket is open. The client sends `DELETE /api/replays/{id}` when it leaves a replay, and the WebSocket sends a heartbeat every 15 s. |
 | Personalisation (end of the architecture) | Fan/Analyst × EN/KO; My club (moments marked as your club defending or attacking) and Follow a player (ring, measured speed, timeline filter), computed in the UI from the episode summaries. |
-| A short session recap (P0) | A deterministic recap endpoint (`GET /api/replays/{id}/recap`). There is no recap screen or recap agent yet. |
+| A short session recap (P0) | A deterministic recap endpoint (`GET /api/replays/{id}/recap`), and a Recap card in the UI built by the Recap agent in an Agent Framework workflow (`POST /api/replays/{id}/recap/agent`), with the deterministic recap as its fallback. |
 | Origin check (spec 19) | Not implemented. Session tokens, TTL, input limits (questions up to 280 characters, speed 0.25-4×, seek inside the clip) and the cap are in place. |
 | Azure Container Apps deployment | Deployed 2026-10-24 (one replica, system-assigned managed identity, Sweden Central); commands in `infra/README.md`. CI (`.github/workflows/ci.yml`) builds, smoke-tests and pushes the image to GitHub Container Registry. |
-| Video under 2 minutes (P0) | Not recorded yet |
+| Video under 2 minutes (P0) | Not recorded yet when this was written (2026-10-25); the README links it once it is uploaded |
