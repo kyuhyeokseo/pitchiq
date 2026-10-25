@@ -124,6 +124,9 @@ sentences in 3 of them and the expected sentence appeared in 1. The run used 81 
 after the run; the counter restarts with each deployment). `/api/health` reported `build.sha` 6c98218, `/api/clips`
 12 clips and `/mcp` 5 tools.
 
+The same check on image `sha-9afb2c2` (the fan-caption fix), 2026-10-25 about 16:20 US Eastern: 58 passed, 0 failed,
+4 template-sentence checks kept as information (the agents chose other sentences in 3, the expected one appeared in 1).
+
 ## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
 
 The app (in process, `TestClient`) with `APPLICATIONINSIGHTS_CONNECTION_STRING` set to the project's existing
