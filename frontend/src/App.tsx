@@ -345,11 +345,13 @@ export function App() {
         <select value={clipId} onChange={(e) => setClipId(e.target.value)} aria-label="Clip">
           {clips.map((c) => <option key={c.clip_id} value={c.clip_id}>Clip {parseInt(c.clip_id.split("_").pop() ?? "0", 10)} · {matchClock(c.duration_s)}</option>)}
         </select>
-        <button onClick={() => {
+        {/* while a clip switch is starting its replay there is no session, so the controls wait for it instead of
+            dropping the click (over a slow link that takes a noticeable moment) */}
+        <button disabled={!session} onClick={() => {
           if (!playing && autoReplay) { setView("live"); setSelRev(null); setAutoReplay(false); }
           control(playing ? "pause" : "play");
         }}>{playing ? "Pause" : "Play"}</button>
-        <input type="range" min={t0} max={t1} step={0.2} value={clock} aria-label="Seek"
+        <input type="range" min={t0} max={t1} step={0.2} value={clock} aria-label="Seek" disabled={!session}
           style={{ "--p": `${((clock - t0) / Math.max(t1 - t0, 1e-6)) * 100}%` } as CSSProperties}
           onChange={(e) => setClock(parseFloat(e.target.value))}
           onMouseUp={(e) => control("seek", parseFloat((e.target as HTMLInputElement).value))}
@@ -359,7 +361,8 @@ export function App() {
           <option value="">Pick your club</option>
           {teams.map((tm: any) => <option key={tm.team_id} value={tm.team_id}>My club: {tm.display_name}</option>)}
         </select>
-        <select value={speed} onChange={(e) => control("set_speed", parseFloat(e.target.value))} aria-label="Speed">
+        <select value={speed} onChange={(e) => control("set_speed", parseFloat(e.target.value))} aria-label="Speed"
+          disabled={!session}>
           {[0.5, 1, 2].map((v) => <option key={v} value={v}>{v}×</option>)}
         </select>
         {!details && health?.cloud_enabled && lastCloud?.last_call_succeeded &&

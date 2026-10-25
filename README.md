@@ -166,7 +166,7 @@ Also built: an MCP server (Model Context Protocol, an open standard) that expose
 | Holdout: abstention | On the 72 clips where exposure was expected, the story stayed partial or unmatched in 1. | 2026-10-23 | Same report |
 | Analysis latency | p50 7.9 ms, p95 9.4 ms per 5 Hz step (target: p95 under 200 ms) | 2026-10-23 | 12,669 frames, single process, CPU on an HPC compute node, during the holdout run |
 | Tests | 262 passed | 2026-10-24 | `make test` |
-| Browser walkthrough | 60 of 60 checks passed, no browser console errors | 2026-10-24 | Headless Chromium drives the real UI in offline mode (`make walkthrough`), including a check over a slow link (400 ms per request). See `docs/walkthrough/report.json` and the screenshots |
+| Browser walkthrough | 61 of 61 checks passed, no browser console errors | 2026-10-25 | Headless Chromium drives the real UI in offline mode (`make walkthrough`), including two checks over a slow link (400 ms per request). See `docs/walkthrough/report.json` and the screenshots |
 | Deployed app | Managed identity reached Foundry: an Ask answered in 5.9 s with 2 tool calls, a Recap in 8.2 s, both validated; `/mcp` listed its 5 tools over HTTPS; a 1× replay streamed over the WebSocket. | 2026-10-24 | Calls from the development machine to the public URL. Log: [`docs/foundry_live/MEASUREMENTS.md`](docs/foundry_live/MEASUREMENTS.md) |
 
 All of these are small samples. The live Foundry numbers come from one day: 8 smoke runs at minimal effort (plus 4 at low effort), a handful of questions and one full replay (11 pipelines). They are not a benchmark. Earlier versions and the full evaluation are in [`docs/evaluation.md`](docs/evaluation.md).

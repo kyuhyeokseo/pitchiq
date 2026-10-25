@@ -104,3 +104,13 @@ the development machine to the public URL, 2026-10-24 (about 23:05-23:10 US East
 The first browser walkthrough against the public URL stopped at the live-overlay check: over that link a newer live
 overlay request was always in flight, and the client drew only the answer to the latest request, so nothing was drawn.
 The fix and a slow-link check (400 ms per request) are in the next commit; see `docs/evaluation.md`.
+
+After the fixes (image `sha-eaae7c0`, 2026-10-25 about 11:20 US Eastern; the environment had just been converted from
+the Express mode to the workload-profiles mode, see `infra/README.md`):
+
+| Call | Result |
+|---|---|
+| `POST /mcp` `tools/list` over HTTPS | 200, 5 tools |
+| 1x replay of `clip_001` over `wss://` | 23.8 s of play in 23.8 s, then the clip-end snapshot |
+| Ask after the replay, same question | a moment, 3 validated sentences, 5.8 s, 3 tool calls, no repair |
+| Recap after the replay (fan, EN) | 2 moments, validated, `foundry_live`, 9.1 s |

@@ -24,7 +24,7 @@ button, select, input { font: inherit; letter-spacing: inherit; }
 button, select { color: var(--fg); background: transparent; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 999px;
   padding: 5px 14px; cursor: pointer; }
 button:hover:not(:disabled), select:hover { border-color: rgba(255, 255, 255, 0.6); }
-button:disabled { opacity: 0.4; cursor: default; }
+button:disabled, select:disabled, input:disabled { opacity: 0.4; cursor: default; }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 select option { background: var(--panel); color: var(--fg); }
 .boot { padding: 40px; color: var(--muted); }

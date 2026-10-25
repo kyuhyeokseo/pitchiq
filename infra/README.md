@@ -18,9 +18,13 @@ ENDPOINT=https://<foundry-resource>.services.ai.azure.com/api/projects/<project>
 az extension add -n containerapp
 az provider register -n Microsoft.App --subscription "$SUB" --wait
 
-# the environment's console logs go to the Log Analytics workspace the Foundry resource already has
+# the environment's console logs go to the Log Analytics workspace the Foundry resource already has.
+# Name the mode: with containerapp extension 1.3.0b5 the default was an Express environment, which accepted the app
+# with its managed identity at creation but then refused every update of it ("System-assigned managed identity is
+# not supported ... on express environments"). The demo's environment was converted with
+# `az containerapp env update --environment-mode WorkloadProfiles` (same domain; the ingress IP changed).
 KEY=$(az monitor log-analytics workspace get-shared-keys -g $RG -n <workspace> --subscription "$SUB" --query primarySharedKey -o tsv)
-az containerapp env create -g $RG -n pitchiq-env -l $LOC --subscription "$SUB" \
+az containerapp env create -g $RG -n pitchiq-env -l $LOC --subscription "$SUB" --environment-mode WorkloadProfiles \
   --logs-workspace-id <workspace-customer-id> --logs-workspace-key "$KEY"
 FQDN=pitchiq.$(az containerapp env show -g $RG -n pitchiq-env --subscription "$SUB" --query properties.defaultDomain -o tsv)
 

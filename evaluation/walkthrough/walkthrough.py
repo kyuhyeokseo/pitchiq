@@ -23,7 +23,7 @@ import traceback
 import urllib.request
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeout, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -424,6 +424,18 @@ def main() -> int:
             drawn = slow.wait_for_function("document.querySelectorAll('svg.pitch .ov').length || 0", timeout=15000)
             check("live overlay is drawn over a slow link (400 ms per request)", drawn.json_value() > 0,
                   f"{drawn.json_value()} elements")
+            # paused, switch clips, press Play at once: the click must start the new clip, not vanish while the new
+            # replay is still being created
+            slow.get_by_role("button", name="Pause", exact=True).click()
+            slow.get_by_role("button", name="Play", exact=True).wait_for()
+            slow.select_option("select[aria-label=Clip]", "clip_002")
+            slow.get_by_role("button", name="Play", exact=True).click()
+            started = True
+            try:
+                slow.get_by_role("button", name="Pause", exact=True).wait_for(timeout=15000)
+            except PlaywrightTimeout:
+                started = False
+            check("Play right after a clip switch over a slow link starts the new clip", started)
             slow.close()
             browser.close()
         check("no browser console errors", not console, "; ".join(console[:5]))

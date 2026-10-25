@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:34251",
+  "base": "http://127.0.0.1:51869",
   "checks": [
     {
       "check": "health endpoint",
@@ -297,14 +297,19 @@
       "detail": "19 elements"
     },
     {
+      "check": "Play right after a clip switch over a slow link starts the new clip",
+      "ok": true,
+      "detail": ""
+    },
+    {
       "check": "no browser console errors",
       "ok": true,
       "detail": ""
     }
   ],
   "console_errors": [],
-  "passed": 60,
+  "passed": 61,
   "failed": 0,
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-25T03:42:35Z"
+  "time_utc": "2026-10-25T15:30:56Z"
 }
