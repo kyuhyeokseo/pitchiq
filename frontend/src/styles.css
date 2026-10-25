@@ -1,7 +1,7 @@
 /* Studio desk in a football-broadcast style: the pitch is the largest surface, evidence on the right, timeline under it.
-   Colours are the Premier League web palette as published in its public stylesheet (purple ramp, electric accents),
-   used as colours only: no marks, no typeface. Components follow the same site's system: filled 16px cards, tray
-   segmented controls, pill buttons, sentence-case headings, one family in two weights.
+   A purple broadcast palette (a purple ramp with electric accents), colours only: no league or club marks and no
+   licensed typeface. Filled 16px cards, tray segmented controls, pill buttons, sentence-case headings, one family in
+   two weights.
    Neon appears only where it means what it means on the pitch: pink = what the defence takes away, cyan = what it
    leaves open, green = in time / open / approve, yellow = pressure, lilac = regions and counts. Chrome is purple and white;
    the orange dot means live. */
@@ -118,6 +118,7 @@ select option { background: var(--panel); color: var(--fg); }
 .caption p { margin: 0; }
 .caption p:first-child { font-size: 20px; font-weight: 700; line-height: 1.25; color: #fff; letter-spacing: -0.01em; }
 .caption p + p { margin-top: 6px; }
+.air-note { margin: 8px 4px 0; font-size: 13px; color: var(--warn); }
 .stage:has(> .caption) .pitch-wrap { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 
 .pl-body { stroke: #12001a; stroke-width: 0.3; }  /* a knock-out ring keeps touching players apart */
@@ -287,6 +288,9 @@ button.no:hover:not(:disabled) { border-color: var(--pink); color: var(--pink); 
 button.link { background: none; border: none; color: var(--fg); padding: 0 4px; font-size: 13px; text-decoration: underline; }
 
 /* agent steps: a plain list with a small mark per step */
+.agent-diff { margin-top: 10px; font-size: 13px; }
+.agent-diff p { margin: 0; }
+.agent-diff ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 2px; }
 .steps { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
 .steps summary { cursor: pointer; color: var(--fg); font-weight: 600; }
 .steps ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; }

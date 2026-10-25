@@ -130,3 +130,42 @@ def producer_plan(packet: EvidencePacket, plan: AnalystPlan) -> ProducerPlan:
             variants.append(ProducerVariant(audience=audience, language=language, sentences=sents,
                                             focus_layers=FOCUS_LAYERS[audience]))
     return ProducerPlan(episode_id=plan.episode_id, evidence_hash=plan.evidence_hash, variants=variants)
+
+
+def _common_order(a: list, b: list) -> int:
+    """Length of the longest common subsequence: how many shared sentences keep their relative order."""
+    best = [0] * (len(b) + 1)
+    for x in a:
+        prev = 0
+        for j, y in enumerate(b, 1):
+            prev, best[j] = best[j], (prev + 1 if x == y else max(best[j], best[j - 1]))
+    return best[-1]
+
+
+def changes_from_rules(packet: EvidencePacket, analyst: AnalystPlan, producer: ProducerPlan) -> dict:
+    """What a cloud plan changed against the deterministic plans for the same evidence, computed in code: the claim
+    the Analyst led with, the claims and caveats it added or left out, and per audience the sentences kept, dropped,
+    added and moved. Both languages share the Producer's sentences, so English stands for both."""
+    code = {c.claim_id: c.code for c in packet.claims}
+    rules_a = analyst_plan(packet)
+    rules_p = producer_plan(packet, rules_a)
+    focus, rules_focus = analyst.focus_claim_ids, rules_a.focus_claim_ids
+    out = {"lead": {"agents": code.get(focus[0]), "rules": code.get(rules_focus[0])},
+           "left_out": sorted({code[c] for c in rules_focus if c not in focus and c in code}),
+           "added": sorted({code[c] for c in focus if c not in rules_focus and c in code}),
+           "caveats_added": [c for c in analyst.caveat_codes if c not in rules_a.caveat_codes],
+           "caveats_dropped": [c for c in rules_a.caveat_codes if c not in analyst.caveat_codes],
+           "sentences": {}}
+    key = lambda s: (s.template_key, s.claim_id, s.change_id)  # noqa: E731
+    for audience in ("fan", "analyst"):
+        mine = [key(s) for s in producer.variant(audience, "en").sentences]
+        rules = [key(s) for s in rules_p.variant(audience, "en").sentences]
+        kept_mine = [k for k in mine if k in rules]
+        kept_rules = [k for k in rules if k in mine]
+        out["sentences"][audience] = {"kept": len(kept_mine), "dropped": sum(k not in mine for k in rules),
+                                      "added": sum(k not in rules for k in mine),
+                                      "moved": len(kept_mine) - _common_order(kept_mine, kept_rules)}
+    out["same_as_rules"] = (not out["left_out"] and not out["added"] and out["lead"]["agents"] == out["lead"]["rules"]
+                            and not out["caveats_added"] and not out["caveats_dropped"]
+                            and all(v["dropped"] == v["added"] == v["moved"] == 0 for v in out["sentences"].values()))
+    return out

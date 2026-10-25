@@ -32,7 +32,7 @@ In D, the variant named `main` is the trap, which is the counter-example.
 - Narration plans: 1510/1510 valid. The holdout runs deterministic narration only, with no model calls.
 
 **Tests and browser walkthrough** (2026-10-24):
-- `make test`: 261 passed (226 before the MCP endpoint, the Recap workflow and personalisation; 262 with the clip-end snapshot and replay clock tests).
+- `make test`: 268 passed on 2026-10-25 (226 before the MCP endpoint, the Recap workflow and personalisation; then the clip-end snapshot and replay clock tests; then the approved-revision broadcast, agent-changes and repeated-recap-lead tests).
 - Headless-browser walkthrough in offline mode: 59 passed, 0 failed, no browser console errors. It includes Ask PitchIQ and Recap checks, Studio details, My club and Follow a player, and 25 clip switches that leave at most 2 replays open. See `docs/walkthrough/report.json` and the screenshots in `docs/walkthrough/`.
 
 **Live Foundry agents** (2026-10-24) were measured separately, with the smoke runner (`python -m app.agents.smoke`) and in the real UI. The full log is in [`docs/foundry_live/MEASUREMENTS.md`](foundry_live/MEASUREMENTS.md). Costs are estimates from the reported tokens at $0.25 per 1M input and $2.00 per 1M output tokens, not billing records.
@@ -202,3 +202,11 @@ The following reports belong to the v1 off-ball overlap prototype (kept for late
 - `evaluation/reports/motion_realism_test_s9001.json`
 - `evaluation/reports/generator_sanity_seeds60.txt`
 - `evaluation/reports/generator_v0.1.0/`
+
+## analytics-0.1.1 (2026-10-25)
+
+`short_options_screened` is now tagged `heuristic_inference`, like `central_routes_screened`: both come from the lane
+model with its fixed speeds and reaction time. The UI takes the "heuristic" mark from each claim's tag in the evidence.
+A scratch rerun of the holdout-v2-0.6 configuration with analytics-0.1.1 gave the same report apart from the wall time
+(144/144 stories, designed claim precision 241/242, 1 of 72 counter-examples with the wrong emphasis); the committed
+report stays the 0.1.0 run.

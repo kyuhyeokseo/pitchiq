@@ -51,10 +51,13 @@ jobs:
           file: infra/Dockerfile
           load: true
           tags: pitchiq:ci
+          build-args: GIT_SHA=${{ github.sha }}
       - name: Smoke test (offline) and the privacy boundary inside the image
         run: |
           docker run -d --name pitchiq -p 8000:8000 pitchiq:ci
           curl --retry 30 --retry-delay 2 --retry-all-errors -fsS http://127.0.0.1:8000/api/health
+          sha=$(curl -fsS http://127.0.0.1:8000/api/health | python3 -c 'import json, sys; print(json.load(sys.stdin)["build"]["sha"])')
+          echo "build: $sha"; test "$sha" = "${GITHUB_SHA::7}"
           n=$(curl -fsS http://127.0.0.1:8000/api/clips | python3 -c 'import json, sys; print(len(json.load(sys.stdin)))')
           echo "clips: $n"; test "$n" -eq 12
           m=$(curl -fsS -X POST http://127.0.0.1:8000/mcp -H 'Content-Type: application/json' \

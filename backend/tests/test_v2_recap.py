@@ -280,6 +280,23 @@ def test_validate_recap_codes_directly(view, complete):
     assert e.value.code == "item_count"
 
 
+def test_two_moments_that_open_with_the_same_sentence_are_refused(view, complete, partial):
+    a, b = ids(view, complete, ["restricted", "exposed"]), ids(view, partial, ["restricted"])
+    lead = lambda p, i: next(o.text["en"] for o in sentence_options(p, view.clip.meta, "fan") if o.option_id == i)
+    assert lead(complete, a[0]) == lead(partial, b[0])  # the same press, read the same way
+    with pytest.raises(PlanError) as e:
+        validate_recap(recap_of(item(complete, a), item(partial, b)), view, FAN)
+    assert e.value.code == "repeated_lead"
+    # opened with another of its options, the later moment reads differently and passes
+    validate_recap(recap_of(item(complete, a), item(partial, ids(view, partial, ["partial", "restricted"]))), view, FAN)
+    # the deterministic recap never opens two moments with the same sentence
+    for clip_id in ("clip_001", "clip_004", "clip_008"):
+        v = tools.view_at(clip_id)
+        for profile in (FAN, RecapProfile(audience="analyst"), RecapProfile(my_club="blue", follow_player="blue_09")):
+            leads = [opts[0].text[profile.language] for _, opts in fallback_choice(v, profile)]
+            assert len(leads) == len(set(leads)), (clip_id, profile)
+
+
 # ------------------------------------------------------------------ the graph
 def test_the_workflow_has_the_expected_executors_and_edges():
     from agent_framework import WorkflowViz

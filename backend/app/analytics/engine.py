@@ -55,7 +55,7 @@ from .tradeoffs import (
     to_claim,
 )
 
-ANALYTICS_VERSION = "analytics-0.1.0"
+ANALYTICS_VERSION = "analytics-0.1.1"
 JOINABLE = frozenset({"accessible_free_receiver", "wide_outlet_available", "local_central_overload"})
 JOIN_TARGETS = frozenset({"press_vs_depth", "central_screen"})
 SUSTAIN_KEY = {"restricted": "sustain_s", "exposed": "exposure_sustain_s", "context": "sustain_s"}
@@ -285,7 +285,8 @@ class TacticalAnalyzer:
                 rels.append(state.pressures[0].relation_id)
             players = sorted({carrier, *(self.pid(lane.receiver) for lane in scr),
                               *(self.pid(i) for lane in scr for i in lane.screeners)})
-            out["short_options_screened"] = FrameClaim("short_options_screened", "computed_observation", ms, rels,
+            # screened by the lane model (fixed speeds and reaction), like central_routes_screened: a heuristic
+            out["short_options_screened"] = FrameClaim("short_options_screened", "heuristic_inference", ms, rels,
                                                        players, 0.4 + 0.6 * len(scr) / len(elig))
         # --- exposed: behind space (needs a high identified back line) / isolation (needs a supported pair)
         back = r.lines.get("back") if r.lines is not None else None

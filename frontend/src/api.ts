@@ -23,6 +23,7 @@ export class ApiError extends Error {
 export type EpisodeSummary = {
   episode_id: string; revision: number; lifecycle: string; analysis_status: string; detected_at_s: number;
   analyzed_until_s: number; story_priority: number; restricted: string[]; exposed: string[]; changes: string[];
+  heuristic?: string[];  // codes of the claims tagged heuristic_inference in the latest revision
   outcome: string; evidence_hash: string; insight_id: string; not_claimed: string[];
   defending_team_id?: string; player_ids?: string[];  // who defends, and every player the evidence names
 };

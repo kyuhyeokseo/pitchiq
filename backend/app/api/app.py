@@ -24,11 +24,13 @@ from starlette.concurrency import run_in_threadpool
 from ..agents import mcp_server
 from ..agents.ask import MAX_QUESTION_CHARS, AskTrace, fallback_answer
 from ..agents.cloud import CloudInsights, Limits
+from ..agents.fallback import changes_from_rules
 from ..agents.recap import RecapProfile, RecapTrace, check_profile, fallback_recap
 from ..agents.gateway import FoundryGateway, foundry_settings, load_env_file, sdk_available
 from ..agents.tools import View
 from ..agents.workflow import InsightService, render_variants
 from ..analytics.engine import ANALYTICS_VERSION
+from ..contracts import InsightRevision
 from ..contracts.registry import METRIC_REGISTRY_VERSION
 from ..narrative.registry import REGISTRY_VERSION
 from ..overlay.builder import build_overlay, key_state, validate_overlay
@@ -89,6 +91,8 @@ def _episodes(s: ReplaySession) -> list[dict]:
                     "analyzed_until_s": ep.analyzed_until_s, "story_priority": ep.story_priority,
                     "restricted": [codes[c] for c in ep.restricted_claim_ids],
                     "exposed": [codes[c] for c in ep.exposed_claim_ids],
+                    # which of these claims are heuristic, from their own epistemic tags (marked in the UI)
+                    "heuristic": sorted({c.code for c in revs[-1].claims if c.epistemic == "heuristic_inference"}),
                     "changes": [c.code for c in revs[-1].changes], "outcome": ep.outcome.status,
                     "not_claimed": sorted({f.split(":")[0] for f in revs[-1].forbidden_inferences if ":" in f}),
                     "evidence_hash": revs[-1].evidence_hash, "insight_id": f"ins_{eid}",
@@ -143,12 +147,19 @@ def _insight_view(s: ReplaySession, insight_id: str, revision=None) -> dict:
     pk = next(p for p in s.analyzer.packets[ins.episode_id] if p.evidence_hash == ins.evidence_hash)
     status = s.review_status(ins)
     body = ins.model_copy(update={"review_status": status}).model_dump(mode="json")
-    review = s.reviews.get(insight_id)
+    approval, approved = s.approvals.get(insight_id), s.approved_revision(insight_id)
     trace = s.traces.get(ins.generation_trace_id) if ins.generation_trace_id else None
+    # for a cloud revision: what the agents changed against the rule-based plan for the same evidence, computed in code
+    changes = None if ins.source_mode == "deterministic_fallback" else changes_from_rules(pk, ins.analyst_plan,
+                                                                                            ins.producer_plan)
     return {"insight": body, "texts": render_variants(ins, pk, s.clip.meta), "provenance": trace,
+            "agent_changes": changes,
             "analysis_status": pk.episode.analysis_status, "outcome": pk.episode.outcome.status,
-            "broadcast_visibility": review.visibility if review and status == "approved" else "hidden",
-            "is_latest": ins is revs[-1]}
+            "broadcast_visibility": approval.visibility if approval and status == "approved" else "hidden",
+            "is_latest": ins is revs[-1],
+            # the revision a producer approved, which may be older than this one: broadcast keeps airing it until the
+            # newer revision is approved in its own right
+            "approved_revision": approved.revision if approved else None}
 
 
 # ------------------------------------------------------------------ REST
@@ -156,7 +167,8 @@ def _insight_view(s: ReplaySession, insight_id: str, revision=None) -> dict:
 def health() -> dict:
     s = foundry_settings()
     configured = bool(s["endpoint"] and s["model"])  # settings present; says nothing about a working call
-    return {"status": "ok", "version": APP_VERSION, "analytics_version": ANALYTICS_VERSION,
+    return {"status": "ok", "version": APP_VERSION, "build": {"sha": os.environ.get("PITCHIQ_GIT_SHA", "dev")[:7]},
+            "analytics_version": ANALYTICS_VERSION,
             "template_registry_version": REGISTRY_VERSION, "metric_registry_version": METRIC_REGISTRY_VERSION,
             "llm_mode": s["llm_mode"], "foundry_configured": configured, "cloud_enabled": CLOUD.enabled,
             "cloud_disabled_reason": CLOUD.disabled_reason, "last_cloud_result": dict(CLOUD.status),
@@ -263,12 +275,12 @@ def overlays(rid: str, episode_id: str, audience: Literal["fan", "analyst"] = "a
              x_session_token: str | None = Header(default=None)) -> dict:
     s = _session(rid, x_session_token)
     pk = _packet(s, episode_id, revision)
+    approved = None
     if surface == "broadcast":
-        rv = s.reviews.get(f"ins_{episode_id}")
-        if rv is None or rv.status != "approved":
+        approved = s.approved_revision(f"ins_{episode_id}")
+        if approved is None:
             raise HTTPException(409, "broadcast shows approved revisions only")
-        ins = next(r for r in s.revisions[f"ins_{episode_id}"] if r.revision == rv.revision)
-        pk = next(p for p in s.analyzer.packets[episode_id] if p.evidence_hash == ins.evidence_hash)
+        pk = next(p for p in s.analyzer.packets[episode_id] if p.evidence_hash == approved.evidence_hash)
         display_mode = "retrospective_replay"
     now = s.results[-1] if s.results else None
     current = (now is not None and pk.episode.lifecycle != "closed"
@@ -290,14 +302,31 @@ def overlays(rid: str, episode_id: str, audience: Literal["fan", "analyst"] = "a
                         positions_at=_positions_at(s))
     if display_mode == "retrospective_replay":
         validate_overlay(res.snapshot, players, pk)
-    # the narration of this exact evidence, so an earlier moment is never told with what happened later
-    ins = next((r for r in reversed(s.revisions.get(f"ins_{episode_id}", [])) if r.evidence_hash == pk.evidence_hash),
-               None)
-    return {"overlay": res.snapshot.model_dump(mode="json", by_alias=True), "label_text": res.label_text,
+    # broadcast airs the approved revision's own narration: a newer revision with the same evidence (a cloud plan that
+    # arrived after the approval) waits for its own approval. Elsewhere, the narration of this exact evidence, so an
+    # earlier moment is never told with what happened later.
+    ins = approved or next((r for r in reversed(s.revisions.get(f"ins_{episode_id}", []))
+                            if r.evidence_hash == pk.evidence_hash), None)
+    texts = render_variants(ins, pk, s.clip.meta) if ins else None
+    body = {"overlay": res.snapshot.model_dump(mode="json", by_alias=True), "label_text": res.label_text,
             "hidden_labels": res.hidden_labels, "frame_index": state.frame_ref.frame_index,
             "analyzed_through_s": pk.episode.analyzed_until_s, "episode_revision": pk.episode.revision,
-            "insight_revision": ins.revision if ins else None,
-            "texts": render_variants(ins, pk, s.clip.meta) if ins else None}
+            "insight_revision": ins.revision if ins else None, "texts": texts}
+    if approved is not None:
+        body["on_air"] = _on_air(approved, texts, audience, language)
+    return body
+
+
+def _on_air(ins: InsightRevision, texts: dict[str, list[str]], audience: str, language: str) -> list[str]:
+    """The broadcast caption. Fans get what was taken away, what it cost and what happened, in the plan's own order;
+    analysts get up to six sentences."""
+    lines = texts.get(f"{audience}_{language}", [])
+    if audience != "fan":
+        return lines[:6]
+    plan = next((v for v in ins.producer_plan.variants if v.audience == audience and v.language == language), None)
+    at = next((i for i, x in enumerate(plan.sentences if plan else [])
+               if x.template_key.startswith("outcome.") and x.template_key != "outcome.pending"), -1)
+    return [lines[0], lines[1], lines[at]] if at > 2 else lines[:3]
 
 
 @app.get("/api/replays/{rid}/insights")
@@ -323,7 +352,7 @@ def decide(rid: str, insight_id: str, req: Decision, x_session_token: str | None
         latest = _insight_view(s, insight_id)
         return JSONResponse(status_code=409, content={"detail": str(e), "latest": latest})
     view = _insight_view(s, insight_id)
-    view["decision"] = {"status": rv.status, "revision": rv.revision, "epoch": rv.decided_epoch}
+    view["decision"] = rv.record(insight_id)
     return view
 
 
@@ -344,11 +373,11 @@ def recap(rid: str, language: Literal["en", "ko"] = "en", x_session_token: str |
 @app.get("/api/replays/{rid}/export/{insight_id}")
 def export(rid: str, insight_id: str, x_session_token: str | None = Header(default=None)) -> dict:
     s = _session(rid, x_session_token)
-    rv = s.reviews.get(insight_id)
-    if rv is None or rv.status != "approved":
+    ins = s.approved_revision(insight_id)
+    if ins is None:
         raise HTTPException(409, "only approved insight revisions can be exported")
-    view = _insight_view(s, insight_id, rv.revision)
-    ins = next(r for r in s.revisions[insight_id] if r.revision == rv.revision)
+    rv = s.approvals[insight_id]
+    view = _insight_view(s, insight_id, ins.revision)
     pk = next(p for p in s.analyzer.packets[ins.episode_id] if p.evidence_hash == ins.evidence_hash)
     state = key_state(pk)
     players = _players(s.clip.frames[state.frame_ref.frame_index])
@@ -360,7 +389,11 @@ def export(rid: str, insight_id: str, x_session_token: str | None = Header(defau
                                 surface="broadcast", display_mode="retrospective_replay",
                                 positions_at=_positions_at(s))
             ovs.append({"overlay": res.snapshot.model_dump(mode="json", by_alias=True), "label_text": res.label_text})
-    return {"schema_version": "2.0", "insight": view, "evidence": pk.model_dump(mode="json"), "overlays": ovs}
+    # the decision record travels with the moment: what was approved, when and on which evidence, from the file alone
+    decision = {**rv.record(insight_id), "episode_revision": pk.episode.revision, "source_mode": ins.source_mode,
+                "generation_trace_id": ins.generation_trace_id}
+    return {"schema_version": "2.0", "decision": decision, "insight": view, "evidence": pk.model_dump(mode="json"),
+            "overlays": ovs}
 
 
 class Ask(BaseModel):
@@ -483,6 +516,8 @@ async def ws(websocket: WebSocket, rid: str, token: str = Query(default="")) -> 
                 epoch, last_k = s.epoch, s.cursor_k
                 known = {iid: revs[-1].revision for iid, revs in s.revisions.items()}
                 await websocket.send_json(env("state_snapshot", _snapshot(s), s.clock_s))
+                for iid in known:  # the rebuilt revisions, so no card keeps narration from before the seek
+                    await websocket.send_json(env("insight_update", _insight_view(s, iid), s.clock_s))
                 continue
             if s.cursor_k > last_k:
                 k = s.cursor_k  # slow clients get the latest frame only; decisions/insights are never dropped

@@ -1,10 +1,10 @@
 {
-  "base": "http://127.0.0.1:51869",
+  "base": "http://127.0.0.1:35937",
   "checks": [
     {
       "check": "health endpoint",
       "ok": true,
-      "detail": "{\"status\": \"ok\", \"version\": \"0.2.0\", \"analytics_version\": \"analytics-0.1.0\", \"template_registry_version\": \"templates-0.2.0\", \"metric_registry_version\": \"metrics/2.0.0\", \"llm_mode\": \"offline\", \"foundry_configured\": true, \"cloud_enabled\": false, \"cloud_disabled_reason\": \"LLM_MODE is not foundry\", \"last_cloud_result\": {\"calls_total\": 0, \"last_call_succeeded\": null, \"last_error\": null, \"last_result_utc\": null, \"pipelines_today\": 0, \"daily_limit\": null}, \"sessions\": 0, \"sockets\": 0}"
+      "detail": "{\"status\": \"ok\", \"version\": \"0.2.0\", \"build\": {\"sha\": \"dev\"}, \"analytics_version\": \"analytics-0.1.1\", \"template_registry_version\": \"templates-0.3.0\", \"metric_registry_version\": \"metrics/2.0.0\", \"llm_mode\": \"offline\", \"foundry_configured\": true, \"cloud_enabled\": false, \"cloud_disabled_reason\": \"LLM_MODE is not foundry\", \"last_cloud_result\": {\"calls_total\": 0, \"last_call_succeeded\": null, \"last_error\": null, \"last_result_utc\": null, \"pipelines_today\": 0, \"daily_limit\": null}, \"sessions\": 0, \"sockets\": 0}"
     },
     {
       "check": "pitch renders 22 players",
@@ -29,7 +29,7 @@
     {
       "check": "live overlay elements drawn from backend",
       "ok": true,
-      "detail": "19 elements"
+      "detail": "18 elements"
     },
     {
       "check": "A live: the player on the ball is drawn on top",
@@ -69,7 +69,7 @@
     {
       "check": "inspector shows the metrics behind the clicked area",
       "ok": true,
-      "detail": "Evidence \u00b7 Exposure | Space behind the line exposed \u00b7 heuristic inference \u00b7 strength 1.00 \u00b7 12.0\u201313.0s | players BLU #9, RED #3, RED #4, RED #5 | Isolated 1v1 (heuris"
+      "detail": "Evidence \u00b7 Exposure | Space behind the line exposed \u00b7 heuristic inference \u00b7 strength 1.00 \u00b7 12.0\u201313.0s | players BLU #9, RED #3, RED #4, RED #5 | Isolated 1v1 exposed"
     },
     {
       "check": "Fan/KO narration rendered",
@@ -109,7 +109,7 @@
     {
       "check": "negative clip: same press stays a partial analysis",
       "ok": true,
-      "detail": "Moment at 30:56 | partial |  | 3 updates so far \u00b7 finished |  | What is restricted | Short options screened | What is exposed | No exposure passed its gates | Observed so far | line retreat | Inconclusive | Before (rev 1) | Af"
+      "detail": "Moment at 30:56 | partial |  | 3 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | line retreat | Inconclusive | B"
     },
     {
       "check": "negative clip: suppression reason shown",
@@ -119,7 +119,7 @@
     {
       "check": "C: central screen + wide outlet + free receiver form a complete trade-off",
       "ok": true,
-      "detail": "Moment at 22:09 | complete tradeoff |  | 7 updates so far \u00b7 finished |  | What is restricted | Central routes screened | What is exposed | Accessible free receiver | Wide outlet available | Observed so far | attacker drop | defender step | Exploi"
+      "detail": "Moment at 22:09 | complete tradeoff |  | 7 updates so far \u00b7 finished |  | What is restricted | Central routes screened heuristic | What is exposed | Accessible free receiver heuristic | Wide outlet available heuristic | Observed so far | atta"
     },
     {
       "check": "C: drop then defensive step recorded",
@@ -144,7 +144,7 @@
     {
       "check": "B: dropped line + disconnected press + between-lines receiver",
       "ok": true,
-      "detail": "Moment at 49:22 | complete tradeoff |  | 5 updates so far \u00b7 finished |  | What is restricted | Depth behind reduced | What is exposed | Receiver between lines | Press disconnected from block | Observed so far | lane change | block shift | Exploit"
+      "detail": "Moment at 49:22 | complete tradeoff |  | 5 updates so far \u00b7 finished |  | What is restricted | Depth behind reduced | What is exposed | Receiver between lines heuristic | Press disconnected from block heuristic | Observed so far | lane change"
     },
     {
       "check": "B: attacker move into the gap then midfield drop",
@@ -164,7 +164,7 @@
     {
       "check": "D: trap on the left centre-back is a restricting-only story",
       "ok": true,
-      "detail": "Moment at 7:00 | partial |  | 2 updates so far \u00b7 finished |  | What is restricted | Central routes screened | What is exposed | No exposure passed its gates | Observed so far | Inconclusive | Before (rev 1) | After (rev 2) | Narration |  | Restricted"
+      "detail": "Moment at 7:00 | partial |  | 2 updates so far \u00b7 finished |  | What is restricted | Central routes screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | Inconclusive | Before (rev 1) | After (rev 2) | Narra"
     },
     {
       "check": "D: the presser stands in the passing lines (press-cut lanes drawn)",
@@ -189,7 +189,7 @@
     {
       "check": "D escape: screened options + free centre-back form a complete trade-off",
       "ok": true,
-      "detail": "Moment at 36:35 | complete tradeoff |  | 4 updates so far \u00b7 finished |  | What is restricted | Short options screened | What is exposed | Accessible free receiver | Observed so far | defender step | Exploited in synthetic play | Before (rev 1) | "
+      "detail": "Moment at 36:35 | complete tradeoff |  | 4 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Accessible free receiver heuristic | Observed so far | defender step | Exploited in synthetic "
     },
     {
       "check": "D escape: exploited, then the striker's step is recorded",
@@ -209,7 +209,7 @@
     {
       "check": "E: passive screen, step out, free man form one complete story",
       "ok": true,
-      "detail": "Moment at 50:23 | complete tradeoff |  | 6 updates so far \u00b7 finished |  | What is restricted | Short options screened | What is exposed | Accessible free receiver | Observed so far | defender step | Exploited in synthetic play | Before (rev 1) | "
+      "detail": "Moment at 50:23 | complete tradeoff |  | 6 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Accessible free receiver heuristic | Observed so far | defender step | Exploited in synthetic "
     },
     {
       "check": "E after: pitch labels do not overlap or leave the pitch",
@@ -217,7 +217,12 @@
       "detail": "{\"n\": 4, \"overlaps\": 0, \"outside\": 0}"
     },
     {
-      "check": "E: before (rev 1) nobody presses the carrier, told with rev 1's own narration",
+      "check": "E: before (rev 1) is told with rev 1's own narration, without the later step",
+      "ok": true,
+      "detail": "Narration at rev 1 |  | Numbers as of 50:23.0 |  | Restricted: 3/4 eligible ground-pass options from RED #5 are screened (a defe"
+    },
+    {
+      "check": "E: before (rev 1) the narration says nobody presses the carrier",
       "ok": true,
       "detail": "Nobody presses RED #5 (nearest defender 8.6 m): the screen stands in his passing lines instead (passive screen, heuristi"
     },
@@ -229,12 +234,12 @@
     {
       "check": "E hold: the screen holds, nobody comes free",
       "ok": true,
-      "detail": "Moment at 56:27 | partial |  | 3 updates so far \u00b7 finished |  | What is restricted | Short options screened | What is exposed | No exposure passed its gates | Observed so far | Inconclusive | Before (rev 1) | After (rev 3) | Narration |  | Restricted"
+      "detail": "Moment at 56:27 | partial |  | 3 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | Inconclusive | Before (rev 1) | After (rev 3) | Narra"
     },
     {
       "check": "G: press on the back pass + line steps up + space behind, used",
       "ok": true,
-      "detail": "Moment at 20:14 | complete tradeoff |  | 7 updates so far \u00b7 finished |  | What is restricted | Short options screened | What is exposed | Space behind the line | Observed so far | block shift | line retreat | Exploited in synthetic play | Before "
+      "detail": "Moment at 20:14 | complete tradeoff |  | 7 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Space behind the line heuristic | Observed so far | block shift | line retreat | Exploited in sy"
     },
     {
       "check": "G: narration says the back line stepped up together",
@@ -264,7 +269,7 @@
     {
       "check": "Studio: technical ids stay behind Details",
       "ok": true,
-      "detail": "Moment at 45:34 | partial |  | 4 updates so far \u00b7 finished |  | What is restricted | Short options screened | What is exposed | No exposure passed its gates"
+      "detail": "Moment at 45:34 | partial |  | 4 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open "
     },
     {
       "check": "Details shows the episode id and priority",
@@ -294,7 +299,7 @@
     {
       "check": "live overlay is drawn over a slow link (400 ms per request)",
       "ok": true,
-      "detail": "19 elements"
+      "detail": "17 elements"
     },
     {
       "check": "Play right after a clip switch over a slow link starts the new clip",
@@ -308,8 +313,9 @@
     }
   ],
   "console_errors": [],
-  "passed": 61,
+  "passed": 62,
   "failed": 0,
+  "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-25T15:30:56Z"
+  "time_utc": "2026-10-25T17:52:16Z"
 }

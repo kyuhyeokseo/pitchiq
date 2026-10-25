@@ -157,6 +157,16 @@ export const InsightRevisionZ = z.object({
 export const InsightViewZ = z.object({
   insight: InsightRevisionZ, texts: z.record(z.array(z.string())),
   analysis_status: z.string(), outcome: z.string(), broadcast_visibility: z.string(), is_latest: z.boolean(),
+  // the revision a producer approved; it can be older than `insight` when a newer plan arrived after the approval
+  approved_revision: z.number().int().nullable().optional(),
+  // a cloud revision: what the agents changed against the rule-based plan for the same evidence (computed in code)
+  agent_changes: z.object({
+    lead: z.object({ agents: z.string().nullable(), rules: z.string().nullable() }),
+    left_out: z.array(z.string()), added: z.array(z.string()),
+    caveats_added: z.array(z.string()), caveats_dropped: z.array(z.string()),
+    sentences: z.record(z.object({ kept: z.number(), dropped: z.number(), added: z.number(), moved: z.number() })),
+    same_as_rules: z.boolean(),
+  }).nullable().optional(),
   decision: z.any().optional(),
   // trace of a cloud revision (null for the deterministic plan); recorded by the backend after a real call
   provenance: z.object({
@@ -171,6 +181,7 @@ export const OverlayResponseZ = z.object({
   overlay: OverlaySnapshotZ, label_text: z.record(z.string()), hidden_labels: z.array(z.string()),
   frame_index: z.number().int(), analyzed_through_s: num, episode_revision: z.number().int(),
   insight_revision: z.number().int().nullable(), texts: z.record(z.array(z.string())).nullable(),
+  on_air: z.array(z.string()).optional(),  // broadcast only: the caption of the approved revision
 });
 export type OverlayResponse = z.infer<typeof OverlayResponseZ>;
 

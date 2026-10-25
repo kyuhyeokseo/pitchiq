@@ -15,7 +15,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-REGISTRY_VERSION = "templates-0.2.0"
+REGISTRY_VERSION = "templates-0.3.0"
 
 
 @dataclass(frozen=True)
@@ -107,16 +107,16 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
           "en": "Cover arrives in time here, so no isolation is claimed.",
           "ko": "여기서는 커버가 제때 도착하므로 고립으로 보지 않습니다."}),
     T("partial.restricted_only", ("fan", "analyst"), "partial", (), {
-          "en": "Only the restricting side is supported so far; no exposure passed its evidence gates.",
-          "ko": "지금까지는 제한하는 쪽만 근거가 있고, 노출은 근거 기준을 통과하지 못했습니다."}),
+          "en": "Only the restricting side is supported so far; nothing the defence leaves open is supported yet.",
+          "ko": "지금까지는 제한하는 쪽만 근거가 있고, 수비가 내준 공간은 아직 근거로 뒷받침되지 않습니다."}),
     T("analyst.press_cut.short", ("analyst",), "claim:short_options_screened", ("press_cut_lanes",), {
           "en": "{p:press_cut_lanes:0} presses the carrier while standing in the passing line, cutting "
                 "{v:press_cut_lanes} option{s:press_cut_lanes} (approximate cover shadow; body orientation is not observed).",
           "ko": "{p:press_cut_lanes:0} 선수가 볼 보유자를 압박하면서 패스 길 위에 서서 옵션 {v:press_cut_lanes}개를 "
                 "자릅니다(몸 방향은 관측되지 않아 대략적인 커버 섀도로 추정)."}),
     T("fan.press_cut.short", ("fan",), "claim:short_options_screened", ("press_cut_lanes",), {
-          "en": "{p:press_cut_lanes:0} closes him down and cuts the pass at the same time.",
-          "ko": "{p:press_cut_lanes:0} 선수가 압박하면서 동시에 패스 길을 자릅니다."}),
+          "en": "{p:press_cut_lanes:0} closes down the player on the ball and cuts the pass at the same time.",
+          "ko": "{p:press_cut_lanes:0} 선수가 공을 가진 선수를 압박하면서 동시에 패스 길을 자릅니다."}),
     T("analyst.press_numbers.short", ("analyst",), "claim:short_options_screened",
       ("buildup_count_attack", "buildup_count_defense", "rest_count_attack", "rest_count_defense"), {
           "en": "Numbers: {v:buildup_count_defense} defenders against {v:buildup_count_attack} attackers around the "
@@ -147,8 +147,8 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
           "ko": "{p:press_cut_lanes:0} 선수가 볼 보유자를 압박하면서 패스 길 위에 서서 옵션 {v:press_cut_lanes}개를 "
                 "자릅니다(몸 방향은 관측되지 않아 대략적인 커버 섀도로 추정)."}),
     T("fan.press_cut.central", ("fan",), "claim:central_routes_screened", ("press_cut_lanes",), {
-          "en": "{p:press_cut_lanes:0} closes him down and cuts the pass at the same time.",
-          "ko": "{p:press_cut_lanes:0} 선수가 압박하면서 동시에 패스 길을 자릅니다."}),
+          "en": "{p:press_cut_lanes:0} closes down the player on the ball and cuts the pass at the same time.",
+          "ko": "{p:press_cut_lanes:0} 선수가 공을 가진 선수를 압박하면서 동시에 패스 길을 자릅니다."}),
     T("analyst.press_numbers.central", ("analyst",), "claim:central_routes_screened",
       ("buildup_count_attack", "buildup_count_defense", "rest_count_attack", "rest_count_defense"), {
           "en": "Numbers: {v:buildup_count_defense} defenders against {v:buildup_count_attack} attackers around the "

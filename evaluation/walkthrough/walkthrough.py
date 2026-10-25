@@ -95,11 +95,27 @@ def main() -> int:
                                    str(port), "--workers", "1", "--log-level", "warning"], cwd=ROOT, env=env)
         base = f"http://127.0.0.1:{port}"
     checks: list[dict] = []
+    notes: list[dict] = []  # narration checks on a Foundry-on host (see narration_check)
+    cloud = False
     console: list[str] = []
 
     def check(name: str, ok: bool, detail: str = "") -> None:
         checks.append({"check": name, "ok": bool(ok), "detail": detail})
         print(("PASS " if ok else "FAIL ") + name + (f" - {detail}" if detail else ""), flush=True)
+
+    def narration_check(name: str, ok: bool, detail: str = "") -> None:
+        """A check of particular template sentences. With Foundry on, the agents may choose other validated sentences
+        for the card, so the result is kept as information rather than counted as a pass or a failure."""
+        if not cloud:
+            check(name, ok, detail)
+            return
+        notes.append({"check": name, "matched": bool(ok), "detail": detail})
+        print(("INFO " if ok else "INFO (agents chose other sentences) ") + name, flush=True)
+
+    def played_to_the_end() -> None:
+        """The replay started (the button reads Pause) and then ended (Play again); the clock runs at the real speed."""
+        page.get_by_role("button", name="Pause", exact=True).wait_for(timeout=10000)
+        page.get_by_role("button", name="Play", exact=True).wait_for(timeout=60000)
 
     def labels_clear(page, scene: str) -> None:
         """Every pitch label sits inside the pitch and on no other label (measured in the rendered page)."""
@@ -113,6 +129,7 @@ def main() -> int:
 
     try:
         health = wait_health(base, server)
+        cloud = bool(health.get("cloud_enabled"))
         check("health endpoint", health.get("status") == "ok", json.dumps(health))
         with sync_playwright() as pw:
             browser = pw.chromium.launch()
@@ -168,7 +185,7 @@ def main() -> int:
                   page.locator(".badge").inner_text())
             page.screenshot(path=str(args.out / "03_replay.png"))
 
-            page.get_by_role("button", name="What is exposed?").click()
+            page.get_by_role("button", name="What it leaves open").click()
             page.wait_for_selector("svg.pitch polygon.exposure_hatched", timeout=10000)
             check("exposure polygon shown for the exposed side", page.locator("polygon.exposure_hatched").count() >= 1)
             labels_clear(page, "A exposed")
@@ -180,7 +197,7 @@ def main() -> int:
                   "Back line from its own goal" in insp and "Cover margin" in insp, insp[:160].replace("\n", " | "))
             page.screenshot(path=str(args.out / "05_inspector.png"))
 
-            page.get_by_role("button", name="What is exposed?").click()
+            page.get_by_role("button", name="What it leaves open").click()
             page.get_by_role("button", name="Fan").click()
             page.get_by_role("button", name="KO", exact=True).click()
             page.wait_for_timeout(600)
@@ -231,10 +248,11 @@ def main() -> int:
             page.select_option("select[aria-label=Speed]", "2")
             page.get_by_role("button", name="Play", exact=True).click()
             page.wait_for_selector(".ep.partial", timeout=30000)
-            page.wait_for_timeout(9000)
+            played_to_the_end()
+            page.wait_for_timeout(3000)
             card = page.locator(".rail .card").first.inner_text()
             check("negative clip: same press stays a partial analysis",
-                  "partial" in card and "No exposure passed its gates" in card, card[:200].replace("\n", " | "))
+                  "partial" in card and "Nothing left open is supported yet" in card, card[:200].replace("\n", " | "))
             evid = page.locator(".insp").inner_text()
             check("negative clip: suppression reason shown", "Not claimed" in evid, evid[:200].replace("\n", " | "))
             page.screenshot(path=str(args.out / "08_negative.png"))
@@ -247,10 +265,8 @@ def main() -> int:
                 page.wait_for_function("document.querySelectorAll('svg.pitch g.pl').length === 22")
                 page.select_option("select[aria-label=Speed]", "2")
                 page.get_by_role("button", name="Play", exact=True).click()
-                page.wait_for_function("document.querySelector('button')?.textContent === 'Play' || "
-                                       "Array.from(document.querySelectorAll('button')).some(b => b.textContent === 'Play')",
-                                       timeout=40000)
-                page.wait_for_timeout(16000)
+                played_to_the_end()
+                page.wait_for_timeout(16000)  # with Foundry on, the last plans attach after the clip has ended
                 return page.locator(".rail .card").first.inner_text()
 
             card = play_clip("clip_003")
@@ -308,7 +324,7 @@ def main() -> int:
             pitch_text = " | ".join(page.locator("svg.pitch text.label-tx").all_text_contents())  # SVG: no inner_text
             check("D: press-cut and numbers labels on the pitch",
                   "press cuts 2 lanes" in pitch_text and "ball zone 4 v 5" in pitch_text, pitch_text[:160].replace("\n", " | "))
-            check("D: narration names the lane-cutting press and the numbers",
+            narration_check("D: narration names the lane-cutting press and the numbers",
                   "standing in the passing line" in card and "4 defenders against 5 attackers" in card)
             labels_clear(page, "D trap")
             page.screenshot(path=str(args.out / "14_d_trap.png"))
@@ -321,7 +337,7 @@ def main() -> int:
                   card[:220].replace("\n", " | "))
             check("D escape: exploited, then the striker's step is recorded", "Exploited" in card and "defender step" in card)
             i_recv, i_step = card.find("was received by"), card.find("stepped up")
-            check("D escape: narration tells reception before the step", 0 <= i_recv < i_step,
+            narration_check("D escape: narration tells reception before the step", 0 <= i_recv < i_step,
                   card[max(i_recv, 0):][:160].replace("\n", " | "))
             labels_clear(page, "D escape")
             page.screenshot(path=str(args.out / "15_d_escape.png"))
@@ -337,10 +353,12 @@ def main() -> int:
             page.locator("button", has_text="Before (rev 1)").click()
             page.wait_for_timeout(800)
             card = page.locator(".rail .card").first.inner_text()
-            check("E: before (rev 1) nobody presses the carrier, told with rev 1's own narration",
-                  "narration at rev 1" in card.lower() and "Nobody presses" in card and "stepped up" not in card
+            check("E: before (rev 1) is told with rev 1's own narration, without the later step",
+                  "narration at rev 1" in card.lower() and "stepped up" not in card
                   and page.locator("svg.pitch circle.carrier_space_ring").count() == 1,
-                  card[card.find("Nobody"):][:120].replace("\n", " | "))
+                  card[card.lower().find("narration at rev 1"):][:120].replace("\n", " | "))
+            narration_check("E: before (rev 1) the narration says nobody presses the carrier", "Nobody presses" in card,
+                            card[card.find("Nobody"):][:120].replace("\n", " | "))
             labels_clear(page, "E before")
             page.screenshot(path=str(args.out / "17_e_before.png"))
             page.get_by_role("button", name="Live", exact=True).click()
@@ -357,7 +375,7 @@ def main() -> int:
             check("G: press on the back pass + line steps up + space behind, used",
                   "complete tradeoff" in card and "Short options screened" in card and "Space behind the line" in card
                   and "block shift" in card and "Exploited" in card, card[:220].replace("\n", " | "))
-            check("G: narration says the back line stepped up together", "stepped up" in card and "together" in card)
+            narration_check("G: narration says the back line stepped up together", "stepped up" in card and "together" in card)
             check("G: replay draws the back line's movement", page.locator("svg.pitch polyline.ghost_path").count() >= 3)
             labels_clear(page, "G main")
             page.screenshot(path=str(args.out / "19_g_main.png"))
@@ -452,6 +470,7 @@ def main() -> int:
                 server.kill()
     report = {"base": base, "checks": checks, "console_errors": console,
               "passed": sum(c["ok"] for c in checks), "failed": sum(not c["ok"] for c in checks),
+              "narration_notes": notes,
               "host": os.environ.get("PITCHIQ_HOST_LABEL") or ("hpc-compute-node" if os.environ.get("SLURM_JOB_ID") else "workstation"), "time_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     (args.out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({k: report[k] for k in ("passed", "failed", "host")}))

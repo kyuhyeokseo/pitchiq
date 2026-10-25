@@ -1,0 +1,39 @@
+name: probe
+# Is the public demo up, and is it the build we deployed? GET requests only: the probe never starts a replay, so it
+# never spends Foundry calls. Set the repository variable DEPLOYED_SHA to the deployed commit to check the build too.
+
+on:
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      URL: https://pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io
+      DEPLOYED_SHA: ${{ vars.DEPLOYED_SHA }}
+    steps:
+      - name: Health, build and clips
+        run: |
+          curl --retry 3 --retry-delay 10 --retry-all-errors -fsS "$URL/api/health" > health.json
+          python3 - <<'PY'
+          import json, os
+          h = json.load(open("health.json"))
+          got = h.get("build", {}).get("sha", "unknown")
+          last = h["last_cloud_result"]
+          print("build", got, "| cloud_enabled", h["cloud_enabled"], "| last Foundry call", last["last_call_succeeded"],
+                "| runs today", last["pipelines_today"], "of", last["daily_limit"])
+          assert h["status"] == "ok", "status is not ok"
+          assert h["cloud_enabled"], "Foundry narration is off: " + str(h.get("cloud_disabled_reason"))
+          want = os.environ.get("DEPLOYED_SHA", "")
+          assert not want or got == want[:7], "live build " + got + " is not the deployed " + want[:7]
+          if last["last_call_succeeded"] is False:  # one failed call is not an outage; the next visitor's call clears it
+              print("::warning::the last Foundry call failed: " + str(last["last_error"]))
+          PY
+          n=$(curl --retry 3 --retry-delay 10 --retry-all-errors -fsS "$URL/api/clips" | python3 -c 'import json, sys; print(len(json.load(sys.stdin)))')
+          echo "clips: $n"; test "$n" -eq 12

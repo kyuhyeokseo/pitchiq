@@ -106,7 +106,8 @@ viewer: when any moment involves the followed player, include at least one of th
 important; prefer complete trade-offs and higher story_priority; use my_club_role to favour what matters to the
 viewer's club. Before choosing ids for a moment, call answer_options for it, and choose 1-3 of the option ids it
 returned in the order to tell them; get_evidence shows a moment's claims and measured values when you need them. When
-an item about a complete trade-off uses a restricted or an exposed sentence, keep one of each side. Code tells the
+an item about a complete trade-off uses a restricted or an exposed sentence, keep one of each side. Never open two
+moments with the same sentence: when two moments would read the same, keep the more important one. Code tells the
 chosen moments in replay order. Do not explain why anyone did anything. You never write sentences or numbers: the
 chosen options are the only words shown. Answer with the JSON schema only."""
 
@@ -165,7 +166,15 @@ def validate_recap(choice: RecapChoice, view: View, profile: RecapProfile) -> Ch
     followed = followed_moments(view, profile)
     if followed and not any(involves(p, profile.follow_player) for p, _ in chosen):
         raise PlanError("follow_player_missing", f"{profile.follow_player} is in {followed}: include one of them")
-    return sorted(chosen, key=lambda c: _chronological(c[0]))
+    chosen = sorted(chosen, key=lambda c: _chronological(c[0]))
+    leads: set[str] = set()
+    for p, picked in chosen:  # the same opening twice reads as the same moment told twice
+        lead = picked[0].text[profile.language]
+        if lead in leads:
+            raise PlanError("repeated_lead", f"{p.episode.episode_id} opens with the same sentence as an earlier "
+                                             "moment: drop one of them or open it with another option")
+        leads.add(lead)
+    return chosen
 
 
 # ------------------------------------------------------------------ the recap shown (code renders it)
@@ -207,15 +216,19 @@ def _fallback_options(packet: EvidencePacket, options: list[Option]) -> list[Opt
 
 def fallback_choice(view: View, profile: RecapProfile) -> Chosen:
     """Up to three moments ranked by (involves the followed player, complete trade-off, story priority), each with
-    its options picked by ``_fallback_options``; in replay order."""
+    its options picked by ``_fallback_options``, skipping a moment that opens with a sentence already told; in replay
+    order."""
     ranked = sorted(_latest(view), reverse=True,
                     key=lambda p: (involves(p, profile.follow_player), p.episode.analysis_status == "complete_tradeoff",
                                    p.episode.story_priority, p.episode.detected_at_s, p.episode.episode_id))
     chosen: Chosen = []
+    leads: set[str] = set()
     for p in ranked:
         opts = _fallback_options(p, sentence_options(p, view.clip.meta, profile.audience))
-        if opts:
-            chosen.append((p, opts))
+        if not opts or opts[0].text[profile.language] in leads:  # a moment that would read like one already told
+            continue
+        chosen.append((p, opts))
+        leads.add(opts[0].text[profile.language])
         if len(chosen) == MAX_ITEMS:
             break
     return sorted(chosen, key=lambda c: _chronological(c[0]))

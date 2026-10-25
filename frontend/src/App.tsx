@@ -30,7 +30,7 @@ const STYLE_LEGEND: Record<string, string> = {
 };
 const CLAIM_TEXT: Record<string, string> = {
   short_options_screened: "Short options screened", central_routes_screened: "Central routes screened",
-  behind_space_exposed: "Space behind the line", isolated_1v1: "Isolated 1v1 (heuristic)",
+  behind_space_exposed: "Space behind the line", isolated_1v1: "Isolated 1v1",
   behind_depth_reduced: "Depth behind reduced", press_block_disconnected: "Press disconnected from block",
   between_lines_receiver: "Receiver between lines", wide_outlet_available: "Wide outlet available",
   accessible_free_receiver: "Accessible free receiver", local_central_overload: "Local central overload",
@@ -44,6 +44,7 @@ const OUTCOME_TEXT: Record<string, string> = {
 const fmtClock = (t: number, t0: number) => `${(t - t0).toFixed(1)}s`;
 const FAN_QUIET = new Set(["numbers"]);  // fans get the lines and areas, not the analyst's count tags
 const matchClock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+const matchClockTenths = (t: number) => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, "0")}`;
 const SOURCE_TEXT: Record<string, string> = {
   foundry_live: "Microsoft Foundry agents", foundry_cached: "Microsoft Foundry agents (cached)",
   deterministic_fallback: "validated templates",
@@ -195,21 +196,34 @@ export function App() {
   };
 
   // Until the producer picks one, follow the best story: highest priority complete trade-off, else the latest episode.
+  // While the replay plays, only moments still in progress compete, so the live pitch shows what is happening now
+  // instead of holding on to a moment that has closed (its live overlay has expired).
   useEffect(() => {
     if (userPicked || !episodes.length) return;
-    const complete = episodes.filter((e) => e.analysis_status === "complete_tradeoff");
+    // only the live Inspector pitch follows what is happening now; Broadcast and Replay moment keep their moment while
+    // the replay plays, so an approved moment stays on air
+    const liveDesk = view === "live" && surface === "inspector_preview";
+    if (playing && !liveDesk && episodes.some((e) => e.episode_id === selEp)) return;
+    const open = episodes.filter((e) => e.lifecycle !== "closed");
+    const pool = playing && liveDesk && open.length ? open : episodes;
+    const complete = pool.filter((e) => e.analysis_status === "complete_tradeoff");
+    // keep the followed moment while it is still open, unless a complete trade-off has opened elsewhere
+    const cur = open.find((e) => e.episode_id === selEp);
+    if (playing && liveDesk && cur && (cur.analysis_status === "complete_tradeoff" || !complete.length)) return;
     // without a complete trade-off, show the partial episode with the most observed evidence
     // (changes and explicitly withheld claims), then the strongest one
     const weight = (e: EpisodeSummary) => e.changes.length + (e.not_claimed?.length ?? 0);
     const pick = complete.length
       ? complete.slice().sort((a, b) => b.story_priority - a.story_priority)[0]
-      : episodes.slice().sort((a, b) => weight(b) - weight(a) || b.story_priority - a.story_priority)[0];
-    if (pick.episode_id !== selEp) setSelEp(pick.episode_id);
-  }, [episodes, selEp, userPicked]);
+      : pool.slice().sort((a, b) => weight(b) - weight(a) || b.story_priority - a.story_priority)[0];
+    if (pick.episode_id !== selEp) { setSelEp(pick.episode_id); setSelRev(null); }  // a revision belongs to its episode
+  }, [episodes, selEp, userPicked, playing, view, surface]);
 
   const ep = episodes.find((e) => e.episode_id === selEp) ?? null;
   const insight = ep ? insights[ep.insight_id] : undefined;
-  const approved = insight?.insight.review_status === "approved";
+  const approved = insight?.insight.review_status === "approved";  // this (latest) revision is approved
+  // broadcast and export follow the approved revision, which may be older than the latest one
+  const approvedRev = insight?.approved_revision ?? null;
 
   // ---------------------------------------------------------------- overlay + evidence fetch
   const liveKey = view === "live" && surface === "inspector_preview" ? frame?.frame_ref.frame_index : -1;
@@ -220,7 +234,7 @@ export function App() {
   useEffect(() => {
     overlayKey.current = "";
     if (!session || !ep) { setOverlay(null); return; }
-    if (surface === "broadcast" && !approved) { setOverlay(null); return; }
+    if (surface === "broadcast" && approvedRev === null) { setOverlay(null); return; }
     // what an answer is for, apart from the live frame: an answer for anything else is never drawn
     const key = [session.replay_id, ep.episode_id, ep.revision, audience, language, focus, view, surface, selRev].join("|");
     overlayKey.current = key;
@@ -246,7 +260,7 @@ export function App() {
       }).catch((e) => { if (!(e instanceof ApiError && e.status === 404)) setError(String(e)); });
     }, wait);
     return () => clearTimeout(t);
-  }, [session, ep?.episode_id, ep?.revision, audience, language, focus, view, surface, selRev, liveKey, approved]);
+  }, [session, ep?.episode_id, ep?.revision, audience, language, focus, view, surface, selRev, liveKey, approvedRev]);
 
   useEffect(() => {
     if (!session || !ep) { setPacket(null); return; }
@@ -268,7 +282,10 @@ export function App() {
       const v = await api.decide(session, insight.insight.insight_id, insight.insight.revision,
         insight.insight.evidence_hash, decision);
       setInsights((p) => ({ ...p, [v.insight.insight_id]: v }));
-      setNotice(decision === "approve" ? "Approved. Broadcast replays this revision." : "Rejected. Hidden from broadcast.");
+      setNotice(decision === "approve" ? "Approved. Broadcast replays this revision."
+        : v.approved_revision != null  // a newer revision was rejected: the approved one stays on air
+          ? `Rejected revision ${v.insight.revision}. Broadcast keeps approved revision ${v.approved_revision}.`
+          : "Rejected. Hidden from broadcast.");
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
         setNotice("The evidence changed: a newer revision needs review.");
@@ -281,7 +298,7 @@ export function App() {
     const data = await api.exportJson(session, insight.insight.insight_id);
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
     const a = document.createElement("a");
-    a.href = url; a.download = `${insight.insight.insight_id}_r${insight.insight.revision}.json`; a.click();
+    a.href = url; a.download = `${insight.insight.insight_id}_r${data.decision?.insight_revision ?? approvedRev}.json`; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -307,6 +324,9 @@ export function App() {
   const stylesPresent = useMemo(() => Array.from(new Set(overlaySnap?.elements.filter((e) => !hidden.has(e.layer)).map((e) => e.style_token) ?? [])), [overlaySnap, hidden]);
   const claimById = useMemo(() => Object.fromEntries((packet?.claims ?? []).map((c) => [c.claim_id, c])), [packet]);
   const metricById = useMemo(() => Object.fromEntries((packet?.metrics ?? []).map((m) => [m.metric_id, m])), [packet]);
+  // the "heuristic" mark comes from the epistemic tags of the claims the card lists (the latest revision's)
+  const heuristicCodes = useMemo(() => new Set<string>(ep?.heuristic ?? []), [ep]);
+  const claimLabel = (c: string) => <>{CLAIM_TEXT[c]}{heuristicCodes.has(c) && <> <small>heuristic</small></>}</>;
   const highlight = useMemo(() => {
     const s = new Set<string>();
     if (selEl) for (const cid of selEl.claim_ids) for (const p of claimById[cid]?.player_ids ?? []) s.add(p);
@@ -317,11 +337,11 @@ export function App() {
     && selRev !== ep.revision;
   const texts = (viewingPast ? (overlay?.episode_revision === selRev ? overlay.texts : null) : insight?.texts)
     ?.[`${audience}_${language}`] ?? [];
+  // the cutoff of the narration actually shown (none while the matching narration is still loading)
+  const asOf = viewingPast
+    ? (overlay?.episode_revision === selRev ? overlay.analyzed_through_s : null)
+    : (ep && insight && insight.insight.evidence_hash === ep.evidence_hash ? ep.analyzed_until_s : null);
   const [t0, t1] = range;
-  // on air (fan): what was taken away, what it cost, and what happened, in the plan's own order
-  const airPlan = insight?.insight.producer_plan.variants.find((v) => v.audience === audience && v.language === language);
-  const outcomeAt = airPlan?.sentences.findIndex((x) => x.template_key.startsWith("outcome.") && x.template_key !== "outcome.pending") ?? -1;
-  const onAir = audience === "fan" ? (outcomeAt > 2 ? [texts[0], texts[1], texts[outcomeAt]] : texts.slice(0, 3)) : texts.slice(0, 6);
   const lastCloud = health?.last_cloud_result;
   const statusLine = health ? (health.cloud_enabled
     ? `Narration: Foundry enabled · last call ${lastCloud?.last_call_succeeded == null ? "none yet"
@@ -384,8 +404,8 @@ export function App() {
               <button className={view === "replay" ? "on" : ""} onClick={() => { setView("replay"); setAutoReplay(false); }}>Replay moment</button>
             </div>}
             <div className="seg focus">
-              <button className={`r${focus === "restricted" ? " on" : ""}`} onClick={() => setFocus(focus === "restricted" ? "both" : "restricted")}>What is restricted?</button>
-              <button className={`x${focus === "exposed" ? " on" : ""}`} onClick={() => setFocus(focus === "exposed" ? "both" : "exposed")}>What is exposed?</button>
+              <button className={`r${focus === "restricted" ? " on" : ""}`} onClick={() => setFocus(focus === "restricted" ? "both" : "restricted")}>What it takes away</button>
+              <button className={`x${focus === "exposed" ? " on" : ""}`} onClick={() => setFocus(focus === "exposed" ? "both" : "exposed")}>What it leaves open</button>
             </div>
             {followed && <div className="seg">
               <button className={onlyFollowed ? "on" : ""} onClick={() => setOnlyFollowed(!onlyFollowed)} aria-pressed={onlyFollowed}>
@@ -420,7 +440,7 @@ export function App() {
                 : <> · <span className={`state${overlay.overlay.display_mode === "live" ? " live" : ""}`}>{overlay.overlay.display_mode === "live" ? "LIVE" : "REPLAY"}</span>
                     {` · ${matchClock(overlay.overlay.match_time_s)}`}{details ? ` · analysed through ${fmtClock(overlay.analyzed_through_s, t0)}` : ""}</>)}
             </div>
-            {surface === "broadcast" && !approved
+            {surface === "broadcast" && approvedRev === null
               ? <div className="empty">No approved insight for this moment yet. Approve it in Inspector.</div>
               : shownFrame && <Pitch frame={shownFrame} overlay={overlaySnap} labels={overlay?.label_text} hiddenLayers={hidden}
                   selected={surface === "inspector_preview" ? selEl?.element_id : undefined}
@@ -429,7 +449,11 @@ export function App() {
                   quietLabels={audience === "fan" ? FAN_QUIET : undefined}
                   onPlayer={surface === "inspector_preview" ? (pid) => setFollowed(followed === pid ? null : pid) : undefined} />}
           </div>
-          {surface === "broadcast" && approved && <div className="caption">{onAir.map((t, i) => <p key={i}>{t}</p>)}</div>}
+          {/* the caption is the approved revision's own, chosen by the server; a newer revision waits for its approval */}
+          {surface === "broadcast" && approvedRev !== null && !!overlay?.on_air?.length &&
+            <div className="caption">{overlay.on_air.map((t, i) => <p key={i}>{t}</p>)}</div>}
+          {surface === "broadcast" && approvedRev !== null && insight && insight.insight.revision !== approvedRev &&
+            <p className="air-note">On air: approved revision {approvedRev}. Revision {insight.insight.revision} is newer and waits for approval in Inspector.</p>}
           <Timeline episodes={onlyFollowed && followed ? episodes.filter((e) => e.player_ids?.includes(followed)) : episodes}
             empty={onlyFollowed && followed ? `No moments involving #${jersey(followed)} yet` : "No moments yet"}
             myClub={myClub} t0={t0} t1={t1} clock={clock} selected={selEp} selRev={selRev}
@@ -455,24 +479,27 @@ export function App() {
               ? <p className="meta">{ep.episode_id} · rev {ep.revision} · {ep.lifecycle} · priority {ep.story_priority.toFixed(2)} (heuristic evidence strength)</p>
               : <p className="meta">{ep.revision} update{ep.revision === 1 ? "" : "s"} so far · {ep.lifecycle === "closed" ? "finished" : "in progress"}</p>}
             <div className="cols">
-              <div><h3>What is restricted</h3>{ep.restricted.length ? ep.restricted.map((c) => <div key={c} className={`claim r ${liveClaims.includes(c) ? "live" : ""}`}>{CLAIM_TEXT[c].replace(" (heuristic)", "")}{CLAIM_TEXT[c].endsWith("(heuristic)") && <> <small>heuristic</small></>}</div>) : <div className="none">No supported claim</div>}</div>
-              <div><h3>What is exposed</h3>{ep.exposed.length ? ep.exposed.map((c) => <div key={c} className={`claim x ${liveClaims.includes(c) ? "live" : ""}`}>{CLAIM_TEXT[c].replace(" (heuristic)", "")}{CLAIM_TEXT[c].endsWith("(heuristic)") && <> <small>heuristic</small></>}</div>) : <div className="none">No exposure passed its gates</div>}</div>
+              <div><h3>What is restricted</h3>{ep.restricted.length ? ep.restricted.map((c) => <div key={c} className={`claim r ${liveClaims.includes(c) ? "live" : ""}`}>{claimLabel(c)}</div>) : <div className="none">No supported claim</div>}</div>
+              <div><h3>What is exposed</h3>{ep.exposed.length ? ep.exposed.map((c) => <div key={c} className={`claim x ${liveClaims.includes(c) ? "live" : ""}`}>{claimLabel(c)}</div>) : <div className="none">Nothing left open is supported yet</div>}</div>
             </div>
             <h3>Observed so far</h3>
             <div className="outcome">{ep.changes.map((c) => <span key={c} className="chip ch">{c.replace(/_/g, " ")}</span>)} <span className="chip oc">{OUTCOME_TEXT[ep.outcome]}</span></div>
             <div className="bf">
               <button className={view === "replay" && selRev === 1 ? "on" : ""}
-                onClick={() => { setSelRev(1); setView("replay"); setSurface("inspector_preview"); }}>Before (rev 1)</button>
+                onClick={() => { setUserPicked(true); setSelRev(1); setView("replay"); setSurface("inspector_preview"); }}>Before (rev 1)</button>
               <button className={view === "replay" && selRev !== 1 && (selRev ?? ep.revision) === ep.revision ? "on" : ""}
-                onClick={() => { setSelRev(ep.revision); setView("replay"); setSurface("inspector_preview"); }}>After (rev {ep.revision})</button>
+                onClick={() => { setUserPicked(true); setSelRev(ep.revision); setView("replay"); setSurface("inspector_preview"); }}>After (rev {ep.revision})</button>
             </div>
             <h3>Narration{viewingPast ? ` at rev ${selRev}` : ""}</h3>
+            {/* the narration's numbers belong to its revision; the live pitch labels follow the current frame */}
+            {asOf != null && <p className="meta asof">Numbers as of {matchClockTenths(asOf)}</p>}
             <div className="texts" data-audience={audience}>{texts.map((t, i) => <p key={i}>{t}</p>)}</div>
             {insight && <div className="producer">
               {details
                 ? <p className="meta">Insight rev {insight.insight.revision} · source {insight.insight.source_mode.replace("_", " ")} · <b className={`rs ${insight.insight.review_status}`}>{insight.insight.review_status}</b> · broadcast {insight.broadcast_visibility}</p>
                 : <p className="meta">Written by {SOURCE_TEXT[insight.insight.source_mode] ?? insight.insight.source_mode}{insight.provenance ? ` (${insight.provenance.model})` : ""} · <b className={`rs ${insight.insight.review_status}`}>{insight.insight.review_status === "suggested" ? "awaiting approval" : insight.insight.review_status}</b></p>}
               {details && insight.provenance && <p className="meta">Trace {insight.provenance.trace_id} · {insight.provenance.model} · {insight.provenance.calls} model call(s), {insight.provenance.repairs} repair · {(insight.provenance.total_ms / 1000).toFixed(1)} s</p>}
+              {insight.agent_changes && <AgentChanges ch={insight.agent_changes} />}
               {insight.provenance && <details className="steps"><summary>Agent steps (Analyst → code check → Producer → code check)</summary>
                 <ol>{insight.provenance.stages.map((st: any, i: number) => (
                   <li key={i} className={st.ok ? "ok" : "bad"}>{STAGE_TEXT[st.stage] ?? st.stage}{st.ms != null ? ` · ${(st.ms / 1000).toFixed(1)} s` : ""}{st.error ? ` · ${st.error}` : ""}</li>
@@ -480,10 +507,11 @@ export function App() {
               <div className="row">
                 <button className="ok" onClick={() => decide("approve")} disabled={approved}>Approve</button>
                 <button className="no" onClick={() => decide("reject")}>Reject</button>
-                <button onClick={exportJson} disabled={!approved}>Export JSON</button>
+                <button onClick={exportJson} disabled={approvedRev === null}>Export JSON</button>
               </div>
             </div>}
-          </div> : <div className="card"><p>No episode detected yet. Press play.</p></div>}
+          </div> : <div className="card"><p>No moment yet. Press Play: pink marks the passes the defence takes away, cyan the space it
+            leaves open.</p></div>}
           <Inspector el={selEl} claimById={claimById} metricById={metricById} packet={packet} t0={t0} details={details} />
           {session && <AskPanel key={session.replay_id} session={session} audience={audience} language={language}
             episodes={episodes} t0={t0} onError={(e) => setError(e)} onAnswered={refreshHealth}
@@ -555,6 +583,28 @@ const METRIC_TEXT: Record<string, string> = {
   supported_marking_edges: "Sustained marking pairs", wide_open_outlets: "Open wide outlets",
   zone_marking_coverage: "Attackers with a sustained marker", zone_opponents: "Attackers in the zone",
 };
+// What the narration agents changed, next to the rule-based plan for the same evidence. Computed by the server in
+// code from the ids the agents chose (claims led with, left out or added, caveats, sentences kept, dropped, moved).
+function AgentChanges({ ch }: { ch: NonNullable<InsightView["agent_changes"]> }) {
+  const claim = (c: string | null) => (c ? CLAIM_TEXT[c] ?? c.replace(/_/g, " ") : "none");
+  const counts = (a: "fan" | "analyst") => {
+    const v = ch.sentences[a];
+    return v ? `${a === "fan" ? "Fan" : "Analyst"} kept ${v.kept}, dropped ${v.dropped}, added ${v.added}, moved ${v.moved}` : "";
+  };
+  const caveats = [...ch.caveats_added.map((c) => `+ ${c.replace(/_/g, " ")}`),
+                   ...ch.caveats_dropped.map((c) => `− ${c.replace(/_/g, " ")}`)];
+  return <div className="agent-diff">
+    <p className="meta"><b>What the agents changed</b> · against the rule-based plan for the same evidence</p>
+    {ch.same_as_rules ? <p>Nothing: the agents made the same choices as the rules.</p> : <ul>
+      <li>Led with {claim(ch.lead.agents)}{ch.lead.agents === ch.lead.rules ? " (as the rules do)" : ` (rules: ${claim(ch.lead.rules)})`}</li>
+      {ch.left_out.length > 0 && <li>Left out {ch.left_out.map(claim).join(", ")}</li>}
+      {ch.added.length > 0 && <li>Added {ch.added.map(claim).join(", ")}</li>}
+      {caveats.length > 0 && <li>Caveats {caveats.join(", ")}</li>}
+      <li>Sentences: {counts("fan")} · {counts("analyst")}</li>
+    </ul>}
+  </div>;
+}
+
 function metricValue(m: any): string {
   if (m.value === null) return "n/a";
   const v = m.value as number;

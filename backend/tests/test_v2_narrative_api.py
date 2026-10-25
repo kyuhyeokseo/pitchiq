@@ -7,7 +7,7 @@ import re
 import pytest
 from fastapi.testclient import TestClient
 
-from app.agents.fallback import analyst_plan, producer_plan
+from app.agents.fallback import analyst_plan, changes_from_rules, producer_plan
 from app.agents.validate import PlanError, validate_analyst_plan, validate_producer_plan
 from app.agents.workflow import render_variants
 from app.api.app import STORE, app
@@ -198,6 +198,161 @@ def test_approval_is_per_revision_per_session_and_drives_broadcast(client):
     later = next(i for i in c.get(f"/api/replays/{rid}/insights", headers=H).json() if i["insight"]["insight_id"] == iid)
     assert later["insight"]["revision"] > view["insight"]["revision"]
     assert later["insight"]["review_status"] == "suggested"
+
+
+def test_broadcast_keeps_airing_the_approved_revision_when_a_newer_plan_arrives(client):
+    # a cloud plan for the same evidence lands after the approval: it is a new revision that needs its own approval,
+    # so broadcast, its caption and the export stay on the approved revision's own narration
+    c = client
+    clip = load_clip("clip_001")
+    rid, H, _ = _create(c)
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 13.4, "expected_epoch": 1},
+           headers=H)
+    view = _complete_insight(c, rid, H)
+    iid, ep, rev = view["insight"]["insight_id"], view["insight"]["episode_id"], view["insight"]["revision"]
+    assert c.post(f"/api/replays/{rid}/insights/{iid}/decision", headers=H, json={
+        "revision": rev, "evidence_hash": view["insight"]["evidence_hash"], "decision": "approve"}).status_code == 200
+    s = STORE.sessions[rid]
+    ins = s.revisions[iid][-1]
+    pk = next(p for p in s.analyzer.packets[ep] if p.evidence_hash == ins.evidence_hash)
+    reordered = ins.producer_plan.model_copy(update={"variants": [
+        v.model_copy(update={"sentences": list(reversed(v.sentences))}) for v in ins.producer_plan.variants]})
+    s._attach_cloud(pk, s.epoch, ins.analyst_plan, reordered, {"trace_id": "trace_after_approval"}, "foundry_live")
+    assert s.revisions[iid][-1].revision == rev + 1
+
+    latest = next(i for i in c.get(f"/api/replays/{rid}/insights", headers=H).json() if i["insight"]["insight_id"] == iid)
+    assert latest["insight"]["revision"] == rev + 1 and latest["insight"]["review_status"] == "suggested"
+    assert latest["approved_revision"] == rev and latest["texts"]["fan_en"] != view["texts"]["fan_en"]
+    bc = c.get(f"/api/replays/{rid}/overlays", params={"episode_id": ep, "surface": "broadcast", "audience": "fan",
+                                                        "language": "en"}, headers=H).json()
+    assert bc["insight_revision"] == rev and bc["texts"]["fan_en"] == view["texts"]["fan_en"]
+    assert bc["on_air"] == view["texts"]["fan_en"][:3]  # the approved plan's caption, in its own order
+    exp = c.get(f"/api/replays/{rid}/export/{iid}", headers=H).json()
+    assert exp["decision"]["insight_revision"] == rev and exp["decision"]["status"] == "approved"
+    assert exp["decision"]["evidence_hash"] == view["insight"]["evidence_hash"]
+    assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", exp["decision"]["decided_at"])
+    assert exp["insight"]["insight"]["revision"] == rev
+
+
+def _approve_latest(c, rid, H, iid):
+    v = next(i for i in c.get(f"/api/replays/{rid}/insights", headers=H).json() if i["insight"]["insight_id"] == iid)
+    assert c.post(f"/api/replays/{rid}/insights/{iid}/decision", headers=H, json={
+        "revision": v["insight"]["revision"], "evidence_hash": v["insight"]["evidence_hash"],
+        "decision": "approve"}).status_code == 200
+    return v
+
+
+def _attach_reordered(rid, iid, ep, trace_id):
+    s = STORE.sessions[rid]
+    ins = s.revisions[iid][-1]
+    pk = next(p for p in s.analyzer.packets[ep] if p.evidence_hash == ins.evidence_hash)
+    reordered = ins.producer_plan.model_copy(update={"variants": [
+        v.model_copy(update={"sentences": list(reversed(v.sentences))}) for v in ins.producer_plan.variants]})
+    s._attach_cloud(pk, s.epoch, ins.analyst_plan, reordered, {"trace_id": trace_id}, "foundry_live")
+
+
+def test_broadcast_caption_takes_the_approved_plans_observed_outcome(client):
+    c = client
+    clip = load_clip("clip_001")
+    rid, H, _ = _create(c)
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.end_s, "expected_epoch": 1}, headers=H)
+    view = _complete_insight(c, rid, H)
+    iid, ep = view["insight"]["insight_id"], view["insight"]["episode_id"]
+    _approve_latest(c, rid, H, iid)
+    keys = [x.template_key for x in STORE.sessions[rid].revisions[iid][-1].producer_plan.variant("fan", "en").sentences]
+    at = next(i for i, k in enumerate(keys) if k.startswith("outcome.") and k != "outcome.pending")
+    assert at > 2  # the fan caption is what was taken away, what it cost, and what happened
+    _attach_reordered(rid, iid, ep, "trace_outcome")
+    bc = c.get(f"/api/replays/{rid}/overlays", params={"episode_id": ep, "surface": "broadcast", "audience": "fan",
+                                                        "language": "en"}, headers=H).json()
+    fan = view["texts"]["fan_en"]
+    assert bc["on_air"] == [fan[0], fan[1], fan[at]]
+
+
+def test_an_approval_holds_only_for_its_own_revision_and_evidence_across_seeks(client):
+    c = client
+    clip = load_clip("clip_001")
+    rid, H, _ = _create(c)
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 17.0, "expected_epoch": 1},
+           headers=H)
+    view = _complete_insight(c, rid, H)
+    iid, ep, rev = view["insight"]["insight_id"], view["insight"]["episode_id"], view["insight"]["revision"]
+    _approve_latest(c, rid, H, iid)
+    # back to before that revision existed: the approval names nothing in this analysis, so nothing airs
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 13.4, "expected_epoch": 2},
+           headers=H)
+    now = next(i for i in c.get(f"/api/replays/{rid}/insights", headers=H).json() if i["insight"]["insight_id"] == iid)
+    assert now["insight"]["revision"] < rev and now["approved_revision"] is None
+    assert c.get(f"/api/replays/{rid}/overlays", params={"episode_id": ep, "surface": "broadcast"},
+                 headers=H).status_code == 409
+    assert c.get(f"/api/replays/{rid}/export/{iid}", headers=H).status_code == 409
+    # forward again to the same evidence: the exact revision is back, and so is its approval
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 17.0, "expected_epoch": 3},
+           headers=H)
+    again = next(i for i in c.get(f"/api/replays/{rid}/insights", headers=H).json() if i["insight"]["insight_id"] == iid)
+    assert again["approved_revision"] == rev and again["insight"]["evidence_hash"] == view["insight"]["evidence_hash"]
+    assert c.get(f"/api/replays/{rid}/export/{iid}", headers=H).json()["decision"]["insight_revision"] == rev
+
+
+def test_rejecting_a_newer_revision_keeps_the_approved_one_on_air(client):
+    c = client
+    clip = load_clip("clip_001")
+    rid, H, _ = _create(c)
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 13.4, "expected_epoch": 1},
+           headers=H)
+    view = _complete_insight(c, rid, H)
+    iid, ep, rev = view["insight"]["insight_id"], view["insight"]["episode_id"], view["insight"]["revision"]
+    _approve_latest(c, rid, H, iid)
+    _attach_reordered(rid, iid, ep, "trace_rejected")
+    newer = next(i for i in c.get(f"/api/replays/{rid}/insights", headers=H).json() if i["insight"]["insight_id"] == iid)
+    assert c.post(f"/api/replays/{rid}/insights/{iid}/decision", headers=H, json={
+        "revision": newer["insight"]["revision"], "evidence_hash": newer["insight"]["evidence_hash"],
+        "decision": "reject"}).json()["insight"]["review_status"] == "rejected"
+    after = next(i for i in c.get(f"/api/replays/{rid}/insights", headers=H).json() if i["insight"]["insight_id"] == iid)
+    assert after["approved_revision"] == rev
+    bc = c.get(f"/api/replays/{rid}/overlays", params={"episode_id": ep, "surface": "broadcast"}, headers=H).json()
+    assert bc["insight_revision"] == rev
+    assert c.get(f"/api/replays/{rid}/export/{iid}", headers=H).json()["decision"]["insight_revision"] == rev
+    # the approved revision itself still reads as approved, the rejected one as rejected
+    s = STORE.sessions[rid]
+    assert [s.review_status(r) for r in s.revisions[iid][-2:]] == ["approved", "rejected"]
+
+
+def test_agent_changes_are_computed_in_code_against_the_rule_plan(packets, client):
+    meta, p = next((m, p) for m, p in packets if p.episode.analysis_status == "complete_tradeoff")
+    rules_a = analyst_plan(p)
+    rules_p = producer_plan(p, rules_a)
+    same = changes_from_rules(p, rules_a, rules_p)
+    assert same["same_as_rules"] and same["sentences"]["fan"]["moved"] == 0
+    flipped = rules_p.model_copy(update={"variants": [
+        v.model_copy(update={"sentences": list(reversed(v.sentences))}) for v in rules_p.variants]})
+    moved = changes_from_rules(p, rules_a, flipped)
+    n = len(rules_p.variant("fan", "en").sentences)
+    assert not moved["same_as_rules"] and moved["sentences"]["fan"] == {"kept": n, "dropped": 0, "added": 0,
+                                                                         "moved": n - 1}
+    shorter = rules_p.model_copy(update={"variants": [
+        v.model_copy(update={"sentences": v.sentences[:-1]}) for v in rules_p.variants]})
+    assert changes_from_rules(p, rules_a, shorter)["sentences"]["analyst"]["dropped"] == 1
+    lead_last = rules_a.model_copy(update={"focus_claim_ids": rules_a.focus_claim_ids[1:] + rules_a.focus_claim_ids[:1]})
+    if len(rules_a.focus_claim_ids) > 1:
+        assert changes_from_rules(p, lead_last, rules_p)["lead"]["agents"] != changes_from_rules(p, rules_a, rules_p)["lead"]["agents"]
+    # on the API: a cloud revision carries the comparison, the deterministic one does not
+    c = client
+    clip = load_clip("clip_001")
+    rid, H, _ = _create(c)
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 13.4, "expected_epoch": 1},
+           headers=H)
+    view = _complete_insight(c, rid, H)
+    assert view["agent_changes"] is None
+    s = STORE.sessions[rid]
+    iid, ep = view["insight"]["insight_id"], view["insight"]["episode_id"]
+    ins = s.revisions[iid][-1]
+    pk = next(q for q in s.analyzer.packets[ep] if q.evidence_hash == ins.evidence_hash)
+    reordered = ins.producer_plan.model_copy(update={"variants": [
+        v.model_copy(update={"sentences": list(reversed(v.sentences))}) for v in ins.producer_plan.variants]})
+    s._attach_cloud(pk, s.epoch, ins.analyst_plan, reordered, {"trace_id": "trace_changes"}, "foundry_live")
+    cloud = next(i for i in c.get(f"/api/replays/{rid}/insights", headers=H).json() if i["insight"]["insight_id"] == iid)
+    assert cloud["agent_changes"]["sentences"]["fan"]["moved"] > 0 and not cloud["agent_changes"]["same_as_rules"]
 
 
 def test_replay_of_an_earlier_revision_comes_with_that_revisions_narration(client):

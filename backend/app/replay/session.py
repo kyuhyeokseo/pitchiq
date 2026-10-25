@@ -14,6 +14,7 @@ import secrets
 import threading
 import time
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
 from ..agents.cloud import CloudInsights
 from ..agents.workflow import InsightService
@@ -41,6 +42,11 @@ class Review:
     evidence_hash: str
     decided_epoch: int
     visibility: str = "hidden"  # hidden | scheduled | showing | expired
+    decided_at: str = ""  # UTC, ISO 8601: the audit record carried by the export
+
+    def record(self, insight_id: str) -> dict:
+        return {"insight_id": insight_id, "status": self.status, "insight_revision": self.revision,
+                "evidence_hash": self.evidence_hash, "epoch": self.decided_epoch, "decided_at": self.decided_at}
 
 
 @dataclass
@@ -63,6 +69,7 @@ class ReplaySession:
     results: list[FrameResult] = field(default_factory=list)
     revisions: dict[str, list[InsightRevision]] = field(default_factory=dict)  # insight_id -> revisions
     reviews: dict[str, Review] = field(default_factory=dict)  # insight_id -> latest decision
+    approvals: dict[str, Review] = field(default_factory=dict)  # insight_id -> the approval broadcast airs
     history: list[dict] = field(default_factory=list)
     lock: threading.RLock = field(default_factory=threading.RLock)
     cloud: CloudInsights | None = None
@@ -221,8 +228,8 @@ class ReplaySession:
         with self.lock:
             self.epoch += 1
             self.seq = 0
-            for rv in self.reviews.values():
-                rv.visibility = "hidden"  # approvals stay in history but are not carried into the new epoch
+            for rv in [*self.reviews.values(), *self.approvals.values()]:
+                rv.visibility = "hidden"  # an approval stays valid for its exact revision and evidence, but off air
             self.history.append({"event": "seek", "to_s": t, "epoch": self.epoch})
             self._new_analyzer()
             self._advance_to(self.clip.frame_at(t))
@@ -247,17 +254,32 @@ class ReplaySession:
                 raise StaleRevision(f"latest revision is {latest.revision}")
             status = {"approve": "approved", "reject": "rejected"}[decision]
             rv = Review(status, revision, evidence_hash, self.epoch,
-                        "scheduled" if status == "approved" else "hidden")
+                        "scheduled" if status == "approved" else "hidden",
+                        datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"))
             self.reviews[insight_id] = rv
+            on_air = self.approvals.get(insight_id)
+            if status == "approved":
+                self.approvals[insight_id] = rv
+            elif on_air is not None and on_air.revision == revision and on_air.evidence_hash == evidence_hash:
+                del self.approvals[insight_id]  # rejecting the revision on air takes it off; rejecting a newer one does not
             self.history.append({"event": "decision", "insight_id": insight_id, "revision": revision,
                                  "decision": status, "epoch": self.epoch, "at_clock_s": self.clock_s})
             return rv
 
     def review_status(self, ins: InsightRevision) -> str:
-        rv = self.reviews.get(ins.insight_id)
-        if rv is not None and rv.revision == ins.revision and rv.evidence_hash == ins.evidence_hash:
-            return rv.status
+        for rv in (self.reviews.get(ins.insight_id), self.approvals.get(ins.insight_id)):
+            if rv is not None and rv.revision == ins.revision and rv.evidence_hash == ins.evidence_hash:
+                return rv.status
         return "suggested"
+
+    def approved_revision(self, insight_id: str) -> InsightRevision | None:
+        """The approved revision while this analysis has it: the same number on the same evidence, as in
+        review_status. A seek rebuilds the revisions, so a number alone could name a revision nobody approved."""
+        rv = self.approvals.get(insight_id)
+        if rv is None:
+            return None
+        return next((r for r in self.revisions.get(insight_id, [])
+                     if r.revision == rv.revision and r.evidence_hash == rv.evidence_hash), None)
 
 
 class SessionStore:

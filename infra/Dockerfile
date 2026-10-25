@@ -12,6 +12,9 @@ COPY frontend/src ./src
 RUN npx tsc --noEmit && npx vite build
 
 FROM python:3.12.7-slim-bookworm
+# the commit this image was built from (CI passes it); /api/health reports it, so the live build can be identified
+ARG GIT_SHA=dev
+ENV PITCHIQ_GIT_SHA=$GIT_SHA
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/backend \
