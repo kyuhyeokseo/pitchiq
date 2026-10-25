@@ -60,7 +60,8 @@ async def run(items: list[dict], dry: bool, pace_s: float) -> list[dict]:
     by_id = {i["id"]: i for i in items}
     gw = None
     if not dry:
-        from app.agents.gateway import FoundryGateway
+        from app.agents.gateway import FoundryGateway, load_env_file
+        load_env_file(ROOT / ".env")  # the Foundry endpoint and model, as for the smoke runner
         gw = FoundryGateway.from_env()
     rows = []
     try:

@@ -210,3 +210,11 @@ model with its fixed speeds and reaction time. The UI takes the "heuristic" mark
 A scratch rerun of the holdout-v2-0.6 configuration with analytics-0.1.1 gave the same report apart from the wall time
 (144/144 stories, designed claim precision 241/242, 1 of 72 counter-examples with the wrong emphasis); the committed
 report stays the 0.1.0 run.
+
+## Ask check (2026-10-25)
+
+24 questions written from the public clips and pushed to GitHub before one live run of the Ask agent (item file sha256
+`3dfe2869…`). The agent answered 21 (3 hit a transient service error and got the labelled fallback); 19 of those 21
+met their expectation: routing 5 of 6, declines 5 of 6, intent questions 4 of 4, prompt-injection attempts 6 of 6. The
+no-agent reference meets 10 of 24. Misses and details: `evaluation/reports/ask_check/ask-check-1/report.md`. The prompt
+and validators were not changed after the run.
