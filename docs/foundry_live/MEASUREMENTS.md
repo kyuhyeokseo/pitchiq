@@ -137,3 +137,15 @@ calls), `execute_tool get_evidence`, `get_history` and `answer_options` (the Ask
 calls, the PitchIQ spans `pitchiq.narration` (11) and `pitchiq.ask` (1), and the request `POST /api/replays/{rid}/ask`.
 No prompt or model text is recorded (sensitive data off). The live app does not send traces yet: that needs the
 connection string as a Container App secret (see `infra/README.md`).
+
+## Application Insights tracing from the live app (image `sha-f45f1a6`, 2026-10-25 about 18:15 US Eastern)
+
+The connection string of the existing Application Insights resource was set as a Container App secret and passed to
+the app as `APPLICATIONINSIGHTS_CONNECTION_STRING`; `/api/health` then reported `telemetry.enabled: true`. One scripted
+browser run of the video path (Clip 1 at 0.5×, evidence, Ask, approve, export, broadcast, recap) followed. A query of
+the resource a few minutes later, filtered to the container's role instance, listed among others:
+`invoke_agent pitchiq-analyst` (9), `invoke_agent pitchiq-producer` (14), `invoke_agent pitchiq-ask` (1),
+`chat gpt-5-mini` (22), `execute_tool answer_options` (4), `pitchiq.narration` (14), `pitchiq.ask` (1), the Foundry
+HTTP calls, and API requests such as `POST /api/replays/{rid}/recap/agent` and `GET /api/replays/{rid}/export/...`.
+It also showed one span per WebSocket message (238 in this run) and the ASGI layer's internal send and receive spans;
+the next build leaves both out (the replay stream and per-frame routes are not traced).

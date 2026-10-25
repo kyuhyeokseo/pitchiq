@@ -19,8 +19,9 @@ except ImportError:  # pragma: no cover - depends on the installed extras
     _trace = None
 
 STATE: dict = {"enabled": False, "error": None}
-# per-frame polling would drown the requests worth looking at
-EXCLUDED_URLS = "api/replays/[^/]+/overlays,api/replays/[^/]+/frames/,api/replays/[^/]+/snapshot,api/health,assets/"
+# per-frame polling and the replay's WebSocket stream (a span per message) would drown the requests worth looking at
+EXCLUDED_URLS = ("api/replays/[^/]+/overlays,api/replays/[^/]+/frames/,api/replays/[^/]+/snapshot,api/health,assets/,"
+                 "ws/replays/")
 
 
 def configure() -> dict:
@@ -56,7 +57,9 @@ def instrument_app(app, tracer_provider=None) -> None:
         return
     try:
         from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-        FastAPIInstrumentor.instrument_app(app, excluded_urls=EXCLUDED_URLS, tracer_provider=tracer_provider)
+        # one span per request, without the ASGI layer's internal send/receive spans
+        FastAPIInstrumentor.instrument_app(app, excluded_urls=EXCLUDED_URLS, tracer_provider=tracer_provider,
+                                           exclude_spans=["receive", "send"])
     except Exception as e:  # noqa: BLE001 - requests then go untraced; agent and pipeline spans still flow
         STATE["error"] = f"fastapi:{type(e).__name__}"
 

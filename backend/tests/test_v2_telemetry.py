@@ -9,6 +9,7 @@ import sys
 import types
 
 import pytest
+from fastapi import WebSocket
 from fastapi.testclient import TestClient
 
 from app import telemetry
@@ -58,14 +59,25 @@ def test_api_requests_are_traced_except_the_per_frame_polling(fresh_state):
     for path in ("/api/health", "/api/replays/{rid}/overlays", "/api/replays/{rid}/frames/{k}",
                  "/api/replays/{rid}/snapshot", "/api/replays/{rid}/ask"):
         demo.add_api_route(path, lambda: {"ok": True}, methods=["GET"])
+
+    @demo.websocket("/ws/replays/{rid}")
+    async def stream(websocket: WebSocket, rid: str):
+        await websocket.accept()
+        for _ in range(5):
+            await websocket.send_json({"type": "tracking_frame"})
+        await websocket.close()
     fresh_state["enabled"] = True
     telemetry.instrument_app(demo, tracer_provider=provider)
     c = TestClient(demo)
     for url in ("/api/health", "/api/replays/r1/overlays", "/api/replays/r1/frames/3", "/api/replays/r1/snapshot",
                 "/api/replays/r1/ask"):
         c.get(url)
-    served = [s.name for s in exported.get_finished_spans() if s.kind.name == "SERVER"]
-    assert served == ["GET /api/replays/{rid}/ask"]
+    with c.websocket_connect("/ws/replays/r1") as ws:  # the per-frame stream stays out too
+        for _ in range(5):
+            ws.receive_json()
+        assert ws.receive()["type"] == "websocket.close"
+    spans = exported.get_finished_spans()
+    assert [s.name for s in spans] == ["GET /api/replays/{rid}/ask"]  # no internal send/receive spans either
 
 
 def test_a_failing_exporter_never_stops_the_app(fresh_state, monkeypatch):
