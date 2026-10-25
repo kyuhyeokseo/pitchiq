@@ -149,3 +149,7 @@ the resource a few minutes later, filtered to the container's role instance, lis
 HTTP calls, and API requests such as `POST /api/replays/{rid}/recap/agent` and `GET /api/replays/{rid}/export/...`.
 It also showed one span per WebSocket message (238 in this run) and the ASGI layer's internal send and receive spans;
 the next build leaves both out (the replay stream and per-frame routes are not traced).
+
+On image `sha-d3dc493` (2026-10-25 about 19:42 US Eastern), a 6-second live stream of 64 WebSocket messages left no
+WebSocket or internal send/receive spans; the API requests (`POST /api/replays`, `POST /api/replays/{rid}/control`,
+`DELETE /api/replays/{rid}`), the agent runs, the model calls and `pitchiq.narration` were traced.
