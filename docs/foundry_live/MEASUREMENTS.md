@@ -123,3 +123,14 @@ as information instead of pass or fail, because the agents may choose other vali
 sentences in 3 of them and the expected sentence appeared in 1. The run used 81 of the 300 daily Foundry runs (counter
 after the run; the counter restarts with each deployment). `/api/health` reported `build.sha` 6c98218, `/api/clips`
 12 clips and `/mcp` 5 tools.
+
+## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
+
+The app (in process, `TestClient`) with `APPLICATIONINSIGHTS_CONNECTION_STRING` set to the project's existing
+Application Insights resource: one replay of `clip_001` sought to its end (11 narration pipelines) and one Ask question.
+A query of the resource a few minutes later listed, among others: `invoke_agent pitchiq-analyst`,
+`invoke_agent pitchiq-producer` and `invoke_agent pitchiq-ask` (Agent Framework agent runs), `chat gpt-5-mini` (model
+calls), `execute_tool get_evidence`, `get_history` and `answer_options` (the Ask agent's tool calls), the Foundry HTTP
+calls, the PitchIQ spans `pitchiq.narration` (11) and `pitchiq.ask` (1), and the request `POST /api/replays/{rid}/ask`.
+No prompt or model text is recorded (sensitive data off). The live app does not send traces yet: that needs the
+connection string as a Container App secret (see `infra/README.md`).

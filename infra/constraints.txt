@@ -1,5 +1,5 @@
 # Exact versions the test suite passed with (pip freeze of the development venv, 2026-10-24), used as pip constraints
-# by CI and the serving image: pip install -c infra/constraints.txt -e ".[dev,foundry,mcp]". torch is left out: it is
+# by CI and the serving image: pip install -c infra/constraints.txt -e ".[dev,foundry,mcp,telemetry]". torch is left out: it is
 # only needed by the optional learned movement model, whose tests skip without it.
 agent-framework-core==1.23.0
 agent-framework-foundry==1.15.0
@@ -10,11 +10,15 @@ aiosignal==1.4.0
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
+asgiref==3.13.0
 attrs==26.1.0
 azure-ai-inference==1.0.0b9
 azure-ai-projects==2.7.0
 azure-core==1.41.0
+azure-core-tracing-opentelemetry==1.0.0b13
 azure-identity==1.26.0
+azure-monitor-opentelemetry==1.8.11
+azure-monitor-opentelemetry-exporter==1.0.0b58
 azure-storage-blob==12.31.0
 certifi==2026.10.19
 cffi==2.1.1
@@ -51,16 +55,36 @@ mpmath==1.3.0
 msal==1.39.0
 msal-extensions==1.3.1
 msgspec==0.22.0
+msrest==0.7.1
 multidict==7.1.0
 networkx==3.6.1
 numpy==2.5.4
+oauthlib==4.0.0
 openai==3.36.1
 opentelemetry-api==1.45.1
+opentelemetry-instrumentation==0.66b1
+opentelemetry-instrumentation-asgi==0.66b1
+opentelemetry-instrumentation-dbapi==0.66b1
+opentelemetry-instrumentation-django==0.66b1
+opentelemetry-instrumentation-fastapi==0.66b1
+opentelemetry-instrumentation-flask==0.66b1
+opentelemetry-instrumentation-httpx==0.66b1
+opentelemetry-instrumentation-logging==0.66b1
+opentelemetry-instrumentation-psycopg2==0.66b1
+opentelemetry-instrumentation-requests==0.66b1
+opentelemetry-instrumentation-urllib==0.66b1
+opentelemetry-instrumentation-urllib3==0.66b1
+opentelemetry-instrumentation-wsgi==0.66b1
+opentelemetry-resource-detector-azure==0.3.0
+opentelemetry-sdk==1.45.1
+opentelemetry-semantic-conventions==0.66b1
+opentelemetry-util-http==0.66b1
 packaging==26.3
 pillow==13.0.0
 playwright==1.64.0
 pluggy==1.7.0
 propcache==0.5.4
+psutil==7.2.2
 pycparser==3.12
 pydantic==2.14.1
 pydantic_core==2.50.1
@@ -76,6 +100,7 @@ PyYAML==6.0.3
 referencing==0.37.0
 regex==2026.9.29
 requests==2.34.2
+requests-oauthlib==2.0.0
 rpds-py==2026.9.1
 scipy==1.18.1
 setuptools==78.1.0
@@ -93,4 +118,5 @@ uvicorn==0.54.0
 uvloop==0.23.0
 watchfiles==1.3.0
 websockets==17.3
+wrapt==2.5.1
 yarl==1.25.1

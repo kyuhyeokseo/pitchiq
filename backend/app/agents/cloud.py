@@ -28,6 +28,7 @@ from pydantic import ValidationError
 from ..analytics.engine import ANALYTICS_VERSION
 from ..contracts import AnalystPlan, EvidencePacket, ProducerPlan
 from ..narrative.registry import REGISTRY_VERSION
+from ..telemetry import record, span
 from .ask import AskLimits, AskTrace, fallback_answer, run_ask
 from .recap import RecapLimits, RecapProfile, RecapTrace, fallback_recap
 from .recap_workflow import run_recap
@@ -253,14 +254,18 @@ class CloudInsights:
         if self._ask_sem is None:
             self._ask_sem = asyncio.Semaphore(self.limits.ask_concurrency)
         async with self._ask_sem:
-            try:
-                if self._gateway is None:
-                    self._gateway = self._factory()
-                answer, trace = await run_ask(view, question, audience, language, self._gateway, limits)
-            except Exception as e:  # gateway construction failed (missing package, bad settings)
-                answer = fallback_answer(view, audience)
-                trace = AskTrace(f"ask_{uuid.uuid4().hex[:12]}", "unknown", result="fallback",
-                                 reason=f"gateway_error:{type(e).__name__}")
+            with span("pitchiq.ask", audience=audience, language=language) as sp:
+                try:
+                    if self._gateway is None:
+                        self._gateway = self._factory()
+                    answer, trace = await run_ask(view, question, audience, language, self._gateway, limits)
+                except Exception as e:  # gateway construction failed (missing package, bad settings)
+                    answer = fallback_answer(view, audience)
+                    trace = AskTrace(f"ask_{uuid.uuid4().hex[:12]}", "unknown", result="fallback",
+                                     reason=f"gateway_error:{type(e).__name__}")
+                record(sp, result=trace.result, reason=trace.reason, runs=trace.runs, repairs=trace.repairs,
+                       tool_calls=trace.tool_calls, answer=answer.get("kind"), note_code=answer.get("note_code"),
+                       trace_id=trace.trace_id)
         self._note(trace.runs, trace.result == "foundry_live", trace.reason)
         return answer, trace.as_dict()
 
@@ -280,20 +285,24 @@ class CloudInsights:
         if self._ask_sem is None:
             self._ask_sem = asyncio.Semaphore(self.limits.ask_concurrency)
         async with self._ask_sem:
-            try:
-                if view.revisions and self._gateway is None:  # nothing to choose from: no gateway needed
-                    self._gateway = self._factory()
-            except Exception as e:  # gateway construction failed (missing package, bad settings)
-                result = fallback_recap(view, profile)
-                trace = RecapTrace(f"recap_{uuid.uuid4().hex[:12]}", "unknown", result="fallback",
-                                   reason=f"gateway_error:{type(e).__name__}")
-            else:
+            with span("pitchiq.recap", audience=profile.audience, language=profile.language) as sp:
                 try:
-                    result, trace = await run_recap(view, profile, self._gateway, limits)
-                except Exception as e:  # never a 500 for the viewer: the deterministic recap instead
+                    if view.revisions and self._gateway is None:  # nothing to choose from: no gateway needed
+                        self._gateway = self._factory()
+                except Exception as e:  # gateway construction failed (missing package, bad settings)
                     result = fallback_recap(view, profile)
-                    trace = RecapTrace(f"recap_{uuid.uuid4().hex[:12]}", getattr(self._gateway, "model", "unknown"),
-                                       result="fallback", reason=f"recap_error:{type(e).__name__}")
+                    trace = RecapTrace(f"recap_{uuid.uuid4().hex[:12]}", "unknown", result="fallback",
+                                       reason=f"gateway_error:{type(e).__name__}")
+                else:
+                    try:
+                        result, trace = await run_recap(view, profile, self._gateway, limits)
+                    except Exception as e:  # never a 500 for the viewer: the deterministic recap instead
+                        result = fallback_recap(view, profile)
+                        trace = RecapTrace(f"recap_{uuid.uuid4().hex[:12]}",
+                                           getattr(self._gateway, "model", "unknown"),
+                                           result="fallback", reason=f"recap_error:{type(e).__name__}")
+                record(sp, result=trace.result, reason=trace.reason, runs=trace.runs, tool_calls=trace.tool_calls,
+                       trace_id=trace.trace_id)
         self._note(trace.runs, trace.result == "foundry_live", trace.reason)
         return result, trace.as_dict()
 
@@ -302,14 +311,19 @@ class CloudInsights:
             self._sem = asyncio.Semaphore(self.limits.global_concurrency)
         try:
             async with self._sem:
-                try:
-                    if self._gateway is None:
-                        self._gateway = self._factory()
-                    a, p, trace = await run_pipeline(packet, self._gateway, self.limits)
-                except Exception as e:  # gateway construction failed (missing package, bad settings)
-                    a = p = None
-                    trace = Trace(f"tr_{uuid.uuid4().hex[:12]}", packet.episode.episode_id, packet.evidence_hash,
-                                  "unknown", result="fallback", reason=f"gateway_error:{type(e).__name__}")
+                with span("pitchiq.narration", episode_id=packet.episode.episode_id,
+                          episode_revision=packet.episode.revision) as sp:
+                    try:
+                        if self._gateway is None:
+                            self._gateway = self._factory()
+                        a, p, trace = await run_pipeline(packet, self._gateway, self.limits)
+                    except Exception as e:  # gateway construction failed (missing package, bad settings)
+                        a = p = None
+                        trace = Trace(f"tr_{uuid.uuid4().hex[:12]}", packet.episode.episode_id,
+                                      packet.evidence_hash, "unknown", result="fallback",
+                                      reason=f"gateway_error:{type(e).__name__}")
+                    record(sp, result=trace.result, reason=trace.reason, model_calls=trace.calls,
+                           repairs=trace.repairs, trace_id=trace.trace_id)
         finally:
             with self._lock:
                 self._pending[owner] = max(0, self._pending.get(owner, 1) - 1)

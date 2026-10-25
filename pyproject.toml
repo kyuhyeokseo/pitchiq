@@ -31,6 +31,11 @@ mcp = [
     "mcp==2.3.0",
 ]
 
+# Application Insights tracing (app.telemetry); on only when APPLICATIONINSIGHTS_CONNECTION_STRING is set.
+telemetry = [
+    "azure-monitor-opentelemetry==1.8.11",
+]
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"

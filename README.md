@@ -170,7 +170,7 @@ Also built: an MCP server (Model Context Protocol, an open standard) that expose
 | Robustness check: counter-examples | Wrong emphasis in 1 of 72 (target 0). | 2026-10-23 | Same report |
 | Robustness check: abstention | On the 72 plays where exposure was expected, the story stayed partial or unmatched in 1. Exposed-claim recall was lowest in two of the six set-ups: 18 of 24 and 17 of 24 designed exposed claims (two per play, 12 plays each). | 2026-10-23 | Same report |
 | Analysis latency | p50 7.9 ms, p95 9.4 ms per 5 Hz step (target: p95 under 200 ms) | 2026-10-23 | 12,669 frames, single process, CPU on an HPC compute node, during the holdout run |
-| Tests | 270 passed | 2026-10-25 | `make test` |
+| Tests | 274 passed | 2026-10-25 | `make test` |
 | Browser walkthrough | 62 of 62 checks passed, no browser console errors | 2026-10-25 | Headless Chromium drives the real UI in offline mode (`make walkthrough`), including two checks over a slow link (400 ms per request). See `docs/walkthrough/report.json` and the screenshots |
 | Deployed app | Managed identity reached Foundry: an Ask answered in 5.9 s with 2 tool calls, a Recap in 8.2 s, both validated; `/mcp` listed its 5 tools over HTTPS; a 1× replay streamed over the WebSocket. | 2026-10-24 | Calls from the development machine to the public URL. Log: [`docs/foundry_live/MEASUREMENTS.md`](docs/foundry_live/MEASUREMENTS.md) |
 | Browser walkthrough on the public URL | 58 checks passed, 0 failed, no console errors. With Foundry on, the 4 checks of particular template sentences are kept as information, because the agents may choose other validated sentences. | 2026-10-25 | The same walkthrough with `--base-url` against the live app (image `sha-6c98218`). Same log |
@@ -206,7 +206,7 @@ From source. Requirements: Python 3.12 and Node 20.
 
 ```bash
 python3.12 -m venv .venv
-.venv/bin/pip install -c infra/constraints.txt -e ".[dev,foundry,mcp]"   # the exact versions CI installs
+.venv/bin/pip install -c infra/constraints.txt -e ".[dev,foundry,mcp,telemetry]"   # the exact versions CI installs
 (cd frontend && npm ci && npm run build)
 .venv/bin/python -m uvicorn app.api.app:app --app-dir backend --port 8000   # http://127.0.0.1:8000
 ```
@@ -217,7 +217,7 @@ On Windows, WSL 2 is the simplest route. A PowerShell equivalent (not tested):
 
 ```powershell
 py -3.12 -m venv .venv
-.venv\Scripts\pip install -c infra/constraints.txt -e ".[dev,foundry,mcp]"
+.venv\Scripts\pip install -c infra/constraints.txt -e ".[dev,foundry,mcp,telemetry]"
 cd frontend; npm ci; npm run build; cd ..
 .venv\Scripts\python -m uvicorn app.api.app:app --app-dir backend --port 8000
 ```

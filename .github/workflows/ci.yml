@@ -22,7 +22,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install (pinned)
-        run: pip install -c infra/constraints.txt -e ".[dev,foundry,mcp]"
+        run: pip install -c infra/constraints.txt -e ".[dev,foundry,mcp,telemetry]"
       - name: Backend tests (offline; the optional torch tests skip)
         run: python -m pytest -q
       - uses: actions/setup-node@v4

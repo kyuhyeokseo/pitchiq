@@ -65,6 +65,24 @@ Check after deploying:
    validated sentences), so a clean run reads 58 passed and 0 failed. Its "at most 2 replays open" check assumes
    nobody else is using the app at the time.
 
+Application Insights tracing (optional, off by default): the image includes the `telemetry` extra, and the app turns
+tracing on only when `APPLICATIONINSIGHTS_CONNECTION_STRING` is set. Agent runs, model and tool calls (token counts,
+never prompt or model text), the Azure SDK calls to Foundry, PitchIQ spans per narration pipeline, question and recap,
+and API requests except the per-frame polling routes go to the Application Insights resource. Keep the connection
+string in a Container App secret and set it with the image update, so the app restarts once:
+
+```bash
+az extension add -n application-insights -y
+CS=$(az monitor app-insights component show --app <app-insights> -g $RG --subscription "$SUB" --query connectionString -o tsv)
+az containerapp secret set -g $RG -n pitchiq --subscription "$SUB" --secrets appinsights-conn="$CS"
+az containerapp update -g $RG -n pitchiq --subscription "$SUB" --image ghcr.io/kyuhyeokseo/pitchiq:sha-<commit> \
+  --set-env-vars APPLICATIONINSIGHTS_CONNECTION_STRING=secretref:appinsights-conn
+az monitor app-insights query --app <app-insights> -g $RG --subscription "$SUB" \
+  --analytics-query "dependencies | where timestamp > ago(30m) | summarize count() by name"
+```
+
+`/api/health` reports `telemetry.enabled`.
+
 Rollback: deploy the last verified image tag the same way (`az containerapp update ... --image
 ghcr.io/kyuhyeokseo/pitchiq:sha-<commit>`); only the image changes.
 

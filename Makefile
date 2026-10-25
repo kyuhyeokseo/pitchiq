@@ -7,7 +7,7 @@ SRUN ?=
 
 setup install:      ## venv + pinned deps (editable)
 	uv venv .venv --python 3.12
-	uv pip install --python $(PY) -c infra/constraints.txt -e ".[dev,foundry,mcp]"
+	uv pip install --python $(PY) -c infra/constraints.txt -e ".[dev,foundry,mcp,telemetry]"
 
 test:               ## full backend test suite (v2 defensive intelligence + v1 overlap prototype)
 	$(PY) -m pytest

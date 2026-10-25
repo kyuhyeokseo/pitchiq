@@ -32,7 +32,7 @@ In D, the variant named `main` is the trap, which is the counter-example.
 - Narration plans: 1510/1510 valid. The holdout runs deterministic narration only, with no model calls.
 
 **Tests and browser walkthrough** (2026-10-25):
-- `make test`: 270 passed on 2026-10-25 (226 before the MCP endpoint, the Recap workflow and personalisation; then the clip-end snapshot and replay clock tests; then the approved-revision broadcast, agent-changes, repeated-recap-lead, fan-caption and prompt-injection tests).
+- `make test`: 274 passed on 2026-10-25 (226 before the MCP endpoint, the Recap workflow and personalisation; then the clip-end snapshot and replay clock tests; then the approved-revision broadcast, agent-changes, repeated-recap-lead, fan-caption, prompt-injection and telemetry tests).
 - Headless-browser walkthrough in offline mode: 62 passed, 0 failed, no browser console errors. Against the public URL (Foundry on, image `sha-6c98218`): 58 passed, 0 failed, with the 4 checks of particular template sentences kept as information. It includes Ask PitchIQ and Recap checks, Studio details, My club and Follow a player, and 25 clip switches that leave at most 2 replays open. The offline run's `report.json` and screenshots are in `docs/walkthrough/`; the public-URL run is logged in `docs/foundry_live/MEASUREMENTS.md` (its report was not committed).
 
 **Live Foundry agents** (2026-10-24) were measured separately, with the smoke runner (`python -m app.agents.smoke`) and in the real UI. The full log is in [`docs/foundry_live/MEASUREMENTS.md`](foundry_live/MEASUREMENTS.md). Costs are estimates from the reported tokens at $0.25 per 1M input and $2.00 per 1M output tokens, not billing records.

@@ -36,6 +36,7 @@ from ..narrative.registry import REGISTRY_VERSION
 from ..overlay.builder import build_overlay, key_state, validate_overlay
 from ..replay.catalog import list_clips, load_clip
 from ..replay.session import ReplaySession, SessionStore, StaleEpoch, StaleRevision
+from .. import telemetry
 
 APP_VERSION = "0.2.0"
 ROOT = Path(__file__).resolve().parents[3]
@@ -54,6 +55,7 @@ def _cloud_from_env() -> CloudInsights:
 
 
 load_env_file(os.environ.get("PITCHIQ_ENV_FILE", ROOT / ".env"))
+telemetry.configure()  # Application Insights, only with APPLICATIONINSIGHTS_CONNECTION_STRING
 CLOUD = _cloud_from_env()
 STORE = SessionStore(InsightService(), CLOUD)
 # the read-only match tools for MCP clients at /mcp, when the optional mcp extra is installed
@@ -67,6 +69,7 @@ async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="PitchIQ Defensive Intelligence", version=APP_VERSION, lifespan=_lifespan)
+telemetry.instrument_app(app)
 
 
 # ------------------------------------------------------------------ helpers
@@ -171,6 +174,7 @@ def health() -> dict:
             "analytics_version": ANALYTICS_VERSION,
             "template_registry_version": REGISTRY_VERSION, "metric_registry_version": METRIC_REGISTRY_VERSION,
             "llm_mode": s["llm_mode"], "foundry_configured": configured, "cloud_enabled": CLOUD.enabled,
+            "telemetry": {"enabled": telemetry.STATE["enabled"], "error": telemetry.STATE["error"]},
             "cloud_disabled_reason": CLOUD.disabled_reason, "last_cloud_result": dict(CLOUD.status),
             "sessions": len(STORE.sessions), "sockets": sum(x.sockets for x in list(STORE.sessions.values()))}
 

@@ -28,7 +28,7 @@ COPY infra/constraints.txt ./infra/constraints.txt
 COPY backend/app ./backend/app
 # pinned runtime deps plus the Foundry agents, at the exact versions the tests passed with; the source tree on
 # PYTHONPATH is what runs
-RUN pip install --no-cache-dir -c infra/constraints.txt ".[foundry,mcp]"
+RUN pip install --no-cache-dir -c infra/constraints.txt ".[foundry,mcp,telemetry]"
 # public observations only: no generator code, no private truth (see .dockerignore)
 COPY data/public ./data/public
 COPY --from=web /web/dist ./frontend/dist
