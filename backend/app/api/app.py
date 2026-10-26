@@ -141,10 +141,10 @@ def _players(frame) -> dict[str, tuple[float, float]]:
     return {p.player_id: (p.position.x_m, p.position.y_m) for p in frame.players}
 
 
-def _positions_at(s: ReplaySession):
-    """Past positions for change paths; never beyond the analysed cursor."""
+def _positions_at(s: ReplaySession, cursor: int | None = None):
+    """Past positions for change paths; never beyond the analysed cursor (the one given, else the current one)."""
     def at(frame_index: int) -> dict[str, tuple[float, float]]:
-        return _players(s.clip.frames[min(frame_index, s.cursor_k)])
+        return _players(s.clip.frames[min(frame_index, s.cursor_k if cursor is None else cursor)])
     return at
 
 
@@ -260,16 +260,18 @@ def snapshot(rid: str, x_session_token: str | None = Header(default=None)) -> di
 def frame(rid: str, frame_index: int, x_session_token: str | None = Header(default=None)) -> dict:
     s = _session(rid, x_session_token)
     with s.lock:  # a seek rebuilds the analysis under this lock: wait for it instead of reading it half rebuilt
-        if frame_index < 0 or frame_index > s.cursor_k:
-            raise HTTPException(404, "frame not observed yet at this cutoff")
-        return s.clip.frames[frame_index].model_dump(mode="json")
+        cursor = s.cursor_k
+    if frame_index < 0 or frame_index > cursor:
+        raise HTTPException(404, "frame not observed yet at this cutoff")
+    return s.clip.frames[frame_index].model_dump(mode="json")
 
 
 @app.get("/api/replays/{rid}/episodes")
 def episodes(rid: str, x_session_token: str | None = Header(default=None)) -> list[dict]:
     s = _session(rid, x_session_token)
     with s.lock:
-        return [p.episode.model_dump(mode="json") for revs in s.analyzer.packets.values() for p in revs[-1:]]
+        latest = [revs[-1] for revs in s.analyzer.packets.values()]
+    return [p.episode.model_dump(mode="json") for p in latest]
 
 
 @app.get("/api/replays/{rid}/evidence/{episode_id}")
@@ -277,7 +279,8 @@ def evidence(rid: str, episode_id: str, revision: int | None = None,
              x_session_token: str | None = Header(default=None)) -> dict:
     s = _session(rid, x_session_token)
     with s.lock:
-        return _packet(s, episode_id, revision).model_dump(mode="json")
+        pk = _packet(s, episode_id, revision)
+    return pk.model_dump(mode="json")
 
 
 @app.get("/api/replays/{rid}/overlays")
@@ -289,21 +292,30 @@ def overlays(rid: str, episode_id: str, audience: Literal["fan", "analyst"] = "a
              revision: int | None = None,
              x_session_token: str | None = Header(default=None)) -> dict:
     s = _session(rid, x_session_token)
-    with s.lock:  # the whole overlay from one consistent analysis, never from one a seek is rebuilding
-        return _overlay(s, episode_id, audience, language, surface, focus, display_mode, revision)
+    # what the overlay needs, taken from one consistent analysis: a seek rebuilds it under this lock, so this waits for
+    # the rebuild instead of reading it half built. The overlay itself is built outside the lock (the packets, results
+    # and revisions taken here are not changed afterwards; a seek replaces them).
+    with s.lock:
+        pk = _packet(s, episode_id, revision)
+        approved = None
+        if surface == "broadcast":
+            approved = s.approved_revision(f"ins_{episode_id}")
+            if approved is None:
+                raise HTTPException(409, "broadcast shows approved revisions only")
+            pk = next(p for p in s.analyzer.packets[episode_id] if p.evidence_hash == approved.evidence_hash)
+            display_mode = "retrospective_replay"
+        now = s.results[-1] if s.results else None
+        epoch, cursor = s.epoch, s.cursor_k
+        # broadcast airs the approved revision's own narration: a newer revision with the same evidence (a cloud plan
+        # that arrived after the approval) waits for its own approval. Elsewhere, the narration of this exact
+        # evidence, so an earlier moment is never told with what happened later.
+        ins = approved or next((r for r in reversed(s.revisions.get(f"ins_{episode_id}", []))
+                                if r.evidence_hash == pk.evidence_hash), None)
+    return _overlay(s, pk, approved, ins, now, epoch, cursor, audience, language, surface, focus, display_mode)
 
 
-def _overlay(s: ReplaySession, episode_id: str, audience: str, language: str, surface: str, focus: str,
-             display_mode: str, revision: int | None) -> dict:
-    pk = _packet(s, episode_id, revision)
-    approved = None
-    if surface == "broadcast":
-        approved = s.approved_revision(f"ins_{episode_id}")
-        if approved is None:
-            raise HTTPException(409, "broadcast shows approved revisions only")
-        pk = next(p for p in s.analyzer.packets[episode_id] if p.evidence_hash == approved.evidence_hash)
-        display_mode = "retrospective_replay"
-    now = s.results[-1] if s.results else None
+def _overlay(s: ReplaySession, pk, approved: InsightRevision | None, ins: InsightRevision | None, now, epoch: int,
+             cursor: int, audience: str, language: str, surface: str, focus: str, display_mode: str) -> dict:
     current = (now is not None and pk.episode.lifecycle != "closed"
                and now.state.defending_team_id == pk.episode.defending_team_id)
     if display_mode == "live" and current:
@@ -318,16 +330,11 @@ def _overlay(s: ReplaySession, episode_id: str, audience: str, language: str, su
         metrics_now = live_codes = None
     players = _players(frame_)
     res = build_overlay(state=state, packet=pk, frame_players=players, meta=s.clip.meta, replay_id=s.replay_id,
-                        epoch=s.epoch, audience=audience, language=language, surface=surface,
+                        epoch=epoch, audience=audience, language=language, surface=surface,
                         display_mode=display_mode, focus=focus, metrics_now=metrics_now, live_codes=live_codes,
-                        positions_at=_positions_at(s))
+                        positions_at=_positions_at(s, cursor))
     if display_mode == "retrospective_replay":
         validate_overlay(res.snapshot, players, pk)
-    # broadcast airs the approved revision's own narration: a newer revision with the same evidence (a cloud plan that
-    # arrived after the approval) waits for its own approval. Elsewhere, the narration of this exact evidence, so an
-    # earlier moment is never told with what happened later.
-    ins = approved or next((r for r in reversed(s.revisions.get(f"ins_{episode_id}", []))
-                            if r.evidence_hash == pk.evidence_hash), None)
     texts = render_variants(ins, pk, s.clip.meta) if ins else None
     body = {"overlay": res.snapshot.model_dump(mode="json", by_alias=True), "label_text": res.label_text,
             "hidden_labels": res.hidden_labels, "frame_index": state.frame_ref.frame_index,

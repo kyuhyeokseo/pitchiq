@@ -15,7 +15,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-REGISTRY_VERSION = "templates-0.3.0"
+REGISTRY_VERSION = "templates-0.3.1"
 
 
 @dataclass(frozen=True)
@@ -97,8 +97,8 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
           "en": "The outcome has not been observed yet.",
           "ko": "결과는 아직 관측되지 않았습니다."}),
     T("outcome.inconclusive", ("fan", "analyst"), "outcome:inconclusive", (), {
-          "en": "Tracking ended before the observation window closed; the outcome is inconclusive.",
-          "ko": "관측 구간이 끝나기 전에 추적이 끝나 결과를 판단할 수 없습니다."}),
+          "en": "The moment ended with nothing left open to use, so there is no outcome to judge.",
+          "ko": "내준 공간 없이 장면이 끝나 판단할 결과가 없습니다."}),
     # ---------------------------------------------------------------- caveats
     T("caveat.heuristic", ("analyst",), "caveat:heuristic", (), {
           "en": "Scores are heuristic evidence strength under fixed speed assumptions, not probabilities.",
@@ -212,13 +212,13 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
           "ko": "대가는 측면입니다. {p:lane_arrival_margin_s:0} 선수에게 가는 측면 패스가 열려 있습니다."}),
     T("analyst.wide_outlet_available", ("analyst",), "claim:wide_outlet_available",
       ("wide_open_outlets", "lane_arrival_margin_s"), {
-          "en": "Exposed: {v:wide_open_outlets} wide option{s:wide_open_outlets} stay open in the same window; the best lane, to "
+          "en": "Exposed: wide options still open in the same window: {v:wide_open_outlets}; the best lane, to "
                 "{p:lane_arrival_margin_s:0}, has an arrival margin of {v:lane_arrival_margin_s} s.",
           "ko": "노출: 같은 시점에 측면 옵션 {v:wide_open_outlets}개가 열려 있습니다. 가장 좋은 길은 "
                 "{p:lane_arrival_margin_s:0} 선수에게 가며 도달 여유는 {v:lane_arrival_margin_s}초입니다."}),
     T("fan.accessible_free_receiver", ("fan",), "claim:accessible_free_receiver", ("receiver_margin_s",), {
-          "en": "{p:receiver_margin_s:0} has found a pocket of space and can be reached.",
-          "ko": "{p:receiver_margin_s:0} 선수가 빈 공간을 찾았고 패스를 받을 수 있습니다."}),
+          "en": "{p:receiver_margin_s:0} is free and can be reached.",
+          "ko": "{p:receiver_margin_s:0} 선수가 비어 있어 패스를 받을 수 있습니다."}),
     T("analyst.accessible_free_receiver", ("analyst",), "claim:accessible_free_receiver",
       ("receiver_margin_s", "nearest_defender_m"), {
           "en": "Exposed: {p:receiver_margin_s:0} is an accessible free receiver: open eligible lane, weak marking, "

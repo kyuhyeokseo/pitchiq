@@ -206,7 +206,7 @@ def main() -> int:
 
             page.get_by_role("button", name="Broadcast").click()
             page.wait_for_timeout(400)
-            check("broadcast hidden before approval", page.get_by_text("No approved insight").is_visible())
+            check("broadcast hidden before approval", page.get_by_text("Nothing approved for air").is_visible())
             page.get_by_role("button", name="Inspector").click()
             page.get_by_role("button", name="Approve").click()
             page.wait_for_selector(".rs.approved", timeout=5000)
@@ -460,7 +460,7 @@ def main() -> int:
             txt = bd_step(3, "svg.pitch polyline.ball-path")
             tags = page.evaluate(tags_js)
             check("Breakdown 4, what happened: the ball's path from the passer to the receiver",
-                  tags == ["Pass", "Receives"] and "received by BLU #9" in txt,
+                  tags == ["Pass", "Receives here"] and "received by BLU #9" in txt,
                   f"tags {tags} | " + txt[:160].replace("\n", " | "))
             page.screenshot(path=str(args.out / "26_bd_4_happened.png"))
             bd_step(4, ".bd-on_air")

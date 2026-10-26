@@ -90,8 +90,14 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str) -> dict:
     r_press = next((p for p in restricting
                     if any(any(m in k for m in PRESS_TEMPLATES) for k, _, _ in _sentences(p, language, clip))),
                    restricting[0])
-    r_open = next((p for p in revs if p.episode.exposed_claim_ids), None)
     r_out = next((p for p in revs if p.episode.outcome.status in OBSERVED), None)
+    # what it leaves open: once the attack has used the defence's weakness, the claim about the player who received the
+    # ball (so steps 3 and 4 tell the same story), else the first exposed claims
+    target = r_out.episode.outcome.realized_target_id if r_out is not None else None
+    about_target = lambda p: [c for c in p.claims  # noqa: E731
+                              if c.claim_id in p.episode.exposed_claim_ids and target in c.player_ids]
+    r_open = (next((p for p in revs if target and about_target(p)), None)
+              or next((p for p in revs if p.episode.exposed_claim_ids), None))
     steps = []
 
     # 1. the press: who closes down the player on the ball, and who follows whom
@@ -112,14 +118,21 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str) -> dict:
 
     # 3. what it leaves open (or that nothing open is supported yet)
     if r_open is not None:
-        exposed = [c for c in r_open.claims if c.claim_id in r_open.episode.exposed_claim_ids]
+        exposed = about_target(r_open) if target else []
+        exposed = exposed or [c for c in r_open.claims if c.claim_id in r_open.episode.exposed_claim_ids]
+        ids = {c.claim_id for c in exposed}
         steps.append(_step("leaves_open", r_open, _layers(c.code for c in exposed),
                            [p for c in exposed for p in c.player_ids],
-                           [t for _, cid, t in _sentences(r_open, language, clip)
-                            if cid in r_open.episode.exposed_claim_ids], _runner_and_cover(r_open, exposed)))
+                           [t for _, cid, t in _sentences(r_open, language, clip) if cid in ids],
+                           _runner_and_cover(r_open, exposed)))
     else:
-        steps.append(_step("leaves_open", latest, (), (),
-                           [t for k, _, t in _sentences(latest, language, clip) if k.startswith("partial.")]))
+        # nothing open is supported: say so, and why a claim was held back when the analysis recorded a reason
+        # (code:reason:player, such as a run from an offside position)
+        held = [dict(zip(("code", "reason", "player_id"), f.split(":")[:3]))
+                for f in latest.forbidden_inferences if f.count(":") >= 2]
+        steps.append(_step("leaves_open", latest, (), [h["player_id"] for h in held if "_" in h["player_id"]],
+                           [t for k, _, t in _sentences(latest, language, clip) if k.startswith("partial.")],
+                           held_back=held))
 
     # 4. what happened next, once the replay has seen it
     if r_out is not None:
@@ -129,9 +142,9 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str) -> dict:
                            [t for k, _, t in _sentences(r_out, language, clip)
                             if k.startswith(("change.", "outcome."))],
                            dict(zip(movers, ("passer", "receiver"))), ball_path=path))
-    else:
-        steps.append(_step("what_happened", latest, (), (),
-                           [t for k, _, t in _sentences(latest, language, clip) if k.startswith("outcome.")],
+    else:  # no pass into the space yet: what the play has shown so far (observed adjustments), and that the outcome is open
+        steps.append(_step("what_happened", latest, ("changes",) if latest.changes else (), (),
+                           [t for k, _, t in _sentences(latest, language, clip) if k.startswith(("change.", "outcome."))],
                            ball_path=[]))
     return {"episode_id": latest.episode.episode_id, "analysis_status": latest.episode.analysis_status,
             "outcome": latest.episode.outcome.status, "language": language, "steps": steps}

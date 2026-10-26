@@ -97,6 +97,7 @@ export type BreakdownStep = {
   key: "press" | "takes_away" | "leaves_open" | "what_happened"; revision: number; match_time_s: number;
   layers: string[]; player_ids: string[]; roles: Record<string, string>; sentences: string[]; ball_path?: number[][];
   marks?: string[][];  // [defender, attacker] pairs with a sustained marking relation (the press step)
+  held_back?: { code: string; reason: string; player_id: string }[];  // why nothing open was claimed (what it leaves open)
 };
 export type Breakdown = { episode_id: string; analysis_status: string; outcome: string; language: string; steps: BreakdownStep[] };
 

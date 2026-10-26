@@ -1,10 +1,10 @@
 {
-  "base": "http://127.0.0.1:59657",
+  "base": "http://127.0.0.1:58883",
   "checks": [
     {
       "check": "health endpoint",
       "ok": true,
-      "detail": "{\"status\": \"ok\", \"version\": \"0.2.0\", \"build\": {\"sha\": \"dev\"}, \"analytics_version\": \"analytics-0.1.1\", \"template_registry_version\": \"templates-0.3.0\", \"metric_registry_version\": \"metrics/2.0.0\", \"llm_mode\": \"offline\", \"foundry_configured\": true, \"cloud_enabled\": false, \"telemetry\": {\"enabled\": false, \"error\": null}, \"cloud_disabled_reason\": \"LLM_MODE is not foundry\", \"last_cloud_result\": {\"calls_total\": 0, \"last_call_succeeded\": null, \"last_error\": null, \"last_result_utc\": null, \"pipelines_today\": 0, \"daily_limit\": null}, \"sessions\": 0, \"sockets\": 0}"
+      "detail": "{\"status\": \"ok\", \"version\": \"0.2.0\", \"build\": {\"sha\": \"dev\"}, \"analytics_version\": \"analytics-0.1.1\", \"template_registry_version\": \"templates-0.3.1\", \"metric_registry_version\": \"metrics/2.0.0\", \"llm_mode\": \"offline\", \"foundry_configured\": true, \"cloud_enabled\": false, \"telemetry\": {\"enabled\": false, \"error\": null}, \"cloud_disabled_reason\": \"LLM_MODE is not foundry\", \"last_cloud_result\": {\"calls_total\": 0, \"last_call_succeeded\": null, \"last_error\": null, \"last_result_utc\": null, \"pipelines_today\": 0, \"daily_limit\": null}, \"sessions\": 0, \"sockets\": 0}"
     },
     {
       "check": "pitch renders 22 players",
@@ -44,7 +44,7 @@
     {
       "check": "A live after the episode closed: its old claims are not drawn on the new frame",
       "ok": true,
-      "detail": "PREVIEW \u00b7 LIVE \u00b7 nothing current \u00b7 last moment 10:27"
+      "detail": "PREVIEW \u00b7 LIVE \u00b7 nothing current \u00b7 last moment 10:28"
     },
     {
       "check": "ended: the pitch shows the followed moment, not an empty pitch",
@@ -64,7 +64,7 @@
     {
       "check": "A exposed: pitch labels do not overlap or leave the pitch",
       "ok": true,
-      "detail": "{\"n\": 2, \"overlaps\": 0, \"outside\": 0}"
+      "detail": "{\"n\": 4, \"overlaps\": 0, \"outside\": 0}"
     },
     {
       "check": "inspector shows the metrics behind the clicked area",
@@ -319,7 +319,7 @@
     {
       "check": "Breakdown 4, what happened: the ball's path from the passer to the receiver",
       "ok": true,
-      "detail": "tags ['Pass', 'Receives'] | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What happened |  | Did the attack use it? |  | What happened next (synthetic play): a pa"
+      "detail": "tags ['Pass', 'Receives here'] | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What happened |  | Did the attack use it? |  | What happened next (synthetic play): a pa"
     },
     {
       "check": "Breakdown 5, on air: approving puts the moment's caption on the broadcast view",
@@ -354,7 +354,7 @@
     {
       "check": "live overlay is drawn over a slow link (400 ms per request)",
       "ok": true,
-      "detail": "17 elements"
+      "detail": "16 elements"
     },
     {
       "check": "Play right after a clip switch over a slow link starts the new clip",
@@ -377,5 +377,5 @@
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-26T14:25:10Z"
+  "time_utc": "2026-10-26T15:30:23Z"
 }

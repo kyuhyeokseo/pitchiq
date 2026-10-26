@@ -94,19 +94,36 @@ const BD_KEY: Record<string, Record<Lang, string>> = {
 const ROLE_TEXT: Record<string, Record<Lang, string>> = {
   presser: { en: "Presser", ko: "압박" }, carrier: { en: "On the ball", ko: "공 소유" },
   runner: { en: "Runner", ko: "침투" }, cover: { en: "Cover", ko: "커버" },
-  passer: { en: "Pass", ko: "패스" }, receiver: { en: "Receives", ko: "받음" },
+  passer: { en: "Pass", ko: "패스" }, receiver: { en: "Receives here", ko: "여기서 받음" },
 };
 const BD_UI: Record<Lang, Record<string, string>> = {
   en: { intro: "What does this defence take away, and what does it leave open?", go: "Break down the defence",
-        sub: "One moment in four steps. Every line on the pitch is measured from the tracking data.", live: "Just watch",
+        sub: "One moment in four steps, then on air. Every line and number on the pitch is measured from the tracking data.",
+        live: "Just watch", code: "Code measures every line and number", person: "A person approves before air",
+        agents: "Microsoft Foundry agents choose the words (gpt-5-mini)", templates: "Offline: validated templates choose the words",
+        onairNote: "Revision {rev}, numbers as of {t}. The steps showed each fact when the analysis first had it, so a number can differ slightly.",
         back: "Back", next: "Next", exit: "Exit", stop: "Exit the breakdown", busy: "Analysing the clip…", ball: "White arrow: where the ball actually went",
         approve: "Approve and put on air", explore: "Explore the desk", onair: "On air", none: "Nothing more to show here.",
-        marks: "White tether: who follows whom (sustained marking)" },
+        marks: "White band: a defender and the attacker he follows (sustained marking)" },
   ko: { intro: "이 수비는 무엇을 막고, 그 대가로 무엇을 내줄까?", go: "수비 전술 해부",
-        sub: "한 장면을 4단계로 보여 드려요. 경기장 위의 선은 모두 추적 데이터로 계산한 것입니다.", live: "그냥 경기 보기",
+        sub: "한 장면을 4단계로 보고, 마지막에 방송까지 이어집니다. 경기장 위의 선과 숫자는 모두 추적 데이터로 계산한 것입니다.",
+        live: "그냥 경기 보기", code: "코드가 모든 선과 숫자를 계산", person: "사람이 승인해야 방송",
+        agents: "Microsoft Foundry 에이전트가 문장을 고름 (gpt-5-mini)", templates: "오프라인: 검증된 템플릿이 문장을 고름",
+        onairNote: "revision {rev}, {t} 기준 숫자입니다. 앞 단계들은 각 사실을 처음 잡았을 때의 값이라 숫자가 조금 다를 수 있습니다.",
         back: "이전", next: "다음", exit: "끝내기", stop: "해부 끝내기", busy: "클립을 분석하는 중…", ball: "흰 화살표: 공이 실제로 간 길",
         approve: "승인하고 방송에 내보내기", explore: "직접 살펴보기", onair: "방송 중", none: "이 단계에서 더 보여 줄 것이 없어요.",
-        marks: "흰 끈: 누가 누구를 따라붙는지 (지속된 마킹)" },
+        marks: "흰 띠: 수비수와 그가 따라붙는 공격수 (지속된 마킹)" },
+};
+// why a claim about what is left open was held back (the analysis records a reason code); {p} is the player
+const HELD_TEXT: Record<string, Record<Lang, string>> = {
+  offside_geometry: { en: "Not counted as space behind: {p}'s run starts beyond the back line (offside).",
+                      ko: "{p}의 침투는 수비 라인보다 앞(오프사이드)에서 시작해 뒷공간으로 세지 않습니다." },
+  secondary_cover_in_time: { en: "Not counted as space behind: cover reaches {p} in time.",
+                             ko: "커버가 {p}에게 제때 도착해 뒷공간으로 세지 않습니다." },
+  gk_cover_in_time: { en: "Not counted as a 1v1: the goalkeeper reaches {p} in time.",
+                      ko: "골키퍼가 {p}에게 제때 도착해 1대1 고립으로 세지 않습니다." },
+  count_without_accessible_lane: { en: "More attackers in the middle, but no free player can be reached.",
+                                   ko: "중앙에 공격수가 더 많지만, 패스를 받을 수 있는 빈 선수는 없습니다." },
 };
 
 const SUGGESTIONS: Record<"en" | "ko", string[]> = {
@@ -149,6 +166,18 @@ export function App() {
   const [userPicked, setUserPicked] = useState(false);
   const [scrub, setScrub] = useState<number | null>(null);  // where the viewer holds the seek bar, until the seek is answered
   const lastSnap = useRef<[number, number]>([0, -1]);  // (epoch, seq) of the newest snapshot applied
+  const seekQueue = useRef<{ busy: boolean; next: number | null }>({ busy: false, next: null });
+  const playButton = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {  // Space plays or pauses, as in a video player, unless a control or a text field has the focus
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "Space" || e.repeat) return;
+      if ((e.target as HTMLElement).closest?.("input, textarea, select, button, summary, [contenteditable]")) return;
+      e.preventDefault();
+      playButton.current?.click();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const [bd, setBd] = useState<Breakdown | null>(null);  // the guided breakdown on screen, if any
   const [bdStep, setBdStep] = useState(0);
   const [bdBusy, setBdBusy] = useState(false);
@@ -274,11 +303,12 @@ export function App() {
     const liveDesk = view === "live" && surface === "inspector_preview";
     if (playing && !liveDesk && episodes.some((e) => e.episode_id === selEp)) return;
     const open = episodes.filter((e) => e.lifecycle !== "closed");
-    const pool = playing && liveDesk && open.length ? open : episodes;
+    const now = playing || liveChosen.current;  // playing, or paused where the viewer sought to
+    const pool = now && liveDesk && open.length ? open : episodes;
     const complete = pool.filter((e) => e.analysis_status === "complete_tradeoff");
     // keep the followed moment while it is still open, unless a complete trade-off has opened elsewhere
     const cur = open.find((e) => e.episode_id === selEp);
-    if (playing && liveDesk && cur && (cur.analysis_status === "complete_tradeoff" || !complete.length)) return;
+    if (now && liveDesk && cur && (cur.analysis_status === "complete_tradeoff" || !complete.length)) return;
     // without a complete trade-off, show the partial episode with the most observed evidence
     // (changes and explicitly withheld claims), then the strongest one
     const weight = (e: EpisodeSummary) => e.changes.length + (e.not_claimed?.length ?? 0);
@@ -326,7 +356,8 @@ export function App() {
         overlayDrawn.current = seq;
         setOverlay(o);
         if (o.overlay.display_mode === "retrospective_replay") setReplayFrame(await api.frame(session, o.frame_index));
-      }).catch((e) => { if (!(e instanceof ApiError && e.status === 404)) setError(String(e)); });
+      // 404: a moment this cutoff no longer has; 409: no approved revision of it at this cutoff (broadcast)
+      }).catch((e) => { if (!(e instanceof ApiError && (e.status === 404 || e.status === 409))) setError(String(e)); });
     }, wait);
     return () => clearTimeout(t);
   }, [session, ep?.episode_id, ep?.revision, audience, language, focus, view, surface, selRev, liveKey, approvedRev]);
@@ -341,9 +372,10 @@ export function App() {
   // ---------------------------------------------------------------- controls
   const control = async (action: string, value?: number) => {
     if (!session || session.replay_id !== currentReplay.current) return;
-    try { applySnapshot(await api.control(session, action, epoch, value)); setNotice(null); }
+    // the epoch of the newest snapshot, not of the last render: a control right after a seek is not refused as stale
+    try { applySnapshot(await api.control(session, action, lastSnap.current[0] || epoch, value)); setNotice(null); }
     catch (e) {
-      if (e instanceof ApiError && e.status === 409) setNotice("Replay moved to a new epoch; resynchronised.");
+      if (e instanceof ApiError && e.status === 409) setNotice("The replay moved on meanwhile; the desk has caught up.");
       else setError(String(e));
     }
   };
@@ -351,8 +383,15 @@ export function App() {
   const seekTo = async (t: number) => {
     setIntro(false); exitBreakdown();
     liveChosen.current = true; setView("live"); setSelRev(null); setAutoReplay(false);
-    await control("seek", t);
-    setScrub(null);
+    if (t < clock - 0.05) { setUserPicked(false); setEpisodes([]); setSelEp(null); setSelEl(null); }  // later moments go
+    // one seek at a time, each with the epoch the previous one returned; quick successive seeks keep only the newest
+    const q = seekQueue.current;
+    q.next = t;
+    if (q.busy) return;
+    q.busy = true;
+    try {
+      while (q.next !== null) { const target = q.next; q.next = null; await control("seek", target); }
+    } finally { q.busy = false; setScrub(null); }
   };
   const replayFromStart = async () => {
     if (!session || session.replay_id !== currentReplay.current) return;
@@ -362,11 +401,11 @@ export function App() {
     setSelRev(null); setAutoReplay(false);
     liveChosen.current = false;
     try {
-      const snap = await api.control(session, "seek", epoch, range[0]);
+      const snap = await api.control(session, "seek", lastSnap.current[0] || epoch, range[0]);
       applySnapshot(snap);
       applySnapshot(await api.control(session, "play", snap.analysis_epoch));
     } catch (e) {
-      if (e instanceof ApiError && e.status === 409) setNotice("Replay moved to a new epoch; resynchronised.");
+      if (e instanceof ApiError && e.status === 409) setNotice("The replay moved on meanwhile; the desk has caught up.");
       else setError(String(e));
     }
   };
@@ -376,10 +415,11 @@ export function App() {
       const v = await api.decide(session, insight.insight.insight_id, insight.insight.revision,
         insight.insight.evidence_hash, decision);
       setInsights((p) => ({ ...p, [v.insight.insight_id]: v }));
-      setNotice(decision === "approve" ? "Approved. Broadcast replays this revision."
+      const rev = ep?.revision;  // the evidence revision the card shows (the timeline's number)
+      setNotice(decision === "approve" ? `Approved revision ${rev}. Broadcast replays it.`
         : v.approved_revision != null  // a newer revision was rejected: the approved one stays on air
-          ? `Rejected revision ${v.insight.revision}. Broadcast keeps approved revision ${v.approved_revision}.`
-          : "Rejected. Hidden from broadcast.");
+          ? `Rejected revision ${rev}. Broadcast keeps the approved one.`
+          : `Rejected revision ${rev}. Hidden from broadcast.`);
       return true;
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
@@ -397,7 +437,7 @@ export function App() {
     try {
       let eps = episodes;
       if (playing || clock < range[1] - 0.1) {
-        const snap = await api.control(session, "seek", epoch, range[1]);
+        const snap = await api.control(session, "seek", lastSnap.current[0] || epoch, range[1]);
         applySnapshot(snap); eps = snap.episodes;
       }
       const complete = eps.filter((e) => e.analysis_status === "complete_tradeoff");
@@ -408,7 +448,7 @@ export function App() {
       setUserPicked(true); setSelEp(pick.episode_id); setSelEl(null); setFocus("both"); setAutoReplay(false);
       setBd(b); setBdStep(0);
     } catch (e) {
-      if (e instanceof ApiError && e.status === 409) setNotice("Replay moved to a new epoch; resynchronised.");
+      if (e instanceof ApiError && e.status === 409) setNotice("The replay moved on meanwhile; the desk has caught up.");
       else setError(String(e));
     } finally { setBdBusy(false); setIntro(false); }
   };
@@ -437,12 +477,14 @@ export function App() {
   const teams = clips.find((c) => c.clip_id === clipId)?.teams ?? [];
   const teamColor = (id: string) => (id === "blue" ? "var(--blue)" : id === "red" ? "var(--red)" : "#999");
   const jersey = (pid: string) => String(parseInt(pid.split("_").pop() ?? "0", 10));
-  const shownFrame = (surface === "broadcast" || view === "replay") ? replayFrame : frame;
+  // a replay draws on its own frame; until that frame arrives, the current one without the overlay (never a blank pitch)
+  const replayMode = surface === "broadcast" || view === "replay";
+  const shownFrame = replayMode ? replayFrame ?? frame : frame;
   // a live overlay belongs to the moment it was analysed: past its valid_until it would draw an old press or lane
   // on players who have moved on, so it is not drawn at all
   const liveExpired = overlay?.overlay.display_mode === "live" && view === "live" && surface === "inspector_preview"
     && clock > overlay.overlay.valid_until_s + 1e-6;
-  const overlaySnap = liveExpired ? null : overlay?.overlay ?? null;
+  const overlaySnap = liveExpired || (replayMode && !replayFrame) ? null : overlay?.overlay ?? null;
   // a finished replay never leaves an empty pitch: at the end of the clip it shows the followed moment as analysed
   // (Play starts the clip again). Pause keeps the pitch on the paused frame, as any video player does. While playing,
   // an expired live overlay is still not drawn on later frames.
@@ -458,9 +500,18 @@ export function App() {
   // a breakdown step draws only its own layers, and dims everyone but the players it is about
   const shownHidden = useMemo(() => bdCur ? new Set(layersPresent.filter((l) => !bdCur.layers.includes(l))) : hidden,
     [bdCur, layersPresent, hidden]);
-  const bdKey = useMemo(() => !bdCur ? [] : Array.from(new Set(overlaySnap?.elements
-    .filter((e) => !shownHidden.has(e.layer) && e.geometry.type !== "label").map((e) => e.style_token) ?? []))
-    .filter((t) => BD_KEY[t]), [bdCur, overlaySnap, shownHidden]);
+  const bdKey = useMemo(() => {
+    if (!bd) return [];
+    const pos = Object.fromEntries((shownFrame?.players ?? []).map((p) => [p.player_id, p.position]));
+    const shown = (e: OverlayElement) => {  // a presser on top of the carrier hides the arrow: don't list it
+      const g = e.geometry as any;
+      if (e.style_token !== "press_arrow" || g.from?.kind !== "player" || g.to?.kind !== "player") return true;
+      const a = pos[g.from.player_id], b = pos[g.to.player_id];
+      return !a || !b || Math.hypot(a.x_m - b.x_m, a.y_m - b.y_m) >= 3;
+    };
+    return Array.from(new Set(overlaySnap?.elements.filter((e) => !shownHidden.has(e.layer) && e.geometry.type !== "label"
+      && shown(e)).map((e) => e.style_token) ?? [])).filter((t) => BD_KEY[t]);
+  }, [bd, overlaySnap, shownHidden, shownFrame]);
   const bdTags = useMemo(() => bdCur ? Object.fromEntries(Object.entries(bdCur.roles)
     .map(([pid, r]) => [pid, { text: ROLE_TEXT[r]?.[L] ?? r, role: r }])) : undefined, [bdCur, L]);
   const showIntro = intro && !bd && (bdBusy || (!playing && clock <= range[0] + 0.05 && surface === "inspector_preview"
@@ -480,6 +531,14 @@ export function App() {
   // an earlier revision on the pitch is told with its own narration, never with what happened later
   const viewingPast = view === "replay" && surface === "inspector_preview" && !!ep && selRev !== null
     && selRev !== ep.revision;
+  // the card describes the revision on screen: an earlier one with its own claims, changes and outcome
+  const cardEp = useMemo((): EpisodeSummary | null => {
+    if (!ep || !viewingPast || !packet || packet.episode.revision !== selRev) return ep;
+    const code = Object.fromEntries(packet.claims.map((c) => [c.claim_id, c.code]));
+    return { ...ep, restricted: packet.episode.restricted_claim_ids.map((c) => code[c]),
+             exposed: packet.episode.exposed_claim_ids.map((c) => code[c]),
+             changes: packet.changes.map((c) => c.code), outcome: packet.episode.outcome.status };
+  }, [ep, viewingPast, packet, selRev]);
   const texts = (viewingPast ? (overlay?.episode_revision === selRev ? overlay.texts : null) : insight?.texts)
     ?.[`${audience}_${language}`] ?? [];
   // the cutoff of the narration actually shown (none while the matching narration is still loading)
@@ -504,7 +563,8 @@ export function App() {
   }, [selEl]);
 
   const bdPanel = bd && <BreakdownPanel bd={bd} step={bdStep} lang={L} keys={bdKey} texts={texts} insight={insight}
-    approvedRev={approvedRev} surface={surface} onStep={setBdStep} onExit={exitBreakdown}
+    approvedRev={approvedRev} surface={surface} latestRev={ep?.revision ?? null} asOf={asOf} onStep={setBdStep}
+    onExit={() => { exitBreakdown(); setSurface("inspector_preview"); }}
     onApprove={async () => { if (await decide("approve")) setSurface("broadcast"); }} />;
 
   if (!frame) return <div className="boot">{error ?? "Loading PitchIQ…"}</div>;
@@ -517,7 +577,7 @@ export function App() {
         </select>
         {/* while a clip switch is starting its replay there is no session, so the controls wait for it instead of
             dropping the click (over a slow link that takes a noticeable moment) */}
-        <button disabled={!session} onClick={() => {
+        <button ref={playButton} disabled={!session} onClick={() => {
           setIntro(false);
           if (bd) { exitBreakdown(); setView("live"); setSelRev(null); setSurface("inspector_preview"); }
           if (!playing && autoReplay) { setView("live"); setSelRev(null); setAutoReplay(false); }
@@ -551,9 +611,9 @@ export function App() {
       <main className="desk">
         <section className="stage">
           <div className="toolbar">
-            <button className={`bd-go${bd ? " on" : ""}`} disabled={!session || bdBusy}
+            {!showIntro && <button className={`bd-go${bd ? " on" : ""}`} disabled={!session || bdBusy}
               onClick={() => (bd ? exitBreakdown() : startBreakdown())}>
-              {bdBusy ? BD_UI[L].busy : bd ? `✕ ${BD_UI[L].stop}` : `▶ ${BD_UI[L].go}`}</button>
+              {bdBusy ? BD_UI[L].busy : bd ? `✕ ${BD_UI[L].stop}` : `▶ ${BD_UI[L].go}`}</button>}
             <div className="seg">
               <button className={surface === "inspector_preview" ? "on" : ""} onClick={() => setSurface("inspector_preview")}>Inspector</button>
               <button className={surface === "broadcast" ? "on" : ""} onClick={() => setSurface("broadcast")}>Broadcast</button>
@@ -591,7 +651,7 @@ export function App() {
 </p>
           <div className={`pitch-wrap${bdCur ? ` bd-on bd-${bdCur.key}` : ""}`} data-focus={focus}>
             {bdCur ? <div className="badge bd-badge">{bdStep + 1} / {BD_STEPS.length} · {BD_STEPS[bdStep].title[L]}
-              {` · ${matchClockTenths(bdCur.match_time_s)}`}</div>
+              {` · ${matchClockTenths(bdCur.match_time_s)} · rev ${bdCur.revision}`}</div>
             : <div className={`badge ${surface === "broadcast" ? "bc" : "pv"}`}>
               {surface === "broadcast" ? "BROADCAST" : "PREVIEW"}
               {overlay && (liveExpired
@@ -605,6 +665,11 @@ export function App() {
               <div className="intro-card">
                 <h2>{BD_UI[L].intro}</h2>
                 <p>{BD_UI[L].sub}</p>
+                <ul className="who">
+                  <li><b>1</b>{BD_UI[L].code}</li>
+                  <li><b>2</b>{health?.cloud_enabled ? BD_UI[L].agents : BD_UI[L].templates}</li>
+                  <li><b>3</b>{BD_UI[L].person}</li>
+                </ul>
                 <div className="row">
                   <button className="primary" onClick={startBreakdown} disabled={!session || bdBusy}>
                     {bdBusy ? BD_UI[L].busy : `▶ ${BD_UI[L].go}`}</button>
@@ -613,7 +678,7 @@ export function App() {
               </div>
             </div>}
             {surface === "broadcast" && approvedRev === null
-              ? <div className="empty">No approved insight for this moment yet. Approve it in Inspector.</div>
+              ? <div className="empty">Nothing approved for air at this point of the replay. Approve the moment in Inspector.</div>
               : shownFrame && <Pitch frame={shownFrame} overlay={overlaySnap} labels={overlay?.label_text} hiddenLayers={shownHidden}
                   ballPath={bdCur?.key === "what_happened" ? bdCur.ball_path : undefined} tags={bdTags} marks={bdCur?.marks}
                   selected={surface === "inspector_preview" ? selEl?.element_id : undefined}
@@ -627,7 +692,6 @@ export function App() {
             <div className="caption">{overlay.on_air.map((t, i) => <p key={i}>{t}</p>)}</div>}
           {surface === "broadcast" && approvedRev !== null && insight && insight.insight.revision !== approvedRev &&
             <p className="air-note">On air: approved revision {approvedRev}. Revision {insight.insight.revision} is newer and waits for approval in Inspector.</p>}
-          {bd && surface === "broadcast" && bdPanel}
           {!bd && <Timeline episodes={onlyFollowed && followed ? episodes.filter((e) => e.player_ids?.includes(followed)) : episodes}
             empty={onlyFollowed && followed ? `No moments involving #${jersey(followed)} yet` : "No moments yet"}
             myClub={myClub} t0={t0} t1={t1} clock={clock} selected={selEp} selRev={selRev}
@@ -644,7 +708,7 @@ export function App() {
         </section>
 
         <aside className="rail">
-          {bd && surface !== "broadcast" && bdPanel}
+          {bd && bdPanel}
           {!bd && (ep ? <div className="card">
             <h2>Moment at {matchClock(ep.detected_at_s)} <span className={`chip ${ep.analysis_status}`}>{ep.analysis_status.replace("_", " ")}</span>
               {myClub && ep.defending_team_id && <span className="chip club">{ep.defending_team_id === myClub
@@ -653,12 +717,13 @@ export function App() {
             {details
               ? <p className="meta">{ep.episode_id} · rev {ep.revision} · {ep.lifecycle} · priority {ep.story_priority.toFixed(2)} (heuristic evidence strength)</p>
               : <p className="meta">{ep.revision} update{ep.revision === 1 ? "" : "s"} so far · {ep.lifecycle === "closed" ? "finished" : "in progress"}</p>}
+            {cardEp !== ep && <p className="meta asof">Showing revision {selRev}, as the analysis had it then</p>}
             <div className="cols">
-              <div><h3>What is restricted</h3>{ep.restricted.length ? ep.restricted.map((c) => <div key={c} className={`claim r ${liveClaims.includes(c) ? "live" : ""}`}>{claimLabel(c)}</div>) : <div className="none">No supported claim</div>}</div>
-              <div><h3>What is exposed</h3>{ep.exposed.length ? ep.exposed.map((c) => <div key={c} className={`claim x ${liveClaims.includes(c) ? "live" : ""}`}>{claimLabel(c)}</div>) : <div className="none">Nothing left open is supported yet</div>}</div>
+              <div><h3>What is restricted</h3>{cardEp!.restricted.length ? cardEp!.restricted.map((c) => <div key={c} className={`claim r ${liveClaims.includes(c) ? "live" : ""}`}>{claimLabel(c)}</div>) : <div className="none">No supported claim</div>}</div>
+              <div><h3>What is exposed</h3>{cardEp!.exposed.length ? cardEp!.exposed.map((c) => <div key={c} className={`claim x ${liveClaims.includes(c) ? "live" : ""}`}>{claimLabel(c)}</div>) : <div className="none">Nothing left open is supported yet</div>}</div>
             </div>
             <h3>Observed so far</h3>
-            <div className="outcome">{ep.changes.map((c) => <span key={c} className="chip ch">{c.replace(/_/g, " ")}</span>)} <span className="chip oc">{OUTCOME_TEXT[ep.outcome]}</span></div>
+            <div className="outcome">{cardEp!.changes.map((c) => <span key={c} className="chip ch">{c.replace(/_/g, " ")}</span>)} <span className="chip oc">{OUTCOME_TEXT[cardEp!.outcome]}</span></div>
             <div className="bf">
               <button className={view === "replay" && selRev === 1 ? "on" : ""}
                 onClick={() => { setUserPicked(true); setSelRev(1); setView("replay"); setSurface("inspector_preview"); }}>Before (rev 1)</button>
@@ -672,18 +737,23 @@ export function App() {
             {insight && <div className="producer">
               {details
                 ? <p className="meta">Insight rev {insight.insight.revision} · source {insight.insight.source_mode.replace("_", " ")} · <b className={`rs ${insight.insight.review_status}`}>{insight.insight.review_status}</b> · broadcast {insight.broadcast_visibility}</p>
-                : <p className="meta">Written by {SOURCE_TEXT[insight.insight.source_mode] ?? insight.insight.source_mode}{insight.provenance ? ` (${insight.provenance.model})` : ""} · <b className={`rs ${insight.insight.review_status}`}>{insight.insight.review_status === "suggested" ? "awaiting approval" : insight.insight.review_status}</b></p>}
+                : <p className="meta">{viewingPast ? `Latest revision ${ep.revision}: written` : "Written"} by {SOURCE_TEXT[insight.insight.source_mode] ?? insight.insight.source_mode}{insight.provenance ? ` (${insight.provenance.model})` : ""} · <b className={`rs ${insight.insight.review_status}`}>{insight.insight.review_status === "suggested" ? "awaiting approval" : insight.insight.review_status}</b></p>}
               {details && insight.provenance && <p className="meta">Trace {insight.provenance.trace_id} · {insight.provenance.model} · {insight.provenance.calls} model call(s), {insight.provenance.repairs} repair · {(insight.provenance.total_ms / 1000).toFixed(1)} s</p>}
               {insight.agent_changes && <AgentChanges ch={insight.agent_changes} />}
               {insight.provenance && <details className="steps"><summary>Agent steps (Analyst → code check → Producer → code check)</summary>
                 <ol>{insight.provenance.stages.map((st: any, i: number) => (
                   <li key={i} className={st.ok ? "ok" : "bad"}>{STAGE_TEXT[st.stage] ?? st.stage}{st.ms != null ? ` · ${(st.ms / 1000).toFixed(1)} s` : ""}{st.error ? ` · ${st.error}` : ""}</li>
                 ))}</ol></details>}
-              <div className="row">
-                <button className="ok" onClick={() => decide("approve")} disabled={approved}>Approve</button>
-                <button className="no" onClick={() => decide("reject")}>Reject</button>
-                <button onClick={exportJson} disabled={approvedRev === null}>Export JSON</button>
-              </div>
+              {/* approval is for the latest revision and its evidence: an older one on screen is read, not approved */}
+              {viewingPast
+                ? <p className="meta past-note">You are reading revision {selRev}. Approval is for the latest, revision {ep.revision}.{" "}
+                    <button className="link" onClick={() => setSelRev(ep.revision)}>Show revision {ep.revision}</button></p>
+                : <div className="row">
+                    <button className="ok" onClick={() => decide("approve")} disabled={approved}>{approved ? `Revision ${ep.revision} approved` : `Approve revision ${ep.revision}`}</button>
+                    <button className="no" onClick={() => decide("reject")}>Reject</button>
+                    <button onClick={exportJson} disabled={approvedRev === null}
+                      title={approvedRev === null ? "Export is for an approved revision" : undefined}>Export JSON</button>
+                  </div>}
             </div>}
           </div> : <div className="card"><p>No moment yet. Press Play: pink marks the passes the defence takes away, cyan the space it
             leaves open.</p></div>)}
@@ -701,15 +771,19 @@ export function App() {
   );
 }
 
-function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, surface, onStep, onExit, onApprove }: {
+function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, surface, latestRev, asOf, onStep, onExit,
+  onApprove }: {
   bd: Breakdown; step: number; lang: Lang; keys: string[]; texts: string[]; insight?: InsightView;
-  approvedRev: number | null; surface: Surface; onStep: (n: number) => void; onExit: () => void; onApprove: () => void;
+  approvedRev: number | null; surface: Surface; latestRev: number | null; asOf: number | null;
+  onStep: (n: number) => void; onExit: () => void; onApprove: () => void;
 }) {
   const ui = BD_UI[lang];
   const cur = step < bd.steps.length ? bd.steps[step] : null;
   const meta = BD_STEPS[step];
   const onAir = surface === "broadcast" && approvedRev !== null;
   const lines = cur ? cur.sentences : texts;
+  const held = cur?.held_back?.filter((h, i, a) => HELD_TEXT[h.reason]
+    && a.findIndex((x) => x.reason === h.reason && x.player_id === h.player_id) === i) ?? [];
   return (
     <div className={`bd bd-${meta.key}`}>
       <ol className="bd-steps">{BD_STEPS.map((s, i) => (
@@ -719,9 +793,13 @@ function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, sur
         <h3 className="bd-title">{meta.title[lang]}</h3>
         <p className="bd-q">{meta.q[lang]}</p>
         <div className="bd-text">{lines.length ? lines.map((t, i) => <p key={i}>{t}</p>) : <p className="meta">{ui.none}</p>}</div>
-        {cur && (keys.length > 0 || (cur.ball_path?.length ?? 0) > 1 || !!cur.marks?.length) && <ul className="bd-key">
-          {cur.key === "what_happened" && (cur.ball_path?.length ?? 0) > 1 && <li><i className="sw ball_path" />{ui.ball}</li>}
-          {!!cur.marks?.length && <li><i className="sw bd_mark" />{ui.marks}</li>}
+        {held.map((h, i) => <p key={i} className="bd-held">{HELD_TEXT[h.reason][lang].replace("{p}",
+          h.player_id.includes("_") ? playerName(h.player_id) : "")}</p>)}
+        {!cur && latestRev != null && asOf != null && <p className="meta">{ui.onairNote.replace("{rev}", String(latestRev))
+          .replace("{t}", matchClockTenths(asOf))}</p>}
+        {(keys.length > 0 || (cur?.ball_path?.length ?? 0) > 1 || !!cur?.marks?.length) && <ul className="bd-key">
+          {cur?.key === "what_happened" && (cur.ball_path?.length ?? 0) > 1 && <li><i className="sw ball_path" />{ui.ball}</li>}
+          {!!cur?.marks?.length && <li><i className="sw bd_mark" />{ui.marks}</li>}
           {keys.map((k) => <li key={k}><i className={`sw ${k}`} />{BD_KEY[k][lang]}</li>)}
         </ul>}
         {!cur && insight && <p className="meta">{SOURCE_TEXT[insight.insight.source_mode] ?? insight.insight.source_mode}

@@ -525,3 +525,34 @@ def test_the_breakdown_tells_the_moment_in_four_steps_from_the_evidence(client):
         assert set(step["sentences"]) <= rendered
     assert texts  # the insights exist for the same evidence
     assert c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_none"}, headers=H).status_code == 404
+
+
+def _breakdown_at_end(c, clip_id: str) -> tuple[dict, list[dict]]:
+    """The breakdown of the strongest moment of a clip analysed to its end (as the UI picks it), and the episodes."""
+    clip = load_clip(clip_id)
+    r = c.post("/api/replays", json={"clip_id": clip_id}).json()
+    H = {"x-session-token": r["session_token"]}
+    snap = c.post(f"/api/replays/{r['replay_id']}/control",
+                  json={"action": "seek", "value": clip.end_s, "expected_epoch": 1}, headers=H).json()
+    eps = snap["episodes"]
+    pick = sorted([e for e in eps if e["analysis_status"] == "complete_tradeoff"] or eps,
+                  key=lambda e: -e["story_priority"])[0]
+    b = c.get(f"/api/replays/{r['replay_id']}/breakdown", params={"episode_id": pick["episode_id"]}, headers=H).json()
+    return b, eps
+
+
+def test_the_breakdown_tells_one_story_and_says_why_nothing_is_open(client):
+    # once the attack used the space, "what it leaves open" is the claim about the player who received the ball, so
+    # steps 3 and 4 are about the same player
+    b, _ = _breakdown_at_end(client, "clip_003")
+    _, _, opens, happened = b["steps"]
+    receiver = next(p for p, r in happened["roles"].items() if r == "receiver")
+    assert receiver in opens["player_ids"]
+    name = f"{receiver.split('_')[0][:3].upper()} #{int(receiver.split('_')[1])}"
+    assert name in " ".join(opens["sentences"]) and name in happened["sentences"][-1]
+    # nothing open: the reason the analysis held a claim back is given, and what the play showed meanwhile
+    b, _ = _breakdown_at_end(client, "clip_010")
+    _, _, opens, happened = b["steps"]
+    assert opens["layers"] == [] and {"reason": "secondary_cover_in_time"}.items() <= opens["held_back"][0].items()
+    b, _ = _breakdown_at_end(client, "clip_004")
+    assert "changes" in b["steps"][3]["layers"] and "stepped up" in b["steps"][3]["sentences"][0]

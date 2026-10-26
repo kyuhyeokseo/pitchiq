@@ -160,9 +160,14 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
   // player tags first: above the player, else below, else further out, so two tags never sit on each other; the
   // overlay labels then keep clear of them
   const tagBoxes: [number, number, number, number][] = [];
+  const receiveAt = ballPath && ballPath.length > 1 ? ballPath[ballPath.length - 1] : null;
+  const receiver = receiveAt && tags ? frame.players.find((p) => tags[p.player_id]?.role === "receiver") : undefined;
   const tagged = !tags ? [] : frame.players.filter((p) => tags[p.player_id])
     .sort((a, b) => TAG_ORDER.indexOf(tags[a.player_id].role) - TAG_ORDER.indexOf(tags[b.player_id].role)).map((p) => {
-      const t = tags[p.player_id], w = labelWidth(t.text) * 0.85, x = sx(p.position), y0 = sy(p.position);
+      const t = tags[p.player_id], w = labelWidth(t.text) * 0.85;
+      // the receiver of the ball's path is tagged where he receives it (the end of the path), not where he stands now
+      const at = t.role === "receiver" && receiveAt ? { x_m: receiveAt[0], y_m: receiveAt[1] } : p.position;
+      const x = sx(at), y0 = sy(at);
       const y = [-3.2, 3.2, -5.9, 5.9].map((dy) => y0 + dy).find((y) => !tagBoxes.some((o) =>
         x - w / 2 < o[2] && o[0] < x + w / 2 && y - 1.25 < o[3] && o[1] < y + 1.25)) ?? y0 - 3.2;
       tagBoxes.push([x - w / 2, y - 1.25, x + w / 2, y + 1.25]);
@@ -202,6 +207,10 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
         const p = pos[d], q = pos[a];
         return p && q ? <line key={`mk-${d}-${a}`} className="bd-mark" x1={sx(p)} y1={sy(p)} x2={sx(q)} y2={sy(q)} /> : null;
       })}
+      {receiver && receiveAt && <g className="receive-g">
+        <line className="receiver-run" x1={sx(receiver.position)} y1={sy(receiver.position)} x2={receiveAt[0]} y2={68 - receiveAt[1]} />
+        <circle className="receiver-ghost" cx={receiveAt[0]} cy={68 - receiveAt[1]} r={1.25} />
+      </g>}
       {ballPath && ballPath.length > 1 && <g className="ball-path-g">
         <polyline points={ballPath.map(([x, y]) => `${x},${68 - y}`).join(" ")} className="ball-path-shadow" />
         <polyline points={ballPath.map(([x, y]) => `${x},${68 - y}`).join(" ")} className="ball-path" markerEnd="url(#arrow-ball_path)" />

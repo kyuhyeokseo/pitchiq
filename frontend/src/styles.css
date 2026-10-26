@@ -49,7 +49,7 @@ select option { background: var(--panel); color: var(--fg); }
 .clock span { display: flex; align-items: center; padding: 3px 10px; background: transparent; color: var(--muted); font-weight: 400; font-size: 13px; }
 .status { color: var(--muted); font-size: 12px; flex-basis: 100%; }
 .src { margin-left: auto; font-size: 12px; color: var(--fg); background: rgba(255, 255, 255, 0.1); padding: 3px 10px; border-radius: 999px; }
-.banner:not(.err) { position: fixed; left: 50%; top: 64px; transform: translateX(-50%); z-index: 20; max-width: calc(100vw - 32px);
+.banner:not(.err) { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 20; max-width: calc(100vw - 32px);
   padding: 10px 20px; border-radius: 999px; background: #fff; color: var(--panel-2); font-weight: 600;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); pointer-events: none; }
 .banner.err { padding: 8px 18px; background: var(--pink); color: var(--bg); font-weight: 600; cursor: pointer; }
@@ -344,5 +344,32 @@ button.primary { background: #fff; color: var(--panel-2); border: 0; font-weight
 .ball-path-shadow { fill: none; stroke: rgba(14, 0, 16, 0.45); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
 .ball-path-start { fill: #fff; }
 .arrowhead.ball_path { fill: #fff; }
-.bd-mark { stroke: #fff; stroke-width: 0.4; stroke-linecap: round; opacity: 0.95; }
-.sw.bd_mark { border-top: 2px solid #fff; }
+.bd-mark { stroke: rgba(255, 255, 255, 0.38); stroke-width: 3.6; stroke-linecap: round; }  /* a band around each marking pair */
+.sw.bd_mark { border-top: 7px solid rgba(255, 255, 255, 0.5); border-radius: 4px; }
+
+/* the ball's receiver: where he takes it, and his run there */
+.receiver-ghost { fill: none; stroke: #fff; stroke-width: 0.3; stroke-dasharray: 0.5 0.35; }
+.receiver-run { stroke: rgba(255, 255, 255, 0.7); stroke-width: 0.25; stroke-dasharray: 0.3 0.5; stroke-linecap: round; }
+/* the question card says who does what */
+.intro-card .who { list-style: none; margin: 16px auto 0; padding: 0; display: grid; gap: 6px; text-align: left; width: fit-content;
+  font-size: 14px; color: var(--fg); }
+.intro-card .who b { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 50%;
+  background: var(--rule-2); font-size: 12px; }
+.bd-held { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+.past-note { margin-top: 12px; }
+/* the breakdown keeps its panel beside the pitch on air as well */
+.desk:has(.badge.bc):has(.rail .bd) > .rail { display: grid; }
+@media (min-width: 1101px) { .desk:has(.badge.bc):has(.rail .bd) { grid-template-columns: minmax(0, 1fr) clamp(410px, 26vw, 540px); } }
+/* the player bar stays in reach, and its width does not jump between Play and Pause */
+.top { position: sticky; top: 0; z-index: 15; }
+.top > button:first-of-type { min-width: 86px; }
+/* long words and links wrap instead of widening the cards */
+.card, .texts p, .answer .q, .bd-text p { overflow-wrap: anywhere; }
+@media (max-width: 640px) {  /* a phone: the question and its two buttons fit on the pitch; the bar scrolls away */
+  .top { position: static; }
+  .intro { padding: 8px; }
+  .intro-card { padding: 14px; }
+  .intro-card h2 { font-size: 17px; margin-bottom: 0; }
+  .intro-card p, .intro-card .who { display: none; }
+  .intro-card .row { margin-top: 12px; }
+}
