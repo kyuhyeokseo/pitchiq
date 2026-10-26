@@ -254,12 +254,12 @@ make dev
 
 ### Try it
 
-1. Open the live demo (no login; all data is synthetic). **Clip 1** opens on a question: click **Break down the defence**. Step through the press (yellow; white tethers show who follows whom), what it takes away (pink), what it leaves open (cyan) and what happened (the white arrow is the ball's path), then **On air** to approve the moment and see it on the broadcast view. **KO** switches the breakdown to Korean. Click **Exit the breakdown** to continue.
+1. Open the live demo (no login; all data is synthetic). **Clip 1** opens on a question: click **Break down the defence**. Step through the press (yellow; white tethers show who follows whom), what it takes away (pink), what it leaves open (cyan) and what happened (the white arrow is the ball's path), then **On air** to approve the moment and see it on the broadcast view. Click **Explore the desk** to continue.
 2. Press **Play** at 1× (at the end of a clip, Play starts it again from the beginning). Pink dashed lanes ending in a stop bar show what the press takes away; the cyan hatched area shows what it leaves open.
 3. When the clip ends, the desk replays its main moment. Click a lane, zone or label: the evidence panel shows the players and measurements behind it (**Details** adds frame numbers and ids).
 4. In **Ask PitchIQ**, ask "Why did Red set up like that at 10:22?" or click a suggested question. Under the answer, "How the agent answered" (open for the newest answer) lists the tool calls and the code check. Offline, Ask returns the narration of the main moment for any question.
 5. When the card says "Written by Microsoft Foundry agents" (this can take several seconds after the clip ends; if the agents' plan fails its code check or the daily cap is reached, the card stays "validated templates", which you can approve too), click **Approve**, then **Export JSON** on the same card, then switch to **Broadcast**. Broadcast hides the side panel; switch back to **Inspector** to continue.
-6. Switch between **Fan** and **Analyst**, and between **EN** and **KO**.
+6. Switch between **Fan** and **Analyst**.
 7. Choose a club under **Pick your club**, click any player to follow them, then press **Recap so far**.
 
 ### Other commands
