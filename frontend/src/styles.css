@@ -49,7 +49,8 @@ select option { background: var(--panel); color: var(--fg); }
 .clock span { display: flex; align-items: center; padding: 3px 10px; background: transparent; color: var(--muted); font-weight: 400; font-size: 13px; }
 .status { color: var(--muted); font-size: 12px; flex-basis: 100%; }
 .src { margin-left: auto; font-size: 12px; color: var(--fg); background: rgba(255, 255, 255, 0.1); padding: 3px 10px; border-radius: 999px; }
-.banner:not(.err) { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 20; max-width: calc(100vw - 32px);
+/* the toast sits bottom right, clear of the pitch and the broadcast caption under it (centred on narrow screens) */
+.banner:not(.err) { position: fixed; right: 24px; bottom: 24px; z-index: 20; max-width: min(520px, calc(100vw - 32px));
   padding: 10px 20px; border-radius: 999px; background: #fff; color: var(--panel-2); font-weight: 600;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); pointer-events: none; }
 .banner.err { padding: 8px 18px; background: var(--pink); color: var(--bg); font-weight: 600; cursor: pointer; }
@@ -63,6 +64,7 @@ select option { background: var(--panel); color: var(--fg); }
     scrollbar-width: thin; scrollbar-color: var(--rule-2) transparent; }
 }
 @media (max-width: 1100px) { .desk { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 1100px) { .banner:not(.err) { right: auto; left: 50%; transform: translateX(-50%); } }
 .desk:has(.badge.bc) { grid-template-columns: minmax(0, 1fr); }
 .desk:has(.badge.bc) > .rail { display: none; }
 .stage { display: grid; gap: 10px; min-width: 0; align-content: start; }
@@ -340,6 +342,7 @@ button.primary { background: #fff; color: var(--panel-2); border: 0; font-weight
 .pl-tag.presser rect { fill: var(--yellow); }
 .pl-tag.runner rect, .pl-tag.cover rect { fill: var(--cyan); }
 .pl-tag { pointer-events: none; }
+.pl-tag-lead { stroke: #fff; stroke-width: 0.22; stroke-opacity: 0.9; }
 .ball-path { fill: none; stroke: #fff; stroke-width: 0.5; stroke-dasharray: 1.3 0.7; stroke-linecap: round; stroke-linejoin: round; }
 .ball-path-shadow { fill: none; stroke: rgba(14, 0, 16, 0.45); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
 .ball-path-start { fill: #fff; }
@@ -356,6 +359,15 @@ button.primary { background: #fff; color: var(--panel-2); border: 0; font-weight
 .intro-card .who b { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 50%;
   background: var(--rule-2); font-size: 12px; }
 .bd-held { margin: 4px 0 0; font-size: 15px; color: var(--muted); }
+/* the clip's other moments, one click away from their own breakdown (the dot is the defending team's kit) */
+.bd-moments { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule); font-size: 13px; color: var(--muted); }
+.bd-moments span { margin-right: 2px; }
+.bd-moments button { border: 1px solid var(--rule-2); border-radius: 999px; padding: 3px 10px; font-size: 13px;
+  background: transparent; color: var(--fg); }
+.bd-moments button::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px;
+  border-radius: 50%; background: var(--kit); }
+.bd-moments button.on { background: #fff; color: var(--panel-2); border-color: #fff; font-weight: 700; }
 .past-note { margin-top: 12px; }
 /* the breakdown keeps its panel beside the pitch on air as well */
 .desk:has(.badge.bc):has(.rail .bd) > .rail { display: grid; }

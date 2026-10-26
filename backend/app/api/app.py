@@ -404,9 +404,10 @@ def breakdown(rid: str, episode_id: str, language: Literal["en", "ko"] = "en",
     s = _session(rid, x_session_token)
     with s.lock:
         revs = list(s.analyzer.packets.get(episode_id, []))
+        now, window = s.clock_s, s.analyzer.cfg.episodes.outcome_window_s
     if not revs:
         raise HTTPException(404, "unknown episode")
-    return breakdown_of(revs, s.clip, language)
+    return breakdown_of(revs, s.clip, language, now_s=now, next_window_s=window)
 
 
 @app.get("/api/replays/{rid}/recap")
@@ -555,7 +556,8 @@ async def ws(websocket: WebSocket, rid: str, token: str = Query(default="")) -> 
         last_sent = time.monotonic()
         was_playing = s.playing
         while True:
-            await asyncio.sleep(0.1)
+            # twice per 5 Hz frame at 2x speed, so frames leave evenly spaced (the client glides between them)
+            await asyncio.sleep(0.05)
             if s.closed:  # evicted or deleted: the client starts a new replay
                 await websocket.close(code=4410)
                 return

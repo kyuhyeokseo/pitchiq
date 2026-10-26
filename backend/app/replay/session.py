@@ -201,7 +201,7 @@ class ReplaySession:
                     self.playing = False
             self.last_wall = now
             # the last frame at or before the clock: rounding to the nearest frame would move the clock up to it on
-            # every call, and the WebSocket loop calls this every 0.1 s
+            # every call, and the WebSocket loop calls this every 0.05 s
             k = math.floor((self.clock_s - self.clip.start_s) * self.clip.meta.tracking_hz + 1e-6)
             return self._advance_to(min(max(k, 0), len(self.clip.frames) - 1))
 

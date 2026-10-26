@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { api, ApiError, openSocket, type Breakdown, type EpisodeSummary, type Session, type WsMessage } from "./api";
 import type { EvidencePacket, ObservationFrame, OverlayElement, TacticalState } from "./contracts";
-import { Pitch } from "./Pitch";
+import { GlidingPitch } from "./Pitch";
 import {
   InsightViewZ, ObservationFrameZ, TacticalStateZ, type AskResponse, type AskStep, type InsightView, type OverlayResponse,
   type RecapResponse,
@@ -81,7 +81,7 @@ const BD_KEY: Record<string, Record<Lang, string>> = {
   line_back: { en: "White dashes: the back line", ko: "흰 점선: 최종 수비 라인" },
   line_mid: { en: "Faint dashes: the midfield line", ko: "옅은 점선: 미드필드 라인" },
   line_front: { en: "Faintest dashes: the front line", ko: "가장 옅은 점선: 최전방 라인" },
-  exposure_hatched: { en: "Cyan stripes: the space left behind the line", ko: "하늘색 빗금: 라인 뒤에 비워 둔 공간" },
+  exposure_hatched: { en: "Cyan stripes: the space the defence leaves open", ko: "하늘색 빗금: 수비가 비워 둔 공간" },
   runner_ring: { en: "Cyan ring: the runner going into it", ko: "하늘색 원: 그 공간으로 뛰는 선수" },
   cover_late: { en: "Cyan dashes: the cover, arriving late", ko: "하늘색 점선: 늦게 도착하는 커버" },
   cover_in_time: { en: "Green line: the cover, arriving in time", ko: "초록 선: 제때 도착하는 커버" },
@@ -95,6 +95,8 @@ const ROLE_TEXT: Record<string, Record<Lang, string>> = {
   presser: { en: "Presser", ko: "압박" }, carrier: { en: "On the ball", ko: "공 소유" },
   runner: { en: "Runner", ko: "침투" }, cover: { en: "Cover", ko: "커버" },
   passer: { en: "Pass", ko: "패스" }, receiver: { en: "Receives here", ko: "여기서 받음" },
+  interceptor: { en: "Intercepts", ko: "가로챔" }, shooter: { en: "Shot", ko: "슈팅" },
+  saver: { en: "Saves", ko: "선방" }, blocker: { en: "Blocks", ko: "막아 냄" },
 };
 const BD_UI: Record<Lang, Record<string, string>> = {
   en: { intro: "What does this defence take away, and what does it leave open?", go: "Break down the defence",
@@ -105,7 +107,15 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         back: "Back", next: "Next", exit: "Exit", stop: "Exit the breakdown", busy: "Analysing the clip…", ball: "White arrow: where the ball actually went",
         approve: "Approve and put on air", explore: "Explore the desk", onair: "On air", none: "Nothing more to show here.",
         waiting: "Preparing the text for approval…",
-        marks: "White band: a defender and the attacker he follows (sustained marking)" },
+        marks: "White band: a defender and the attacker he follows (sustained marking)",
+        moments: "Moments in this clip", defending: "{team} defending",
+        next_pass: "Next on the ball, at {t}: {p} passes to {q}.",
+        next_interception: "Next on the ball, at {t}: {q} intercepts {p}'s pass.",
+        next_save: "Next on the ball, at {t}: {p} shoots, and {q} saves it.",
+        next_block: "Next on the ball, at {t}: {p} shoots, and {q} blocks it.",
+        through_blocked: "That was one of the passes counted as blocked in step 2: the block is estimated from where players stand, and this one did not hold.",
+        clip_ends: "The clip ends before anyone plays the ball on.",
+        press_facts: "On the ball: {c}. Nearest defender: {d}, {m} m away." },
   ko: { intro: "이 수비는 무엇을 막고, 그 대가로 무엇을 내줄까?", go: "수비 전술 해부",
         sub: "한 장면을 4단계로 보고, 마지막에 방송까지 이어집니다. 경기장 위의 선과 숫자는 모두 추적 데이터로 계산한 것입니다.",
         live: "그냥 경기 보기", code: "코드가 모든 선과 숫자를 계산", person: "사람이 승인해야 방송",
@@ -114,8 +124,18 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         back: "이전", next: "다음", exit: "끝내기", stop: "해부 끝내기", busy: "클립을 분석하는 중…", ball: "흰 화살표: 공이 실제로 간 길",
         approve: "승인하고 방송에 내보내기", explore: "직접 살펴보기", onair: "방송 중", none: "이 단계에서 더 보여 줄 것이 없어요.",
         waiting: "승인할 문장을 준비하는 중…",
-        marks: "흰 띠: 수비수와 그가 따라붙는 공격수 (지속된 마킹)" },
+        marks: "흰 띠: 수비수와 그가 따라붙는 공격수 (지속된 마킹)",
+        moments: "이 클립의 장면", defending: "{team} 수비",
+        next_pass: "{t} 다음 공 흐름: {p} → {q} 패스.",
+        next_interception: "{t} 다음 공 흐름: {p}의 패스를 {q}가 가로챔.",
+        next_save: "{t} 다음 공 흐름: {p}의 슈팅을 {q}가 선방.",
+        next_block: "{t} 다음 공 흐름: {p}의 슈팅을 {q}가 막아 냄.",
+        through_blocked: "이 패스는 2단계에서 막힌 것으로 본 패스입니다. 막힘은 선수 위치로 추정한 값이라, 이번에는 통과했습니다.",
+        clip_ends: "공이 다음으로 연결되기 전에 클립이 끝납니다.",
+        press_facts: "공 소유: {c}. 가장 가까운 수비: {d}, {m} m." },
 };
+const STATUS_TEXT: Record<string, string> = { complete_tradeoff: "complete trade-off", partial: "partial",
+  insufficient_evidence: "insufficient evidence" };
 // why a claim about what is left open was held back (the analysis records a reason code); {p} is the player
 const HELD_TEXT: Record<string, Record<Lang, string>> = {
   offside_geometry: { en: "Not counted as space behind: {p}'s run starts beyond the back line (offside).",
@@ -357,7 +377,11 @@ export function App() {
         if (key !== overlayKey.current || seq <= overlayDrawn.current) return;
         overlayDrawn.current = seq;
         setOverlay(o);
-        if (o.overlay.display_mode === "retrospective_replay") setReplayFrame(await api.frame(session, o.frame_index));
+        if (o.overlay.display_mode !== "retrospective_replay") return;
+        const f = await api.frame(session, o.frame_index);
+        // a frame that arrives after a newer overlay was drawn belongs to the older one: it would put the newer
+        // overlay on the wrong players (a breakdown step showing another step's frame)
+        if (key === overlayKey.current && seq === overlayDrawn.current) setReplayFrame(f);
       // 404: a moment this cutoff no longer has; 409: no approved revision of it at this cutoff (broadcast)
       }).catch((e) => { if (!(e instanceof ApiError && (e.status === 404 || e.status === 409))) setError(String(e)); });
     }, wait);
@@ -455,6 +479,17 @@ export function App() {
       if (e instanceof ApiError && e.status === 409) setNotice("The replay moved on meanwhile; the desk has caught up.");
       else setError(String(e));
     } finally { setBdBusy(false); setIntro(false); }
+  };
+  // another moment of the same clip, picked in the panel: its own breakdown from the first step
+  const pickMoment = async (id: string) => {
+    if (!session || bdBusy) return;
+    setBdBusy(true);
+    try {
+      const b = await api.breakdown(session, id, language);
+      setUserPicked(true); setSelEp(id); setSelEl(null); setFocus("both"); setBd(b); setBdStep(0);
+    } catch (e) {
+      setError(String(e));
+    } finally { setBdBusy(false); }
   };
   const exitBreakdown = () => { setBd(null); setBdStep(0); };
   // each step shows the moment as the analysis had it then; the last one is the latest revision, ready for approval
@@ -568,6 +603,8 @@ export function App() {
 
   const bdPanel = bd && <BreakdownPanel bd={bd} step={bdStep} lang={L} keys={bdKey} texts={texts} insight={insight}
     approvedRev={approvedRev} surface={surface} latestRev={ep?.revision ?? null} asOf={asOf} onStep={setBdStep}
+    moments={[...episodes].sort((a, b) => a.detected_at_s - b.detected_at_s)} busy={bdBusy} onPick={pickMoment}
+    teamName={(id) => teams.find((tm: any) => tm.team_id === id)?.display_name ?? id} teamColor={teamColor}
     onExit={() => { exitBreakdown(); setSurface("inspector_preview"); }}
     onApprove={async () => { if (await decide("approve")) setSurface("broadcast"); }} />;
 
@@ -683,7 +720,8 @@ export function App() {
             </div>}
             {surface === "broadcast" && approvedRev === null
               ? <div className="empty">Nothing approved for air at this point of the replay. Approve the moment in Inspector.</div>
-              : shownFrame && <Pitch frame={shownFrame} overlay={overlaySnap} labels={overlay?.label_text} hiddenLayers={shownHidden}
+              : shownFrame && <GlidingPitch glideMs={1000 / (5 * speed)} glide={playing && !replayMode && !bd}
+                  frame={shownFrame} overlay={overlaySnap} labels={overlay?.label_text} hiddenLayers={shownHidden}
                   ballPath={bdCur?.key === "what_happened" ? bdCur.ball_path : undefined} tags={bdTags} marks={bdCur?.marks}
                   selected={surface === "inspector_preview" ? selEl?.element_id : undefined}
                   onSelect={surface === "inspector_preview" ? setSelEl : undefined}
@@ -714,20 +752,21 @@ export function App() {
         <aside className="rail">
           {bd && bdPanel}
           {!bd && (ep ? <div className="card">
-            <h2>Moment at {matchClock(ep.detected_at_s)} <span className={`chip ${ep.analysis_status}`}>{ep.analysis_status.replace("_", " ")}</span>
+            <h2>Moment at {matchClock(ep.detected_at_s)} <span className={`chip ${ep.analysis_status}`}>{STATUS_TEXT[ep.analysis_status] ?? ep.analysis_status}</span>
               {myClub && ep.defending_team_id && <span className="chip club">{ep.defending_team_id === myClub
                 ? (language === "ko" ? "우리 팀 수비 장면" : "Your club is defending here")
                 : (language === "ko" ? "우리 팀 공격 장면" : "Your club is attacking here")}</span>}</h2>
             {details
               ? <p className="meta">{ep.episode_id} · rev {ep.revision} · {ep.lifecycle} · priority {ep.story_priority.toFixed(2)} (heuristic evidence strength)</p>
-              : <p className="meta">{ep.revision} update{ep.revision === 1 ? "" : "s"} so far · {ep.lifecycle === "closed" ? "finished" : "in progress"}</p>}
+              : <p className="meta">{ep.revision} update{ep.revision === 1 ? "" : "s"} so far · {ep.lifecycle === "closed" ? "finished" : clock >= range[1] - 0.1 ? "clip ended" : "in progress"}</p>}
             {cardEp !== ep && <p className="meta asof">Showing revision {selRev}, as the analysis had it then</p>}
             <div className="cols">
               <div><h3>What is restricted</h3>{cardEp!.restricted.length ? cardEp!.restricted.map((c) => <div key={c} className={`claim r ${liveClaims.includes(c) ? "live" : ""}`}>{claimLabel(c)}</div>) : <div className="none">No supported claim</div>}</div>
               <div><h3>What is exposed</h3>{cardEp!.exposed.length ? cardEp!.exposed.map((c) => <div key={c} className={`claim x ${liveClaims.includes(c) ? "live" : ""}`}>{claimLabel(c)}</div>) : <div className="none">Nothing left open is supported yet</div>}</div>
             </div>
             <h3>Observed so far</h3>
-            <div className="outcome">{cardEp!.changes.map((c) => <span key={c} className="chip ch">{c.replace(/_/g, " ")}</span>)} <span className="chip oc">{OUTCOME_TEXT[cardEp!.outcome]}</span></div>
+            <div className="outcome">{cardEp!.changes.map((c) => <span key={c} className="chip ch">{c.replace(/_/g, " ")}</span>)} <span className="chip oc">{cardEp!.outcome === "not_yet_observed"
+              && (cardEp!.lifecycle === "closed" || clock >= range[1] - 0.1) ? "No outcome recorded" : OUTCOME_TEXT[cardEp!.outcome]}</span></div>
             <div className="bf">
               <button className={view === "replay" && selRev === 1 ? "on" : ""}
                 onClick={() => { setUserPicked(true); setSelRev(1); setView("replay"); setSurface("inspector_preview"); }}>Before (rev 1)</button>
@@ -776,10 +815,12 @@ export function App() {
 }
 
 function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, surface, latestRev, asOf, onStep, onExit,
-  onApprove }: {
+  onApprove, moments, busy, onPick, teamName, teamColor }: {
   bd: Breakdown; step: number; lang: Lang; keys: string[]; texts: string[]; insight?: InsightView;
   approvedRev: number | null; surface: Surface; latestRev: number | null; asOf: number | null;
   onStep: (n: number) => void; onExit: () => void; onApprove: () => void;
+  moments: EpisodeSummary[]; busy: boolean; onPick: (id: string) => void;
+  teamName: (id: string) => string; teamColor: (id: string) => string;
 }) {
   const ui = BD_UI[lang];
   const cur = step < bd.steps.length ? bd.steps[step] : null;
@@ -788,15 +829,35 @@ function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, sur
   const lines = cur ? cur.sentences : texts;
   const held = cur?.held_back?.filter((h, i, a) => HELD_TEXT[h.reason]
     && a.findIndex((x) => x.reason === h.reason && x.player_id === h.player_id) === i) ?? [];
+  const np = cur?.next_pass;
+  const pf = cur?.press_facts;
+  const extra = [
+    pf && ui.press_facts.replace("{c}", playerName(pf.carrier_id)).replace("{d}", playerName(pf.defender_id))
+      .replace("{m}", pf.distance_m.toFixed(1)),
+    np && ({ pass: ui.next_pass, interception: ui.next_interception, save: ui.next_save, block: ui.next_block })[np.kind]
+      .replace("{t}", matchClock(np.release_s)).replace("{p}", playerName(np.from_id)).replace("{q}", playerName(np.to_id)),
+    cur?.through_blocked && ui.through_blocked,
+    cur?.clip_ends && ui.clip_ends,
+  ].filter((t): t is string => !!t);
   return (
     <div className={`bd bd-${meta.key}`}>
+      {moments.length > 1 && <div className="bd-moments" role="group" aria-label={ui.moments}>
+        <span>{ui.moments}</span>
+        {moments.map((e) => <button key={e.episode_id} className={e.episode_id === bd.episode_id ? "on" : ""}
+          aria-pressed={e.episode_id === bd.episode_id} disabled={busy}
+          style={{ "--kit": e.defending_team_id ? teamColor(e.defending_team_id) : "#999" } as CSSProperties}
+          onClick={() => e.episode_id !== bd.episode_id && onPick(e.episode_id)}>
+          {matchClock(e.detected_at_s)} · {ui.defending.replace("{team}", e.defending_team_id ? teamName(e.defending_team_id) : "?")}
+        </button>)}
+      </div>}
       <ol className="bd-steps">{BD_STEPS.map((s, i) => (
         <li key={s.key}><button className={`${i === step ? "on" : i < step ? "done" : ""} k-${s.key}`} onClick={() => onStep(i)}
           aria-current={i === step ? "step" : undefined}><b>{i + 1}</b> {s.title[lang]}</button></li>))}</ol>
       <div className="bd-body">
         <h3 className="bd-title">{meta.title[lang]}</h3>
         <p className="bd-q">{meta.q[lang]}</p>
-        <div className="bd-text">{lines.length ? lines.map((t, i) => <p key={i}>{t}</p>) : <p className="meta">{ui.none}</p>}</div>
+        <div className="bd-text">{lines.length || extra.length ? [...lines, ...extra].map((t, i) => <p key={i}>{t}</p>)
+          : <p className="meta">{ui.none}</p>}</div>
         {held.map((h, i) => <p key={i} className="bd-held">{HELD_TEXT[h.reason][lang].replace("{p}",
           h.player_id.includes("_") ? playerName(h.player_id) : "")}</p>)}
         {!cur && latestRev != null && asOf != null && <p className="meta">{ui.onairNote.replace("{rev}", String(latestRev))

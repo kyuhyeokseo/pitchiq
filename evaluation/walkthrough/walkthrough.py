@@ -270,7 +270,7 @@ def main() -> int:
 
             card = play_clip("clip_003")
             check("C: central screen + wide outlet + free receiver form a complete trade-off",
-                  "complete tradeoff" in card and "Central routes screened" in card and "Accessible free receiver" in card
+                  "complete trade-off" in card and "Central routes screened" in card and "Accessible free receiver" in card
                   and "Wide outlet available" in card, card[:220].replace("\n", " | "))
             check("C: drop then defensive step recorded", "attacker drop" in card and "defender step" in card,
                   card[card.find("OBSERVED"):][:120].replace("\n", " | "))
@@ -289,7 +289,7 @@ def main() -> int:
 
             card = play_clip("clip_002")
             check("B: dropped line + disconnected press + between-lines receiver",
-                  "complete tradeoff" in card and "Depth behind reduced" in card and "Receiver between lines" in card,
+                  "complete trade-off" in card and "Depth behind reduced" in card and "Receiver between lines" in card,
                   card[:220].replace("\n", " | "))
             check("B: attacker move into the gap then midfield drop", "lane change" in card and "block shift" in card)
             page.locator("button", has_text="After (rev").click()
@@ -332,10 +332,10 @@ def main() -> int:
             play_clip("clip_008")
             card = open_episode("ep_clip_008_red_press_vs_depth_f0032")
             check("D escape: screened options + free centre-back form a complete trade-off",
-                  "complete tradeoff" in card and "Short options screened" in card and "Accessible free receiver" in card,
+                  "complete trade-off" in card and "Short options screened" in card and "Accessible free receiver" in card,
                   card[:220].replace("\n", " | "))
             check("D escape: exploited, then the striker's step is recorded", "Exploited" in card and "defender step" in card)
-            i_recv, i_step = card.find("was received by"), card.find("stepped up")
+            i_recv, i_step = card.find("received by"), card.find("stepped up")
             narration_check("D escape: narration tells reception before the step", 0 <= i_recv < i_step,
                   card[max(i_recv, 0):][:160].replace("\n", " | "))
             labels_clear(page, "D escape")
@@ -345,7 +345,7 @@ def main() -> int:
             play_clip("clip_009")
             card = open_episode("ep_clip_009_blue_press_vs_depth_f0011")
             check("E: passive screen, step out, free man form one complete story",
-                  "complete tradeoff" in card and "Short options screened" in card and "Accessible free receiver" in card
+                  "complete trade-off" in card and "Short options screened" in card and "Accessible free receiver" in card
                   and "defender step" in card and "Exploited" in card, card[:220].replace("\n", " | "))
             labels_clear(page, "E after")
             page.screenshot(path=str(args.out / "16_e_after.png"))
@@ -372,7 +372,7 @@ def main() -> int:
             play_clip("clip_011")
             card = open_episode("ep_clip_011_red_press_vs_depth_f0016")
             check("G: press on the back pass + line steps up + space behind, used",
-                  "complete tradeoff" in card and "Short options screened" in card and "Space behind the line" in card
+                  "complete trade-off" in card and "Short options screened" in card and "Space behind the line" in card
                   and "block shift" in card and "Exploited" in card, card[:220].replace("\n", " | "))
             narration_check("G: narration says the back line stepped up together", "stepped up" in card and "together" in card)
             check("G: replay draws the back line's movement", page.locator("svg.pitch polyline.ghost_path").count() >= 3)
@@ -470,6 +470,22 @@ def main() -> int:
                   "BROADCAST" in page.locator(".badge").first.inner_text()
                   and len(page.locator(".caption").inner_text()) > 20, page.locator(".caption").inner_text()[:160])
             page.screenshot(path=str(args.out / "27_bd_5_on_air.png"))
+            # another moment of the clip, picked in the panel: its own breakdown from step 1; with no outcome recorded,
+            # step 4 shows the next pass the replay saw (here the goalkeeper's pass to BLU #4)
+            chips = page.locator(".bd-moments button")
+            n_chips = chips.count()
+            chips.first.click()
+            page.wait_for_function("document.querySelector('.bd-badge')?.textContent.startsWith('1 / ')"
+                                   " && document.querySelector('.bd-moments button.on') ===" 
+                                   " document.querySelector('.bd-moments button')", timeout=15000)
+            badge = page.locator(".bd-badge").inner_text()
+            txt = bd_step(3, "svg.pitch polyline.ball-path")
+            tags = page.evaluate(tags_js)
+            check("Breakdown: another moment of the clip from the panel, and the next pass it saw in step 4",
+                  n_chips >= 2 and "10:14" in badge and "BLU #1 passes to BLU #4" in txt
+                  and tags == ["Pass", "Receives here"], f"{n_chips} moments | {badge} | tags {tags} | "
+                  + txt[:160].replace("\n", " | "))
+            page.screenshot(path=str(args.out / "27b_bd_other_moment.png"))
             page.locator(".bd-go").click()
             check("Breakdown: exit returns to the desk", page.locator(".bd").count() == 0)
             page.get_by_role("button", name="Inspector").click()

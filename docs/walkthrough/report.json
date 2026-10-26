@@ -1,10 +1,10 @@
 {
-  "base": "http://127.0.0.1:43933",
+  "base": "http://127.0.0.1:40359",
   "checks": [
     {
       "check": "health endpoint",
       "ok": true,
-      "detail": "{\"status\": \"ok\", \"version\": \"0.2.0\", \"build\": {\"sha\": \"dev\"}, \"analytics_version\": \"analytics-0.1.1\", \"template_registry_version\": \"templates-0.3.1\", \"metric_registry_version\": \"metrics/2.0.0\", \"llm_mode\": \"offline\", \"foundry_configured\": true, \"cloud_enabled\": false, \"telemetry\": {\"enabled\": false, \"error\": null}, \"cloud_disabled_reason\": \"LLM_MODE is not foundry\", \"last_cloud_result\": {\"calls_total\": 0, \"last_call_succeeded\": null, \"last_error\": null, \"last_result_utc\": null, \"pipelines_today\": 0, \"daily_limit\": null}, \"sessions\": 0, \"sockets\": 0}"
+      "detail": "{\"status\": \"ok\", \"version\": \"0.2.0\", \"build\": {\"sha\": \"dev\"}, \"analytics_version\": \"analytics-0.1.1\", \"template_registry_version\": \"templates-0.3.2\", \"metric_registry_version\": \"metrics/2.0.0\", \"llm_mode\": \"offline\", \"foundry_configured\": true, \"cloud_enabled\": false, \"telemetry\": {\"enabled\": false, \"error\": null}, \"cloud_disabled_reason\": \"LLM_MODE is not foundry\", \"last_cloud_result\": {\"calls_total\": 0, \"last_call_succeeded\": null, \"last_error\": null, \"last_result_utc\": null, \"pipelines_today\": 0, \"daily_limit\": null}, \"sessions\": 0, \"sockets\": 0}"
     },
     {
       "check": "pitch renders 22 players",
@@ -29,7 +29,7 @@
     {
       "check": "live overlay elements drawn from backend",
       "ok": true,
-      "detail": "18 elements"
+      "detail": "19 elements"
     },
     {
       "check": "A live: the player on the ball is drawn on top",
@@ -94,7 +94,7 @@
     {
       "check": "Ask: an answer with its source and real trace",
       "ok": true,
-      "detail": "\u201cWhat did that leave open?\u201d |  | As of 10:35 \u00b7 about the moment at 10:22 |  | Red United are shutting the short passes: 4 of 4 nearby options are covered. |  | The cost: the back line sits 50.8 m from its goal, and BLU #9 is running into the space behi"
+      "detail": "\u201cWhat did that leave open?\u201d |  | As of 10:35 \u00b7 about the moment at 10:22 |  | Red United are screening the short passes: 4 of 4 nearby options are covered. |  | The cost: the back line sits 50.8 m from its goal, and BLU #9 is running into the space beh"
     },
     {
       "check": "Ask: show on pitch selects the moment in replay",
@@ -104,7 +104,7 @@
     {
       "check": "Recap: 1-3 moments with their sentences and the source",
       "ok": true,
-      "detail": "3 items | Recap so far |  | Up to three moments for you \u00b7 Microsoft Agent Framework \u00b7 checked line by line |  | Update the recap |  | As of 10:35 \u00b7 deterministic recap |  | Moment at 10:14 | Show on pitch |  | Red United are shuttin"
+      "detail": "3 items | Recap so far |  | Up to three moments for you \u00b7 Microsoft Agent Framework \u00b7 checked line by line |  | Update the recap |  | As of 10:35 \u00b7 deterministic recap |  | Moment at 10:14 | Show on pitch |  | Red United are screeni"
     },
     {
       "check": "negative clip: same press stays a partial analysis",
@@ -119,7 +119,7 @@
     {
       "check": "C: central screen + wide outlet + free receiver form a complete trade-off",
       "ok": true,
-      "detail": "Moment at 22:09 | complete tradeoff |  | 7 updates so far \u00b7 finished |  | What is restricted | Central routes screened heuristic | What is exposed | Accessible free receiver heuristic | Wide outlet available heuristic | Observed so far | atta"
+      "detail": "Moment at 22:09 | complete trade-off |  | 7 updates so far \u00b7 finished |  | What is restricted | Central routes screened heuristic | What is exposed | Accessible free receiver heuristic | Wide outlet available heuristic | Observed so far | att"
     },
     {
       "check": "C: drop then defensive step recorded",
@@ -144,7 +144,7 @@
     {
       "check": "B: dropped line + disconnected press + between-lines receiver",
       "ok": true,
-      "detail": "Moment at 49:22 | complete tradeoff |  | 5 updates so far \u00b7 finished |  | What is restricted | Depth behind reduced | What is exposed | Receiver between lines heuristic | Press disconnected from block heuristic | Observed so far | lane change"
+      "detail": "Moment at 49:22 | complete trade-off |  | 5 updates so far \u00b7 finished |  | What is restricted | Depth behind reduced | What is exposed | Receiver between lines heuristic | Press disconnected from block heuristic | Observed so far | lane chang"
     },
     {
       "check": "B: attacker move into the gap then midfield drop",
@@ -189,7 +189,7 @@
     {
       "check": "D escape: screened options + free centre-back form a complete trade-off",
       "ok": true,
-      "detail": "Moment at 36:35 | complete tradeoff |  | 4 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Accessible free receiver heuristic | Observed so far | defender step | Exploited in synthetic "
+      "detail": "Moment at 36:35 | complete trade-off |  | 4 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Accessible free receiver heuristic | Observed so far | defender step | Exploited in synthetic"
     },
     {
       "check": "D escape: exploited, then the striker's step is recorded",
@@ -199,7 +199,7 @@
     {
       "check": "D escape: narration tells reception before the step",
       "ok": true,
-      "detail": "was received by BLU #5. |  | Defensive adjustment observed next: RED #9 stepped up 14.7 m to BLU #5. |  | Scores are heuristic evidence strength under fixed speed assum"
+      "detail": "received by BLU #5. |  | Defensive adjustment observed next: RED #9 stepped up 14.7 m to BLU #5. |  | Scores are heuristic evidence strength under fixed speed assumptio"
     },
     {
       "check": "D escape: pitch labels do not overlap or leave the pitch",
@@ -209,7 +209,7 @@
     {
       "check": "E: passive screen, step out, free man form one complete story",
       "ok": true,
-      "detail": "Moment at 50:23 | complete tradeoff |  | 6 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Accessible free receiver heuristic | Observed so far | defender step | Exploited in synthetic "
+      "detail": "Moment at 50:23 | complete trade-off |  | 6 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Accessible free receiver heuristic | Observed so far | defender step | Exploited in synthetic"
     },
     {
       "check": "E after: pitch labels do not overlap or leave the pitch",
@@ -239,7 +239,7 @@
     {
       "check": "G: press on the back pass + line steps up + space behind, used",
       "ok": true,
-      "detail": "Moment at 20:14 | complete tradeoff |  | 7 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Space behind the line heuristic | Observed so far | block shift | line retreat | Exploited in sy"
+      "detail": "Moment at 20:14 | complete trade-off |  | 7 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Space behind the line heuristic | Observed so far | block shift | line retreat | Exploited in s"
     },
     {
       "check": "G: narration says the back line stepped up together",
@@ -299,17 +299,17 @@
     {
       "check": "Breakdown 1, the press: presser and ball carrier tagged, who-follows-whom tethers drawn",
       "ok": true,
-      "detail": "tags ['On the ball', 'Presser'], 7 tethers | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | The press |  | Who goes to the ball, and who follows whom? |  | RED #9 closes down the p"
+      "detail": "tags ['On the ball', 'Presser'], 7 tethers | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:19 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:28 \u00b7 Red United defe"
     },
     {
       "check": "Breakdown 2, what it takes away: the blocked passes, and nothing of the exposed side",
       "ok": true,
-      "detail": "1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What it takes away |  | Which passes does the defence shut? |  | Red United are shutting"
+      "detail": "Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:19 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:28 \u00b7 Red United defe"
     },
     {
       "check": "Breakdown 3, what it leaves open: the space behind and the runner, no blocked passes",
       "ok": true,
-      "detail": "tags ['Cover', 'Runner'] | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What it leaves open |  | What is the price of it? |  | The cost: the back line sits 50.9"
+      "detail": "tags ['Cover', 'Runner'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:19 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:28 \u00b7 Red United defe"
     },
     {
       "check": "Breakdown 3: pitch labels do not overlap or leave the pitch",
@@ -319,12 +319,17 @@
     {
       "check": "Breakdown 4, what happened: the ball's path from the passer to the receiver",
       "ok": true,
-      "detail": "tags ['Pass', 'Receives here'] | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What happened |  | Did the attack use it? |  | What happened next (synthetic play): a pa"
+      "detail": "tags ['Pass', 'Receives here'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:19 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:28 \u00b7 Red United defe"
     },
     {
       "check": "Breakdown 5, on air: approving puts the moment's caption on the broadcast view",
       "ok": true,
       "detail": "Restricted: 4/4 eligible ground-pass options from BLU #5 are screened (a defender reaches the lane or the receiver within 0.1 s of the ball).\n\nExposed: back lin"
+    },
+    {
+      "check": "Breakdown: another moment of the clip from the panel, and the next pass it saw in step 4",
+      "ok": true,
+      "detail": "7 moments | 1 / 5 \u00b7 The press \u00b7 10:14.2 \u00b7 rev 1 | tags ['Pass', 'Receives here'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:19 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:28 \u00b7 Red United defe"
     },
     {
       "check": "Breakdown: exit returns to the desk",
@@ -373,9 +378,9 @@
     }
   ],
   "console_errors": [],
-  "passed": 74,
+  "passed": 75,
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-26T17:42:57Z"
+  "time_utc": "2026-10-26T21:37:11Z"
 }

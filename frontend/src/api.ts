@@ -98,6 +98,12 @@ export type BreakdownStep = {
   layers: string[]; player_ids: string[]; roles: Record<string, string>; sentences: string[]; ball_path?: number[][];
   marks?: string[][];  // [defender, attacker] pairs with a sustained marking relation (the press step)
   held_back?: { code: string; reason: string; player_id: string }[];  // why nothing open was claimed (what it leaves open)
+  // what happened, when the analysis recorded no outcome: the next pass the replay has seen, as an observation
+  next_pass?: { kind: "pass" | "interception" | "save" | "block"; from_id: string; to_id: string; release_s: number; end_s: number } | null;
+  clip_ends?: boolean;  // nobody played the ball on before the clip ended
+  through_blocked?: boolean;  // the pass in this step went along a lane step 2 drew as blocked
+  // the press, when the narration has no sentence about it: who has the ball and the nearest defender (measured)
+  press_facts?: { carrier_id: string; defender_id: string; distance_m: number } | null;
 };
 export type Breakdown = { episode_id: string; analysis_status: string; outcome: string; language: string; steps: BreakdownStep[] };
 

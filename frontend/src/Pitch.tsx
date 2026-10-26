@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { Anchor, ObservationFrame, OverlayElement, OverlaySnapshot, XY } from "./contracts";
 
 const sx = (p: XY) => p.x_m;
@@ -22,7 +22,8 @@ type Props = {
   marks?: string[][];  // [defender, attacker]: who follows whom, drawn as a white tether
 };
 // tags of the player who acts go first, so they get the spot above the player
-const TAG_ORDER = ["presser", "runner", "passer", "carrier", "cover", "receiver"];
+const TAG_ORDER = ["presser", "runner", "passer", "shooter", "carrier", "cover", "receiver", "interceptor", "saver", "blocker"];
+const GETS_BALL = new Set(["receiver", "interceptor", "saver", "blocker"]);  // tagged where the ball's path ends
 
 // a run at or above the defender speed the analysis assumes (analytics_config.yaml: defender_speed_mps) is a sprint
 const SPRINT_MPS = 7.0;
@@ -161,17 +162,18 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
   // overlay labels then keep clear of them
   const tagBoxes: [number, number, number, number][] = [];
   const receiveAt = ballPath && ballPath.length > 1 ? ballPath[ballPath.length - 1] : null;
-  const receiver = receiveAt && tags ? frame.players.find((p) => tags[p.player_id]?.role === "receiver") : undefined;
+  const receiver = receiveAt && tags ? frame.players.find((p) => GETS_BALL.has(tags[p.player_id]?.role)) : undefined;
   const tagged = !tags ? [] : frame.players.filter((p) => tags[p.player_id])
     .sort((a, b) => TAG_ORDER.indexOf(tags[a.player_id].role) - TAG_ORDER.indexOf(tags[b.player_id].role)).map((p) => {
       const t = tags[p.player_id], w = labelWidth(t.text) * 0.85;
-      // the receiver of the ball's path is tagged where he receives it (the end of the path), not where he stands now
-      const at = t.role === "receiver" && receiveAt ? { x_m: receiveAt[0], y_m: receiveAt[1] } : p.position;
+      // the receiver (or interceptor) of the ball's path is tagged where he gets it (the end of the path), not where
+      // he stands now
+      const at = GETS_BALL.has(t.role) && receiveAt ? { x_m: receiveAt[0], y_m: receiveAt[1] } : p.position;
       const x = sx(at), y0 = sy(at);
       const y = [-3.2, 3.2, -5.9, 5.9].map((dy) => y0 + dy).find((y) => !tagBoxes.some((o) =>
         x - w / 2 < o[2] && o[0] < x + w / 2 && y - 1.25 < o[3] && o[1] < y + 1.25)) ?? y0 - 3.2;
       tagBoxes.push([x - w / 2, y - 1.25, x + w / 2, y + 1.25]);
-      return { id: p.player_id, t, w, x, y };
+      return { id: p.player_id, t, w, x, y, ax: x, ay: y0 };
     });
   const obstacles: [number, number, number][] = [...frame.players.map((p): [number, number, number] =>
     [sx(p.position), sy(p.position), PLAYER_R]), [sx(ball), sy(ball), 0.8],
@@ -216,6 +218,9 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
         <polyline points={ballPath.map(([x, y]) => `${x},${68 - y}`).join(" ")} className="ball-path" markerEnd="url(#arrow-ball_path)" />
         <circle cx={ballPath[0][0]} cy={68 - ballPath[0][1]} r={0.7} className="ball-path-start" />
       </g>}
+      {/* each tag points at its player (under the discs), so tags on two players close together never read swapped */}
+      {tagged.map(({ id, x, y, ax, ay }) => <line key={`tl-${id}`} className="pl-tag-lead" x1={ax} y1={ay} x2={x}
+        y2={y + (y < ay ? 1.25 : -1.25)} />)}
       {players.map((p) => {
         const speed = Math.hypot(p.velocity.vx_mps, p.velocity.vy_mps);
         const isFollowed = p.player_id === followed;
@@ -247,4 +252,42 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
         selected={selected === e.element_id} onSelect={onSelect} />)}
     </svg>
   );
+}
+
+// Tracking comes at 5 Hz, so a pitch drawn frame by frame makes the players hop up to a metre and a half at a time.
+// While the replay plays, the pitch glides from what it shows to each new frame over one frame interval (one frame
+// behind, 200 ms at 1x); overlay marks anchored to players move with them. A seek, a jump of more than a few frames or
+// a still frame (pause, replay moment, breakdown step) is drawn as it is.
+const lerp = (a: XY, b: XY, f: number): XY => ({ x_m: a.x_m + (b.x_m - a.x_m) * f, y_m: a.y_m + (b.y_m - a.y_m) * f });
+
+function useGlide(frame: ObservationFrame, ms: number, on: boolean): ObservationFrame {
+  const [shown, setShown] = useState(frame);
+  const shownRef = useRef(frame);
+  const lastRef = useRef(frame);  // the last real frame
+  useEffect(() => {
+    const prev = lastRef.current, from = shownRef.current;
+    lastRef.current = frame;
+    const step = frame.frame_ref.frame_index - prev.frame_ref.frame_index;
+    const show = (f: ObservationFrame) => { shownRef.current = f; setShown(f); };
+    if (!on || frame.frame_ref.clip_id !== prev.frame_ref.clip_id || step <= 0 || step > 3) { show(frame); return; }
+    const was = Object.fromEntries(from.players.map((pl) => [pl.player_id, pl.position]));
+    const t0 = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const f = Math.min(1, (now - t0) / ms);
+      show(f >= 1 ? frame : {
+        ...frame,
+        players: frame.players.map((pl) => was[pl.player_id] ? { ...pl, position: lerp(was[pl.player_id], pl.position, f) } : pl),
+        ball: { ...frame.ball, position: lerp(from.ball.position, frame.ball.position, f) },
+      });
+      if (f < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [frame, ms, on]);
+  return shown;
+}
+
+export function GlidingPitch({ glideMs, glide, ...props }: Props & { glideMs: number; glide: boolean }) {
+  return <Pitch {...props} frame={useGlide(props.frame, glideMs, glide)} />;
 }

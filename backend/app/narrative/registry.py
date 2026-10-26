@@ -15,7 +15,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-REGISTRY_VERSION = "templates-0.3.1"
+REGISTRY_VERSION = "templates-0.3.2"
 
 
 @dataclass(frozen=True)
@@ -32,7 +32,9 @@ class Template:
 T = Template
 # "fewer around the ball and still more behind" is only said when both counts say so
 PRESS_FEWER = (lambda v: v["buildup_count_defense"] < v["buildup_count_attack"]
-               and v["rest_count_defense"] > v["rest_count_attack"])
+               and v["rest_count_defense"] > v["rest_count_attack"] and NUMBERS(v))
+# a count "around the ball" needs a contest there: at least one defender and two attackers (not the keeper alone)
+NUMBERS = (lambda v: v["buildup_count_defense"] >= 1 and v["buildup_count_attack"] >= 2)
 # "nobody presses him" needs real room, not a defender who happens to be 2 m off this frame
 UNPRESSED = (lambda v: v["carrier_nearest_defender_m"] >= 5.0)
 
@@ -40,7 +42,7 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
     # ---------------------------------------------------------------- restricted
     T("fan.short_options_screened", ("fan",), "claim:short_options_screened",
       ("short_options_screened", "short_option_candidates"), {
-          "en": "{team:defending} are shutting the short passes: {v:short_options_screened} of "
+          "en": "{team:defending} are screening the short passes: {v:short_options_screened} of "
                 "{v:short_option_candidates} nearby options are covered.",
           "ko": "{team:defending} 수비가 짧은 패스를 막고 있습니다. 가까운 패스 옵션 "
                 "{v:short_option_candidates}개 중 {v:short_options_screened}개가 막혔습니다."}),
@@ -84,12 +86,12 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
                 "골키퍼는 {v:gk_cover_margin_s}초 늦습니다."}),
     # ---------------------------------------------------------------- changes
     T("analyst.change.line_retreat", ("analyst", "fan"), "change:line_retreat", ("behind_depth_change_m",), {
-          "en": "Observed next: the back line dropped {a:behind_depth_change_m} m toward its own goal.",
+          "en": "Observed next: the back line dropped {a:behind_depth_change_m} m towards its own goal.",
           "ko": "이어서 관측된 변화: 수비 라인이 자기 골문 쪽으로 {a:behind_depth_change_m}m 내려섰습니다."}),
     # ---------------------------------------------------------------- outcomes (observed after the analysis)
     T("outcome.exploited", ("fan", "analyst"), "outcome:exploited_in_synthetic_play", (), {
-          "en": "What happened next (synthetic play): a pass into that space was received by {outcome_target}.",
-          "ko": "이후 관측된 결과(합성 플레이): 그 공간으로 간 패스를 {outcome_target} 선수가 받았습니다."}),
+          "en": "What happened next (synthetic play): the attack used it, with a pass received by {outcome_target}.",
+          "ko": "이후 관측된 결과(합성 플레이): 공격이 그 틈을 썼고, {outcome_target} 선수가 패스를 받았습니다."}),
     T("outcome.not_exploited", ("fan", "analyst"), "outcome:not_exploited_in_window", (), {
           "en": "What happened next: the space was not used within the observation window.",
           "ko": "이후 관측된 결과: 관측 구간 안에서 그 공간은 활용되지 않았습니다."}),
@@ -97,18 +99,18 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
           "en": "The outcome has not been observed yet.",
           "ko": "결과는 아직 관측되지 않았습니다."}),
     T("outcome.inconclusive", ("fan", "analyst"), "outcome:inconclusive", (), {
-          "en": "The moment ended with nothing left open to use, so there is no outcome to judge.",
-          "ko": "내준 공간 없이 장면이 끝나 판단할 결과가 없습니다."}),
+          "en": "The moment ended before anything was used, so there is no outcome to judge.",
+          "ko": "아무것도 활용되기 전에 장면이 끝나 판단할 결과가 없습니다."}),
     # ---------------------------------------------------------------- caveats
     T("caveat.heuristic", ("analyst",), "caveat:heuristic", (), {
           "en": "Scores are heuristic evidence strength under fixed speed assumptions, not probabilities.",
           "ko": "점수는 고정 속도 가정에 따른 휴리스틱 근거 강도이며 확률이 아닙니다."}),
     T("caveat.cover_in_time", ("fan", "analyst"), "caveat:cover_in_time", (), {
-          "en": "Cover arrives in time here, so no isolation is claimed.",
+          "en": "Cover gets across in time here, so nobody is left one against one.",
           "ko": "여기서는 커버가 제때 도착하므로 고립으로 보지 않습니다."}),
     T("partial.restricted_only", ("fan", "analyst"), "partial", (), {
-          "en": "Only the restricting side is supported so far; nothing the defence leaves open is supported yet.",
-          "ko": "지금까지는 제한하는 쪽만 근거가 있고, 수비가 내준 공간은 아직 근거로 뒷받침되지 않습니다."}),
+          "en": "The evidence shows what this defence takes away, but nothing it clearly leaves open.",
+          "ko": "근거로 확인되는 것은 이 수비가 막은 것뿐이고, 분명히 내준 공간은 없습니다."}),
     T("analyst.press_cut.short", ("analyst",), "claim:short_options_screened", ("press_cut_lanes",), {
           "en": "{p:press_cut_lanes:0} presses the carrier while standing in the passing line, cutting "
                 "{v:press_cut_lanes} option{s:press_cut_lanes} (approximate cover shadow; body orientation is not observed).",
@@ -122,11 +124,11 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
           "en": "Numbers: {v:buildup_count_defense} defenders against {v:buildup_count_attack} attackers around the "
                 "ball; further up the defence keeps {v:rest_count_defense} v {v:rest_count_attack}.",
           "ko": "숫자: 공 주변에서는 수비 {v:buildup_count_defense}명이 공격 {v:buildup_count_attack}명을 상대하고, "
-                "그 앞에서는 수비가 {v:rest_count_defense} 대 {v:rest_count_attack} 구도를 유지합니다."}),
+                "그 앞에서는 수비가 {v:rest_count_defense} 대 {v:rest_count_attack} 구도를 유지합니다."}, requires=NUMBERS),
     T("fan.press_numbers.short", ("fan",), "claim:short_options_screened",
       ("buildup_count_attack", "buildup_count_defense", "rest_count_attack", "rest_count_defense"), {
-          "en": "Around the ball they face {v:buildup_count_attack} with {v:buildup_count_defense} and still keep "
-                "{v:rest_count_defense} v {v:rest_count_attack} behind.",
+          "en": "Near the ball they have {v:buildup_count_defense} against {v:buildup_count_attack}, and keep "
+                "{v:rest_count_defense} against {v:rest_count_attack} further back.",
           "ko": "공 주변에서는 {v:buildup_count_defense}명으로 {v:buildup_count_attack}명을 상대하면서도 뒤에서는 "
                 "{v:rest_count_defense} 대 {v:rest_count_attack} 구도를 지킵니다."}, requires=PRESS_FEWER),
     T("analyst.passive_screen.short", ("analyst",), "claim:short_options_screened", ("carrier_nearest_defender_m",), {
@@ -154,11 +156,11 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
           "en": "Numbers: {v:buildup_count_defense} defenders against {v:buildup_count_attack} attackers around the "
                 "ball; further up the defence keeps {v:rest_count_defense} v {v:rest_count_attack}.",
           "ko": "숫자: 공 주변에서는 수비 {v:buildup_count_defense}명이 공격 {v:buildup_count_attack}명을 상대하고, "
-                "그 앞에서는 수비가 {v:rest_count_defense} 대 {v:rest_count_attack} 구도를 유지합니다."}),
+                "그 앞에서는 수비가 {v:rest_count_defense} 대 {v:rest_count_attack} 구도를 유지합니다."}, requires=NUMBERS),
     T("fan.press_numbers.central", ("fan",), "claim:central_routes_screened",
       ("buildup_count_attack", "buildup_count_defense", "rest_count_attack", "rest_count_defense"), {
-          "en": "Around the ball they face {v:buildup_count_attack} with {v:buildup_count_defense} and still keep "
-                "{v:rest_count_defense} v {v:rest_count_attack} behind.",
+          "en": "Near the ball they have {v:buildup_count_defense} against {v:buildup_count_attack}, and keep "
+                "{v:rest_count_defense} against {v:rest_count_attack} further back.",
           "ko": "공 주변에서는 {v:buildup_count_defense}명으로 {v:buildup_count_attack}명을 상대하면서도 뒤에서는 "
                 "{v:rest_count_defense} 대 {v:rest_count_attack} 구도를 지킵니다."}, requires=PRESS_FEWER),
     # ---------------------------------------------------------------- family B
@@ -169,7 +171,7 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
                 "있습니다."}),
     T("analyst.behind_depth_reduced", ("analyst",), "claim:behind_depth_reduced",
       ("back_line_depth_m", "behind_depth_change_m"), {
-          "en": "Restricted: the same back line dropped {a:behind_depth_change_m} m toward its goal within the window "
+          "en": "Restricted: the same back line dropped {a:behind_depth_change_m} m towards its goal within the window "
                 "and now sits {v:back_line_depth_m} m from it, leaving less space behind.",
           "ko": "제한: 같은 수비 라인이 관측 구간 안에서 골문 쪽으로 {a:behind_depth_change_m}m 내려서 지금은 골문에서 "
                 "{v:back_line_depth_m}m에 있습니다. 라인 뒤 공간이 줄었습니다."}),
@@ -234,7 +236,7 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
                 "숫자만으로는 자유로운 선수에게 접근할 수 있다는 뜻이 아닙니다."}),
     # ---------------------------------------------------------------- observed changes
     T("change.attacker_drop", ("fan", "analyst"), "change:attacker_drop", ("attacker_drop_m",), {
-          "en": "Attacking response observed: {p:attacker_drop_m:0} dropped {v:attacker_drop_m} m toward the ball.",
+          "en": "Attacking response observed: {p:attacker_drop_m:0} dropped {v:attacker_drop_m} m towards the ball.",
           "ko": "관측된 공격 대응: {p:attacker_drop_m:0} 선수가 공 쪽으로 {v:attacker_drop_m}m 내려왔습니다."}),
     T("change.defender_step", ("fan", "analyst"), "change:defender_step", ("defender_step_m",), {
           "en": "Defensive adjustment observed next: {p:defender_step_m:0} stepped up {v:defender_step_m} m to "
@@ -248,7 +250,7 @@ TEMPLATES: dict[str, Template] = {t.key: t for t in [
           "en": "Attacking response observed: {p:attacker_move_m:0} moved {v:attacker_move_m} m forward into the gap.",
           "ko": "관측된 공격 대응: {p:attacker_move_m:0} 선수가 간격 안으로 {v:attacker_move_m}m 전진했습니다."}),
     T("change.block_shift", ("fan", "analyst"), "change:block_shift", ("mid_line_shift_m",), {
-          "en": "Defensive adjustment observed next: the midfield line dropped {v:mid_line_shift_m} m toward its goal.",
+          "en": "Defensive adjustment observed next: the midfield line dropped {v:mid_line_shift_m} m towards its goal.",
           "ko": "이어서 관측된 수비 조정: 미드필드 라인이 골문 쪽으로 {v:mid_line_shift_m}m 내려섰습니다."}),
 ]}
 

@@ -32,8 +32,8 @@ In D, the variant named `main` is the trap, which is the counter-example.
 - Narration plans: 1510/1510 valid. The holdout runs deterministic narration only, with no model calls.
 
 **Tests and browser walkthrough** (2026-10-25):
-- `make test`: 280 passed on 2026-10-26 (226 before the MCP endpoint, the Recap workflow and personalisation; then the clip-end snapshot and replay clock tests; then the approved-revision broadcast, agent-changes, repeated-recap-lead, fan-caption, prompt-injection and telemetry tests; then the guided breakdown and seek-to-the-end tests; then the seek-lock and snapshot-order tests; then a breakdown test for one story across steps 3 and 4, and a test that a socket opened after a seek gets the insights so far).
-- Headless-browser walkthrough in offline mode (2026-10-26): 74 passed, 0 failed, no browser console errors (62 before the guided breakdown, the Play-from-the-end, Pause and seek-bar checks). Against the public URL (Foundry on, image `sha-d47c0fe`, 2026-10-26): 70 passed, 0 failed, no console errors, with the 4 checks of particular template sentences kept as information (58 of 58 on `sha-6c98218` before the breakdown). It includes Ask PitchIQ and Recap checks, the five steps of the guided breakdown, Studio details, My club and Follow a player, and 25 clip switches that leave at most 2 replays open. The offline run's `report.json` and screenshots are in `docs/walkthrough/`; the public-URL run is logged in `docs/foundry_live/MEASUREMENTS.md` (its report was not committed).
+- `make test`: 282 passed on 2026-10-26 (226 before the MCP endpoint, the Recap workflow and personalisation; then the clip-end snapshot and replay clock tests; then the approved-revision broadcast, agent-changes, repeated-recap-lead, fan-caption, prompt-injection and telemetry tests; then the guided breakdown and seek-to-the-end tests; then the seek-lock and snapshot-order tests; then a breakdown test for one story across steps 3 and 4, a test that a socket opened after a seek gets the insights so far, and two tests that a moment without a recorded outcome shows the next pass or shot the replay saw, or that the clip ends first, and that a press step without a press sentence gives the measured carrier and nearest defender).
+- Headless-browser walkthrough in offline mode (2026-10-26): 75 passed, 0 failed, no browser console errors (62 before the guided breakdown, the Play-from-the-end, Pause and seek-bar checks; 74 before the check of switching to another moment in the breakdown). Against the public URL (Foundry on, image `sha-d47c0fe`, 2026-10-26): 70 passed, 0 failed, no console errors, with the 4 checks of particular template sentences kept as information (58 of 58 on `sha-6c98218` before the breakdown). It includes Ask PitchIQ and Recap checks, the five steps of the guided breakdown, Studio details, My club and Follow a player, and 25 clip switches that leave at most 2 replays open. The offline run's `report.json` and screenshots are in `docs/walkthrough/`; the public-URL run is logged in `docs/foundry_live/MEASUREMENTS.md` (its report was not committed).
 
 **Live Foundry agents** (2026-10-24) were measured separately, with the smoke runner (`python -m app.agents.smoke`) and in the real UI. The full log is in [`docs/foundry_live/MEASUREMENTS.md`](foundry_live/MEASUREMENTS.md). Costs are estimates from the reported tokens at $0.25 per 1M input and $2.00 per 1M output tokens, not billing records.
 - Analyst → Producer, `gpt-5-mini` with reasoning effort `minimal`: 8/8 validated (1 after a repair) over 7 clips. 4.6–7.7 s end to end, 2.3k–4.4k input and 0.2k–0.3k output tokens, about 0.1–0.2 US cent per run.
@@ -218,3 +218,38 @@ report stays the 0.1.0 run.
 met their expectation: routing 5 of 6, declines 5 of 6, intent questions 4 of 4, prompt-injection attempts 6 of 6. The
 no-agent reference meets 10 of 24. Misses and details: `evaluation/reports/ask_check/ask-check-1/report.md`. The prompt
 and validators were not changed after the run.
+
+## Feature sweep and screenshot review (2026-10-26)
+
+A scripted browser sweep (`evaluation/walkthrough/sweep.py`, offline, 1920x1080; its output was not committed) went through all 12 clips: the guided breakdown of every moment (44
+moments, four steps each, with a screenshot of each step), On air with approval, then the desk (each timeline moment
+in Replay moment, the focus toggles, Fan/Analyst, the element inspector, Ask, Recap, Export, My club, Follow) and
+playback. It found no page errors and no failed actions. Five reviewers then read the 232 screenshots as football
+fans and UI testers. Fixed after the review:
+- **Stale frame:** a breakdown step could show the frame of the previous step's overlay when its frame request came
+  back late (clips 2 and 3, step 1). The client now keeps a frame only if its overlay is still the one on screen.
+- **Moments:** the breakdown only told the moment it picked (clip 7: the keeper on the ball). The panel now lists the
+  clip's moments, and any of them can be broken down.
+- **What happened without an outcome:** the step said "not observed yet" after the clip had ended, or showed nothing.
+  It now shows the next pass or shot the replay saw (received, intercepted, saved or blocked), or says that the clip
+  ends first. When that pass went along a lane step 2 drew as blocked, the step says so: the block is an estimate from
+  positions, and this one did not hold.
+- **The press:** the player on the ball is tagged even when nobody presses him; a step whose narration has no sentence
+  about the press gives the player on the ball and the nearest defender, measured on its frame. Players named in a
+  step (the nearest defender, the players in an observed change) are no longer dimmed.
+- **Wording (templates-0.3.2):** "Around the ball they face 1 with 0" (a keeper on the ball) is no longer said, and
+  the count reads "Near the ball they have 3 against 5, and keep 4 against 3 further back". The partial-moment
+  sentence, the cover sentence, the inconclusive outcome and the exploited outcome are in plain football English,
+  "screening the short passes" replaces "shutting" (the count says how many), and "towards" replaces "toward".
+- **Display:** the approval toast moved off the broadcast caption; tags point at their players; the legend calls the
+  cyan stripes the space the defence leaves open (the gap between lines too); desk labels say "clip ended" and "No
+  outcome recorded" once nothing more can be observed.
+- **Playback:** tracking is 5 Hz, so drawn frame by frame the fastest player hops 0.9 m in a typical frame and up to
+  1.3-1.7 m per clip (measured on the public tracking), five times a second. The pitch now glides between
+  frames while playing (measured over 3 s at 1x on every clip: players move on 179-180 of 181 animation frames, at
+  most 0.17 m per animation frame).
+
+Not changed (analytics or synthetic data, noted for later work): back-line distances in some partial moments differ
+from the drawn line by several metres; some observed-change trails do not match the quoted distance; the lane model
+counts some passes as blocked that are then played, or with no defender in the lane; "behind" counts that read oddly
+(3 v 0); a free striker at the edge of the box with nothing open claimed; overlapping discs in tight marking pairs.
