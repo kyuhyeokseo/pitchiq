@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:33951",
+  "base": "http://127.0.0.1:59657",
   "checks": [
     {
       "check": "health endpoint",
@@ -47,7 +47,7 @@
       "detail": "PREVIEW \u00b7 LIVE \u00b7 nothing current \u00b7 last moment 10:27"
     },
     {
-      "check": "paused or ended: the pitch shows the followed moment, not an empty pitch",
+      "check": "ended: the pitch shows the followed moment, not an empty pitch",
       "ok": true,
       "detail": "PREVIEW \u00b7 REPLAY \u00b7 10:25"
     },
@@ -64,7 +64,7 @@
     {
       "check": "A exposed: pitch labels do not overlap or leave the pitch",
       "ok": true,
-      "detail": "{\"n\": 4, \"overlaps\": 0, \"outside\": 0}"
+      "detail": "{\"n\": 2, \"overlaps\": 0, \"outside\": 0}"
     },
     {
       "check": "inspector shows the metrics behind the clicked area",
@@ -94,7 +94,7 @@
     {
       "check": "Ask: an answer with its source and real trace",
       "ok": true,
-      "detail": "\u201cWhat did that leave open?\u201d |  | As of 10:28 \u00b7 about the moment at 10:22 |  | Red United are shutting the short passes: 4 of 4 nearby options are covered. |  | The cost: the back line sits 50.8 m from its goal, and BLU #9 is running into the space behi"
+      "detail": "\u201cWhat did that leave open?\u201d |  | As of 10:35 \u00b7 about the moment at 10:22 |  | Red United are shutting the short passes: 4 of 4 nearby options are covered. |  | The cost: the back line sits 50.8 m from its goal, and BLU #9 is running into the space behi"
     },
     {
       "check": "Ask: show on pitch selects the moment in replay",
@@ -104,7 +104,7 @@
     {
       "check": "Recap: 1-3 moments with their sentences and the source",
       "ok": true,
-      "detail": "3 items | Recap so far |  | Up to three moments for you \u00b7 Microsoft Agent Framework \u00b7 checked line by line |  | Update the recap |  | As of 10:28 \u00b7 deterministic recap |  | Moment at 10:14 | Show on pitch |  | Red United are shuttin"
+      "detail": "3 items | Recap so far |  | Up to three moments for you \u00b7 Microsoft Agent Framework \u00b7 checked line by line |  | Update the recap |  | As of 10:35 \u00b7 deterministic recap |  | Moment at 10:14 | Show on pitch |  | Red United are shuttin"
     },
     {
       "check": "negative clip: same press stays a partial analysis",
@@ -337,6 +337,16 @@
       "detail": "0.0s / 23.8s"
     },
     {
+      "check": "Pause mid-clip keeps the pitch on the paused frame (no jump to an earlier moment)",
+      "ok": true,
+      "detail": "PREVIEW"
+    },
+    {
+      "check": "Seek bar: a drag lands where it is let go and the pitch shows that time",
+      "ok": true,
+      "detail": "626.6 | PREVIEW \u00b7 LIVE \u00b7 10:26"
+    },
+    {
       "check": "25 clip switches free their replays (no 429, at most 2 open)",
       "ok": true,
       "detail": "sessions 1, sockets 1"
@@ -344,7 +354,7 @@
     {
       "check": "live overlay is drawn over a slow link (400 ms per request)",
       "ok": true,
-      "detail": "16 elements"
+      "detail": "17 elements"
     },
     {
       "check": "Play right after a clip switch over a slow link starts the new clip",
@@ -363,9 +373,9 @@
     }
   ],
   "console_errors": [],
-  "passed": 72,
+  "passed": 74,
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-26T03:37:13Z"
+  "time_utc": "2026-10-26T14:25:10Z"
 }

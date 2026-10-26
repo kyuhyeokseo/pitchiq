@@ -3,6 +3,7 @@ replays are dropped, and an evicted replay's socket closes with 4410 so the clie
 
 from __future__ import annotations
 
+import threading
 import time
 
 import pytest
@@ -118,6 +119,39 @@ def test_a_seek_to_the_end_while_playing_ends_the_replay_in_its_reply(client):
     snap = client.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": end - 5, "expected_epoch": 3},
                        headers=H).json()
     assert snap["playing"] is True
+
+
+def test_reads_wait_for_a_seek_instead_of_seeing_a_half_rebuilt_analysis(client):
+    # a seek rebuilds the analysis under the session lock (about a second on the deployed replica); a frame, evidence
+    # or overlay request arriving meanwhile must wait for it, not answer 404 from the half-built state
+    rid, H = _create(client)
+    s = STORE.sessions[rid]
+    client.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": s.clip.end_s, "expected_epoch": 1},
+                headers=H)
+    ep = next(iter(s.analyzer.packets))
+    done: dict[str, int] = {}
+    urls = {"frame": f"/api/replays/{rid}/frames/10", "evidence": f"/api/replays/{rid}/evidence/{ep}",
+            "overlay": f"/api/replays/{rid}/overlays?episode_id={ep}"}
+    with s.lock:  # stands in for a seek in progress
+        threads = [threading.Thread(target=lambda k=k, u=u: done.__setitem__(k, client.get(u, headers=H).status_code))
+                   for k, u in urls.items()]
+        for t in threads:
+            t.start()
+        time.sleep(0.5)
+        assert done == {}, "a read went ahead while the analysis was locked"
+    for t in threads:
+        t.join(10)
+    assert done == {"frame": 200, "evidence": 200, "overlay": 200}
+
+
+def test_snapshots_are_ordered_by_epoch_and_seq(client):
+    # the control reply and the socket's snapshots share one counter, so the client can drop the older one
+    rid, H = _create(client)
+    a = client.get(f"/api/replays/{rid}/snapshot", headers=H).json()
+    b = client.post(f"/api/replays/{rid}/control", json={"action": "pause", "expected_epoch": 1}, headers=H).json()
+    c = client.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": a["clip_start_s"] + 3,
+                                                         "expected_epoch": 1}, headers=H).json()
+    assert (a["analysis_epoch"], a["seq"]) < (b["analysis_epoch"], b["seq"]) < (c["analysis_epoch"], c["seq"])
 
 
 def test_playback_keeps_wall_time_when_the_socket_syncs_often(client):

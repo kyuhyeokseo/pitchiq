@@ -42,6 +42,7 @@ const OUTCOME_TEXT: Record<string, string> = {
 };
 
 const fmtClock = (t: number, t0: number) => `${(t - t0).toFixed(1)}s`;
+const SEEK_KEYS = new Set(["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End"]);
 const FAN_QUIET = new Set(["numbers"]);  // fans get the lines and areas, not the analyst's count tags
 const matchClock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 const matchClockTenths = (t: number) => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, "0")}`;
@@ -146,6 +147,8 @@ export function App() {
   const [selEl, setSelEl] = useState<OverlayElement | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [userPicked, setUserPicked] = useState(false);
+  const [scrub, setScrub] = useState<number | null>(null);  // where the viewer holds the seek bar, until the seek is answered
+  const lastSnap = useRef<[number, number]>([0, -1]);  // (epoch, seq) of the newest snapshot applied
   const [bd, setBd] = useState<Breakdown | null>(null);  // the guided breakdown on screen, if any
   const [bdStep, setBdStep] = useState(0);
   const [bdBusy, setBdBusy] = useState(false);
@@ -173,6 +176,11 @@ export function App() {
 
   const applySnapshot = useCallback((s: any) => {
     if (s.replay_id !== currentReplay.current) return;  // a response for a session we already left
+    // a control reply and the socket's snapshots can arrive in either order: keep the newest (epoch, seq), so a late
+    // older one never turns Pause back into Play or moves the clock back
+    const [e, q] = lastSnap.current;
+    if (s.analysis_epoch < e || (s.analysis_epoch === e && s.seq < q)) return;
+    lastSnap.current = [s.analysis_epoch, s.seq];
     setEpoch(s.analysis_epoch); setClock(s.clock_s); setPlaying(s.playing); setSpeed(s.speed);
     setRange([s.clip_start_s, s.clip_end_s]); setFrame(s.frame); setState(s.state); setLiveClaims(s.live_claims);
     setEpisodes(s.episodes);
@@ -193,6 +201,7 @@ export function App() {
     setBd(null); setBdStep(0); setIntro(true);
     setUserPicked(false); setView("live"); setAutoReplay(false); setFollowed(null); setOnlyFollowed(false); setSurface("inspector_preview"); setEpisodes([]); setSession(null);
     currentReplay.current = null;  // drop anything the previous session's socket still delivers
+    lastSnap.current = [0, -1]; setScrub(null);
     const connect = (s: Session) => {
       wsRef.current?.close();
       wsRef.current = openSocket(s, (m: WsMessage) => { retry = 0; onMessage(m); }, (ev) => {
@@ -237,6 +246,7 @@ export function App() {
   const onMessage = (m: WsMessage & { replay_id?: string }) => {
     if (m.replay_id && m.replay_id !== currentReplay.current) return;  // a late message from a previous session
     if (m.type === "state_snapshot") { applySnapshot(m.payload); return; }
+    if ((m.type === "tracking_frame" || m.type === "tactical_snapshot") && m.analysis_epoch < lastSnap.current[0]) return;
     if (m.type === "tracking_frame") {
       const f = ObservationFrameZ.safeParse(m.payload);
       if (!f.success) { setError("tracking frame failed contract validation"); return; }
@@ -337,6 +347,13 @@ export function App() {
       else setError(String(e));
     }
   };
+  // a seek from the bar: the pitch then shows the frame at that time (not the last moment's replay) until the next Play
+  const seekTo = async (t: number) => {
+    setIntro(false); exitBreakdown();
+    liveChosen.current = true; setView("live"); setSelRev(null); setAutoReplay(false);
+    await control("seek", t);
+    setScrub(null);
+  };
   const replayFromStart = async () => {
     if (!session || session.replay_id !== currentReplay.current) return;
     // back to the live desk, with no moments listed or selected, before the seek leaves: the rewound replay has not
@@ -426,11 +443,12 @@ export function App() {
   const liveExpired = overlay?.overlay.display_mode === "live" && view === "live" && surface === "inspector_preview"
     && clock > overlay.overlay.valid_until_s + 1e-6;
   const overlaySnap = liveExpired ? null : overlay?.overlay ?? null;
-  // a paused or finished replay never leaves an empty pitch: it shows the followed moment as analysed (Play returns
-  // to live). While playing, an expired live overlay is still not drawn on later frames.
+  // a finished replay never leaves an empty pitch: at the end of the clip it shows the followed moment as analysed
+  // (Play starts the clip again). Pause keeps the pitch on the paused frame, as any video player does. While playing,
+  // an expired live overlay is still not drawn on later frames.
   useEffect(() => {
     const ended = clock >= range[1] - 0.1;
-    if (playing && !ended) { liveChosen.current = false; return; }
+    if (!ended) { if (playing) liveChosen.current = false; return; }
     if (view !== "live" || surface !== "inspector_preview" || !liveExpired || liveChosen.current) return;
     setView("replay"); setSelRev(null); setAutoReplay(true);
   }, [playing, view, surface, liveExpired, clock, range]);
@@ -469,6 +487,7 @@ export function App() {
     ? (overlay?.episode_revision === selRev ? overlay.analyzed_through_s : null)
     : (ep && insight && insight.insight.evidence_hash === ep.evidence_hash ? ep.analyzed_until_s : null);
   const [t0, t1] = range;
+  const shownClock = scrub ?? clock;
   const lastCloud = health?.last_cloud_result;
   const statusLine = health ? (health.cloud_enabled
     ? `Narration: Foundry enabled · last call ${lastCloud?.last_call_succeeded == null ? "none yet"
@@ -505,12 +524,15 @@ export function App() {
           if (!playing && clock >= range[1] - 0.1) replayFromStart();  // at the end, Play starts the clip again
           else control(playing ? "pause" : "play");
         }}>{playing ? "Pause" : "Play"}</button>
-        <input type="range" min={t0} max={t1} step={0.2} value={clock} aria-label="Seek" disabled={!session}
-          style={{ "--p": `${((clock - t0) / Math.max(t1 - t0, 1e-6)) * 100}%` } as CSSProperties}
-          onChange={(e) => setClock(parseFloat(e.target.value))}
-          onMouseUp={(e) => { setIntro(false); exitBreakdown(); control("seek", parseFloat((e.target as HTMLInputElement).value)); }}
-          onKeyUp={(e) => { setIntro(false); exitBreakdown(); control("seek", parseFloat((e.target as HTMLInputElement).value)); }} />
-        <span className="clock" title="match clock · time into the clip"><b>{matchClock(clock)}</b><span>{fmtClock(clock, t0)} / {fmtClock(t1, t0)}{details ? ` · epoch ${epoch}` : ""}</span></span>
+        {/* the bar stays where the viewer put it until the seek is answered: frames still streaming in would
+            otherwise pull it back to the playing position */}
+        <input type="range" min={t0} max={t1} step={0.2} value={shownClock} aria-label="Seek" disabled={!session}
+          style={{ "--p": `${((shownClock - t0) / Math.max(t1 - t0, 1e-6)) * 100}%` } as CSSProperties}
+          onChange={(e) => setScrub(parseFloat(e.target.value))}
+          onPointerUp={(e) => seekTo(parseFloat((e.target as HTMLInputElement).value))}
+          onPointerCancel={() => setScrub(null)}
+          onKeyUp={(e) => { if (SEEK_KEYS.has(e.key)) seekTo(parseFloat((e.target as HTMLInputElement).value)); }} />
+        <span className="clock" title="match clock · time into the clip"><b>{matchClock(shownClock)}</b><span>{fmtClock(shownClock, t0)} / {fmtClock(t1, t0)}{details ? ` · epoch ${epoch}` : ""}</span></span>
         <select value={myClub} onChange={(e) => setMyClub(e.target.value)} aria-label="My club">
           <option value="">Pick your club</option>
           {teams.map((tm: any) => <option key={tm.team_id} value={tm.team_id}>My club: {tm.display_name}</option>)}

@@ -169,14 +169,13 @@ def main() -> int:
             else:
                 check("A live after the episode closed: the clip ended, the moment is shown as a replay",
                       "REPLAY" in badge and page.locator("svg.pitch .ov").count() > 0, badge)
-            if page.get_by_role("button", name="Pause", exact=True).count():
-                page.get_by_role("button", name="Pause", exact=True).click()
+            page.get_by_role("button", name="Play", exact=True).wait_for(timeout=30000)  # the clip has ended
             page.wait_for_function("document.querySelector('.badge')?.textContent.includes('REPLAY')", timeout=10000)
             try:  # the badge comes with the overlay; the replay frame it is drawn on arrives a moment later
                 page.wait_for_function("document.querySelectorAll('svg.pitch .ov').length > 0", timeout=10000)
             except Exception:
                 pass
-            check("paused or ended: the pitch shows the followed moment, not an empty pitch",
+            check("ended: the pitch shows the followed moment, not an empty pitch",
                   page.locator("svg.pitch .ov").count() > 0, page.locator(".badge").inner_text())
 
             page.locator("button", has_text="After (rev").click()
@@ -479,7 +478,26 @@ def main() -> int:
             page.get_by_role("button", name="Pause", exact=True).wait_for(timeout=10000)
             into = page.locator(".clock span").inner_text()
             check("Play at the end of a clip starts it again from the beginning", float(into.split("s")[0]) < 3.0, into)
+            page.wait_for_timeout(1500)
             page.get_by_role("button", name="Pause", exact=True).click()
+            page.get_by_role("button", name="Play", exact=True).wait_for(timeout=10000)
+            page.wait_for_timeout(1500)
+            badge = page.locator(".badge").first.inner_text()
+            check("Pause mid-clip keeps the pitch on the paused frame (no jump to an earlier moment)",
+                  "REPLAY" not in badge, badge)
+            # the seek bar stays where it is let go, and the pitch shows that time
+            bar = page.locator("input[aria-label=Seek]")
+            bb = bar.bounding_box()
+            y = bb["y"] + bb["height"] / 2
+            page.mouse.move(bb["x"] + bb["width"] * 0.2, y)
+            page.mouse.down()
+            page.mouse.move(bb["x"] + bb["width"] * 0.6, y, steps=6)
+            page.mouse.up()
+            page.wait_for_timeout(1500)
+            lo, hi, val = (float(bar.get_attribute("min")), float(bar.get_attribute("max")), float(bar.input_value()))
+            badge = page.locator(".badge").first.inner_text()
+            check("Seek bar: a drag lands where it is let go and the pitch shows that time",
+                  abs((val - lo) / (hi - lo) - 0.6) < 0.06 and "REPLAY" not in badge, f"{val:.1f} | {badge}")
 
             # a public link: switching clips frees the old replay, so 25 switches never fill the store
             for i in range(25):

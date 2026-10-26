@@ -108,6 +108,13 @@ def _episodes(s: ReplaySession) -> list[dict]:
 
 
 def _snapshot(s: ReplaySession) -> dict:
+    # under the session lock, so (epoch, seq) orders snapshots the way the state changed: a client that gets the
+    # control reply and the socket's snapshot in either order keeps the newer one
+    with s.lock:
+        return _snapshot_locked(s)
+
+
+def _snapshot_locked(s: ReplaySession) -> dict:
     r = s.results[-1]
     return {"schema_version": "2.0", "replay_id": s.replay_id, "clip_id": s.clip.clip_id,
             "analysis_epoch": s.epoch, "seq": s.next_seq(), "clock_s": s.clock_s, "playing": s.playing,
@@ -252,22 +259,25 @@ def snapshot(rid: str, x_session_token: str | None = Header(default=None)) -> di
 @app.get("/api/replays/{rid}/frames/{frame_index}")
 def frame(rid: str, frame_index: int, x_session_token: str | None = Header(default=None)) -> dict:
     s = _session(rid, x_session_token)
-    if frame_index < 0 or frame_index > s.cursor_k:
-        raise HTTPException(404, "frame not observed yet at this cutoff")
-    return s.clip.frames[frame_index].model_dump(mode="json")
+    with s.lock:  # a seek rebuilds the analysis under this lock: wait for it instead of reading it half rebuilt
+        if frame_index < 0 or frame_index > s.cursor_k:
+            raise HTTPException(404, "frame not observed yet at this cutoff")
+        return s.clip.frames[frame_index].model_dump(mode="json")
 
 
 @app.get("/api/replays/{rid}/episodes")
 def episodes(rid: str, x_session_token: str | None = Header(default=None)) -> list[dict]:
     s = _session(rid, x_session_token)
-    return [p.episode.model_dump(mode="json") for revs in s.analyzer.packets.values() for p in revs[-1:]]
+    with s.lock:
+        return [p.episode.model_dump(mode="json") for revs in s.analyzer.packets.values() for p in revs[-1:]]
 
 
 @app.get("/api/replays/{rid}/evidence/{episode_id}")
 def evidence(rid: str, episode_id: str, revision: int | None = None,
              x_session_token: str | None = Header(default=None)) -> dict:
     s = _session(rid, x_session_token)
-    return _packet(s, episode_id, revision).model_dump(mode="json")
+    with s.lock:
+        return _packet(s, episode_id, revision).model_dump(mode="json")
 
 
 @app.get("/api/replays/{rid}/overlays")
@@ -279,6 +289,12 @@ def overlays(rid: str, episode_id: str, audience: Literal["fan", "analyst"] = "a
              revision: int | None = None,
              x_session_token: str | None = Header(default=None)) -> dict:
     s = _session(rid, x_session_token)
+    with s.lock:  # the whole overlay from one consistent analysis, never from one a seek is rebuilding
+        return _overlay(s, episode_id, audience, language, surface, focus, display_mode, revision)
+
+
+def _overlay(s: ReplaySession, episode_id: str, audience: str, language: str, surface: str, focus: str,
+             display_mode: str, revision: int | None) -> dict:
     pk = _packet(s, episode_id, revision)
     approved = None
     if surface == "broadcast":
