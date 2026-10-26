@@ -10,8 +10,8 @@
   --fg: #faf9fa; --muted: #af99b1; --faint: #87668a;
   --pink: #ff2882; --cyan: #05f0ff; --green: #00ff87; --yellow: #ebff00; --lilac: #953bff; --live: #ff6900;
   --restricted: var(--pink); --exposed: var(--cyan); --ok: var(--green); --warn: var(--yellow); --accent: var(--green);
-  --blue: #2f5bd3; --red: #c8102e;  /* the two synthetic teams: kit colours, deep enough to separate from the pink graphics */
-  --turf: #1e0021; --field: #37003c; --line: rgba(255, 255, 255, 0.42);
+  --blue: #0000ff; --red: #ff0000;  /* the two synthetic teams: pure kit colours */
+  --turf: #1d5a26; --field: #2e7d32; --line: rgba(255, 255, 255, 0.75);  /* a grass pitch with white markings */
   --radius: 8px;
   font-family: "Figtree", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", system-ui, sans-serif;
   color-scheme: dark;
@@ -98,7 +98,7 @@ select option { background: var(--panel); color: var(--fg); }
 .pitch-wrap { position: relative; border-radius: 16px; overflow: hidden; background: var(--turf); }
 .pitch { display: block; width: 100%; height: auto;
   /* 20 mown bands of 5.25 m on the field only (viewBox -3 -3 111 74: 105/111 by 68/74), an edge on the halfway line */
-  background: var(--turf) repeating-linear-gradient(90deg, #3b0442 0 5%, #330037 5% 10%) center / 94.5946% 91.8919% no-repeat; }
+  background: var(--turf) repeating-linear-gradient(90deg, #2f8a3b 0 5%, #297a33 5% 10%) center / 94.5946% 91.8919% no-repeat; }
 .turf, .field { fill: none; }
 .pitch-wrap[data-focus=exposed] :is(.layer-screened_lanes, .layer-pressure, .layer-numbers) { opacity: 0.12; }
 .pitch-wrap[data-focus=restricted] :is(.layer-exposure, .layer-cover, .layer-outlets) { opacity: 0.12; }
@@ -121,13 +121,13 @@ select option { background: var(--panel); color: var(--fg); }
 .air-note { margin: 8px 4px 0; font-size: 13px; color: var(--warn); }
 .stage:has(> .caption) .pitch-wrap { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 
-.pl-body { stroke: #12001a; stroke-width: 0.3; }  /* a knock-out ring keeps touching players apart */
+.pl-body { stroke: #ffffff; stroke-width: 0.22; }  /* a white ring keeps touching players apart on the grass */
 .pl-tx { fill: #fff; font-size: 1.45px; font-weight: 700; letter-spacing: -0.04em; pointer-events: none; }
 .pl.hl .pl-body { stroke: #fff; stroke-width: 0.4; }
 .pitch:has(.pl.hl) .pl:not(.hl) .pl-body { fill-opacity: 0.12; stroke: var(--kit); stroke-width: 0.24; }
 .pitch:has(.pl.hl) .pl:not(.hl) .pl-tx { fill: rgba(255, 255, 255, 0.6); }
 .pl.clickable { cursor: pointer; }
-.ball { fill: #fff; stroke: #1e0021; stroke-width: 0.22; }
+.ball { fill: #fff; stroke: #0b2a12; stroke-width: 0.22; }
 .ov { fill: none; cursor: pointer; }
 .hit { stroke: transparent; stroke-width: 2.2; cursor: pointer; }
 line.ov, polyline.ov, circle.ov { filter: drop-shadow(0 0 0.18px rgba(14, 0, 16, 0.95)); }
