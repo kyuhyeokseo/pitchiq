@@ -465,7 +465,7 @@ def main() -> int:
                   f"tags {tags} | " + txt[:160].replace("\n", " | "))
             page.screenshot(path=str(args.out / "26_bd_4_happened.png"))
             bd_step(4, ".bd-on_air")
-            page.locator(".bd .row button.primary").click()
+            page.locator(".bd .row button.ok").click()
             page.wait_for_selector(".caption", timeout=10000)
             check("Breakdown 5, on air: approving puts the moment's caption on the broadcast view",
                   "BROADCAST" in page.locator(".badge").first.inner_text()

@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:36257",
+  "base": "http://127.0.0.1:33951",
   "checks": [
     {
       "check": "health endpoint",
@@ -29,7 +29,7 @@
     {
       "check": "live overlay elements drawn from backend",
       "ok": true,
-      "detail": "18 elements"
+      "detail": "19 elements"
     },
     {
       "check": "A live: the player on the ball is drawn on top",
@@ -367,5 +367,5 @@
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-26T02:43:08Z"
+  "time_utc": "2026-10-26T03:37:13Z"
 }

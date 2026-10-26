@@ -376,7 +376,7 @@ export function App() {
   // the revision that first had it), then the moment the viewer picked, or else the best complete trade-off.
   const startBreakdown = async () => {
     if (!session || session.replay_id !== currentReplay.current || bdBusy) return;
-    setIntro(false); setBdBusy(true);
+    setBdBusy(true);  // the question card stays up, saying it is analysing, until the first step is ready
     try {
       let eps = episodes;
       if (playing || clock < range[1] - 0.1) {
@@ -393,7 +393,7 @@ export function App() {
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) setNotice("Replay moved to a new epoch; resynchronised.");
       else setError(String(e));
-    } finally { setBdBusy(false); }
+    } finally { setBdBusy(false); setIntro(false); }
   };
   const exitBreakdown = () => { setBd(null); setBdStep(0); };
   // each step shows the moment as the analysis had it then; the last one is the latest revision, ready for approval
@@ -445,8 +445,8 @@ export function App() {
     .filter((t) => BD_KEY[t]), [bdCur, overlaySnap, shownHidden]);
   const bdTags = useMemo(() => bdCur ? Object.fromEntries(Object.entries(bdCur.roles)
     .map(([pid, r]) => [pid, { text: ROLE_TEXT[r]?.[L] ?? r, role: r }])) : undefined, [bdCur, L]);
-  const showIntro = intro && !bd && !playing && clock <= range[0] + 0.05 && surface === "inspector_preview"
-    && view === "live";
+  const showIntro = intro && !bd && (bdBusy || (!playing && clock <= range[0] + 0.05 && surface === "inspector_preview"
+    && view === "live"));
   const stylesPresent = useMemo(() => Array.from(new Set(overlaySnap?.elements.filter((e) => !hidden.has(e.layer)).map((e) => e.style_token) ?? [])), [overlaySnap, hidden]);
   const claimById = useMemo(() => Object.fromEntries((packet?.claims ?? []).map((c) => [c.claim_id, c])), [packet]);
   const metricById = useMemo(() => Object.fromEntries((packet?.metrics ?? []).map((m) => [m.metric_id, m])), [packet]);
@@ -584,8 +584,9 @@ export function App() {
                 <h2>{BD_UI[L].intro}</h2>
                 <p>{BD_UI[L].sub}</p>
                 <div className="row">
-                  <button className="primary" onClick={startBreakdown} disabled={!session || bdBusy}>▶ {BD_UI[L].go}</button>
-                  <button onClick={() => { setIntro(false); control("play"); }} disabled={!session}>{BD_UI[L].live}</button>
+                  <button className="primary" onClick={startBreakdown} disabled={!session || bdBusy}>
+                    {bdBusy ? BD_UI[L].busy : `▶ ${BD_UI[L].go}`}</button>
+                  <button onClick={() => { setIntro(false); control("play"); }} disabled={!session || bdBusy}>{BD_UI[L].live}</button>
                 </div>
               </div>
             </div>}
@@ -708,7 +709,7 @@ function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, sur
       <div className="row">
         <button onClick={() => onStep(step - 1)} disabled={step === 0}>◀ {ui.back}</button>
         {cur ? <button className="primary" onClick={() => onStep(step + 1)}>{ui.next} ▶</button>
-          : <button className="primary" onClick={onApprove} disabled={!insight || onAir}>{onAir ? `✓ ${ui.onair}` : ui.approve}</button>}
+          : <button className="ok" onClick={onApprove} disabled={!insight || onAir}>{onAir ? `✓ ${ui.onair}` : ui.approve}</button>}
         <button onClick={onExit}>{cur ? ui.exit : ui.explore}</button>
       </div>
     </div>
