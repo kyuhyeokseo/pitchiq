@@ -104,6 +104,7 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         onairNote: "Revision {rev}, numbers as of {t}. The steps showed each fact when the analysis first had it, so a number can differ slightly.",
         back: "Back", next: "Next", exit: "Exit", stop: "Exit the breakdown", busy: "Analysing the clip…", ball: "White arrow: where the ball actually went",
         approve: "Approve and put on air", explore: "Explore the desk", onair: "On air", none: "Nothing more to show here.",
+        waiting: "Preparing the text for approval…",
         marks: "White band: a defender and the attacker he follows (sustained marking)" },
   ko: { intro: "이 수비는 무엇을 막고, 그 대가로 무엇을 내줄까?", go: "수비 전술 해부",
         sub: "한 장면을 4단계로 보고, 마지막에 방송까지 이어집니다. 경기장 위의 선과 숫자는 모두 추적 데이터로 계산한 것입니다.",
@@ -112,6 +113,7 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         onairNote: "revision {rev}, {t} 기준 숫자입니다. 앞 단계들은 각 사실을 처음 잡았을 때의 값이라 숫자가 조금 다를 수 있습니다.",
         back: "이전", next: "다음", exit: "끝내기", stop: "해부 끝내기", busy: "클립을 분석하는 중…", ball: "흰 화살표: 공이 실제로 간 길",
         approve: "승인하고 방송에 내보내기", explore: "직접 살펴보기", onair: "방송 중", none: "이 단계에서 더 보여 줄 것이 없어요.",
+        waiting: "승인할 문장을 준비하는 중…",
         marks: "흰 띠: 수비수와 그가 따라붙는 공격수 (지속된 마킹)" },
 };
 // why a claim about what is left open was held back (the analysis records a reason code); {p} is the player
@@ -439,6 +441,8 @@ export function App() {
       if (playing || clock < range[1] - 0.1) {
         const snap = await api.control(session, "seek", lastSnap.current[0] || epoch, range[1]);
         applySnapshot(snap); eps = snap.episodes;
+        // the seek built the moments' insights; fetch them rather than wait for the socket (it may open after this)
+        refreshInsights(session).catch(() => {});
       }
       const complete = eps.filter((e) => e.analysis_status === "complete_tradeoff");
       const pick = (userPicked && eps.find((e) => e.episode_id === selEp))
@@ -802,6 +806,7 @@ function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, sur
           {!!cur?.marks?.length && <li><i className="sw bd_mark" />{ui.marks}</li>}
           {keys.map((k) => <li key={k}><i className={`sw ${k}`} />{BD_KEY[k][lang]}</li>)}
         </ul>}
+        {!cur && !insight && <p className="meta">{ui.waiting}</p>}
         {!cur && insight && <p className="meta">{SOURCE_TEXT[insight.insight.source_mode] ?? insight.insight.source_mode}
           {insight.provenance ? ` (${insight.provenance.model})` : ""} · {onAir ? ui.onair : insight.insight.review_status === "approved"
             ? "approved" : "awaiting approval"}</p>}

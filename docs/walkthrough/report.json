@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:58883",
+  "base": "http://127.0.0.1:43933",
   "checks": [
     {
       "check": "health endpoint",
@@ -29,7 +29,7 @@
     {
       "check": "live overlay elements drawn from backend",
       "ok": true,
-      "detail": "19 elements"
+      "detail": "18 elements"
     },
     {
       "check": "A live: the player on the ball is drawn on top",
@@ -44,7 +44,7 @@
     {
       "check": "A live after the episode closed: its old claims are not drawn on the new frame",
       "ok": true,
-      "detail": "PREVIEW \u00b7 LIVE \u00b7 nothing current \u00b7 last moment 10:28"
+      "detail": "PREVIEW \u00b7 LIVE \u00b7 nothing current \u00b7 last moment 10:27"
     },
     {
       "check": "ended: the pitch shows the followed moment, not an empty pitch",
@@ -354,7 +354,7 @@
     {
       "check": "live overlay is drawn over a slow link (400 ms per request)",
       "ok": true,
-      "detail": "16 elements"
+      "detail": "17 elements"
     },
     {
       "check": "Play right after a clip switch over a slow link starts the new clip",
@@ -377,5 +377,5 @@
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-26T15:30:23Z"
+  "time_utc": "2026-10-26T17:42:57Z"
 }

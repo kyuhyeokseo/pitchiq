@@ -487,6 +487,24 @@ def test_websocket_sends_snapshot_then_resyncs_after_seek(client):
             ws.receive_json()
 
 
+def test_a_socket_opened_after_a_seek_gets_the_insights_so_far(client):
+    # a viewer who starts the breakdown before the socket is open: the seek has already built the insights, and the
+    # socket must send them with its first snapshot (the client has no other news of them until something changes)
+    c = client
+    clip = load_clip("clip_001")
+    rid, H, _ = _create(c)
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.end_s, "expected_epoch": 1}, headers=H)
+    want = {v["insight"]["insight_id"] for v in c.get(f"/api/replays/{rid}/insights", headers=H).json()}
+    assert want
+    try:
+        with c.websocket_connect(f"/ws/replays/{rid}?token={H['x-session-token']}") as ws:
+            assert ws.receive_json()["type"] == "state_snapshot"
+            got = {ws.receive_json()["payload"]["insight"]["insight_id"] for _ in want}
+    finally:
+        STORE.delete(rid)  # ends the server loop whatever happened above
+    assert got == want
+
+
 def test_the_breakdown_tells_the_moment_in_four_steps_from_the_evidence(client):
     c = client
     clip = load_clip("clip_001")

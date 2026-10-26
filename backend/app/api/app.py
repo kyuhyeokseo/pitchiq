@@ -550,6 +550,8 @@ async def ws(websocket: WebSocket, rid: str, token: str = Query(default="")) -> 
         await websocket.send_json(env("state_snapshot", _snapshot(s), s.clock_s))
         epoch, last_k = s.epoch, s.cursor_k
         known = {iid: revs[-1].revision for iid, revs in s.revisions.items()}
+        for iid in known:  # the insights so far: a socket that opens after a seek must not wait for the next change
+            await websocket.send_json(env("insight_update", _insight_view(s, iid), s.clock_s))
         last_sent = time.monotonic()
         was_playing = s.playing
         while True:
