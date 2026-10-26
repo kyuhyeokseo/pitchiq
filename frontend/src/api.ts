@@ -88,7 +88,17 @@ export const api = {
     } catch { /* best effort */ }
   },
   exportJson: (s: Session, insight_id: string) => req<any>(`/api/replays/${s.replay_id}/export/${insight_id}`, {}, undefined, s),
+  breakdown: (s: Session, episode_id: string, language: "en" | "ko") =>
+    req<Breakdown>(`/api/replays/${s.replay_id}/breakdown?${new URLSearchParams({ episode_id, language })}`, {}, undefined, s),
 };
+
+// the guided breakdown of one moment (computed by the server from the evidence; sentences rendered by code)
+export type BreakdownStep = {
+  key: "press" | "takes_away" | "leaves_open" | "what_happened"; revision: number; match_time_s: number;
+  layers: string[]; player_ids: string[]; roles: Record<string, string>; sentences: string[]; ball_path?: number[][];
+  marks?: string[][];  // [defender, attacker] pairs with a sustained marking relation (the press step)
+};
+export type Breakdown = { episode_id: string; analysis_status: string; outcome: string; language: string; steps: BreakdownStep[] };
 
 export type WsMessage = { type: string; analysis_epoch: number; seq: number; match_time_s: number; payload: any };
 

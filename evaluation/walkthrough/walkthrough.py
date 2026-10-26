@@ -418,6 +418,69 @@ def main() -> int:
             page.locator("button", has_text="'s moments").click()
             page.locator(".follow-chip").click()
 
+            # the guided breakdown: a fresh clip opens on the question; four steps from the evidence, then on air
+            tags_js = "[...document.querySelectorAll('svg.pitch .pl-tag text')].map((t) => t.textContent).sort()"
+            page.select_option("select[aria-label=Clip]", "clip_001")
+            page.wait_for_function("document.querySelectorAll('svg.pitch g.pl').length === 22")
+            page.wait_for_selector(".intro", timeout=10000)
+            check("Breakdown: a new clip opens on the question the app answers",
+                  "take away" in page.locator(".intro").inner_text())
+            page.screenshot(path=str(args.out / "22_bd_intro.png"))
+            page.locator(".intro button.primary").click()
+            page.wait_for_selector(".bd", timeout=60000)
+
+            def bd_step(i: int, ready: str) -> str:
+                """Open step i and wait until the pitch draws what the step is about."""
+                page.locator(".bd-steps button").nth(i).click()
+                if i < 4:  # the four evidence steps carry a step badge on the pitch; on air shows the usual one
+                    page.wait_for_function(f"document.querySelector('.bd-badge')?.textContent.startsWith('{i + 1} /')",
+                                           timeout=10000)
+                page.wait_for_selector(ready, timeout=15000)
+                page.wait_for_timeout(300)
+                return page.locator(".bd").inner_text()
+
+            txt = bd_step(0, "svg.pitch line.bd-mark")
+            tags = page.evaluate(tags_js)
+            n_marks = page.locator("svg.pitch line.bd-mark").count()
+            check("Breakdown 1, the press: presser and ball carrier tagged, who-follows-whom tethers drawn",
+                  tags == ["On the ball", "Presser"] and n_marks >= 3 and "closes down" in txt,
+                  f"tags {tags}, {n_marks} tethers | " + txt[:160].replace("\n", " | "))
+            page.screenshot(path=str(args.out / "23_bd_1_press.png"))
+            txt = bd_step(1, "svg.pitch :is(.lane_screened, .press_cut_lane)")
+            check("Breakdown 2, what it takes away: the blocked passes, and nothing of the exposed side",
+                  page.locator("svg.pitch polygon.exposure_hatched").count() == 0 and "short passes" in txt,
+                  txt[:160].replace("\n", " | "))
+            page.screenshot(path=str(args.out / "24_bd_2_takes_away.png"))
+            txt = bd_step(2, "svg.pitch polygon.exposure_hatched")
+            tags = page.evaluate(tags_js)
+            check("Breakdown 3, what it leaves open: the space behind and the runner, no blocked passes",
+                  page.locator("svg.pitch .lane_screened").count() == 0 and "Runner" in tags
+                  and "space behind" in txt, f"tags {tags} | " + txt[:160].replace("\n", " | "))
+            labels_clear(page, "Breakdown 3")
+            page.screenshot(path=str(args.out / "25_bd_3_leaves_open.png"))
+            txt = bd_step(3, "svg.pitch polyline.ball-path")
+            tags = page.evaluate(tags_js)
+            check("Breakdown 4, what happened: the ball's path from the passer to the receiver",
+                  tags == ["Pass", "Receives"] and "received by BLU #9" in txt,
+                  f"tags {tags} | " + txt[:160].replace("\n", " | "))
+            page.screenshot(path=str(args.out / "26_bd_4_happened.png"))
+            bd_step(4, ".bd-on_air")
+            page.locator(".bd .row button.primary").click()
+            page.wait_for_selector(".caption", timeout=10000)
+            check("Breakdown 5, on air: approving puts the moment's caption on the broadcast view",
+                  "BROADCAST" in page.locator(".badge").first.inner_text()
+                  and len(page.locator(".caption").inner_text()) > 20, page.locator(".caption").inner_text()[:160])
+            page.screenshot(path=str(args.out / "27_bd_5_on_air.png"))
+            page.locator(".bd-go").click()
+            check("Breakdown: exit returns to the desk", page.locator(".bd").count() == 0)
+            page.get_by_role("button", name="Inspector").click()
+            # the breakdown left the clock at the end of the clip: Play starts the clip again
+            page.get_by_role("button", name="Play", exact=True).click()
+            page.get_by_role("button", name="Pause", exact=True).wait_for(timeout=10000)
+            into = page.locator(".clock span").inner_text()
+            check("Play at the end of a clip starts it again from the beginning", float(into.split("s")[0]) < 3.0, into)
+            page.get_by_role("button", name="Pause", exact=True).click()
+
             # a public link: switching clips frees the old replay, so 25 switches never fill the store
             for i in range(25):
                 page.select_option("select[aria-label=Clip]", "clip_001" if i % 2 else "clip_002")

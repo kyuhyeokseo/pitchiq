@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { api, ApiError, openSocket, type EpisodeSummary, type Session, type WsMessage } from "./api";
+import { api, ApiError, openSocket, type Breakdown, type EpisodeSummary, type Session, type WsMessage } from "./api";
 import type { EvidencePacket, ObservationFrame, OverlayElement, TacticalState } from "./contracts";
 import { Pitch } from "./Pitch";
 import {
@@ -54,6 +54,60 @@ const STAGE_TEXT: Record<string, string> = {
   analyst_validation: "Code check of the Analyst plan", producer: "Producer agent chose the sentences",
   producer_repair: "Producer agent repaired its choice", producer_validation: "Code check of the Producer plan",
 };
+// the guided breakdown: four steps from the evidence (server), then the agents' narration and the approval (on air)
+type Lang = "en" | "ko";
+const BD_STEPS: { key: string; title: Record<Lang, string>; q: Record<Lang, string> }[] = [
+  { key: "press", title: { en: "The press", ko: "압박과 마킹" },
+    q: { en: "Who goes to the ball, and who follows whom?", ko: "누가 공으로 달려들고, 누가 누구를 따라붙나?" } },
+  { key: "takes_away", title: { en: "What it takes away", ko: "막은 것" },
+    q: { en: "Which passes does the defence shut?", ko: "수비가 어떤 패스 길을 막았나?" } },
+  { key: "leaves_open", title: { en: "What it leaves open", ko: "내준 것" },
+    q: { en: "What is the price of it?", ko: "그 대가로 어디가 비었나?" } },
+  { key: "what_happened", title: { en: "What happened", ko: "실제로 일어난 일" },
+    q: { en: "Did the attack use it?", ko: "공격이 그 틈을 썼나?" } },
+  { key: "on_air", title: { en: "On air", ko: "방송까지" },
+    q: { en: "The agents write it up from these facts; a person approves it.", ko: "에이전트가 이 사실로 문장을 고르고, 사람이 승인합니다." } },
+];
+// what each mark on the pitch means, in the words of a fan (only the marks the step draws are listed)
+const BD_KEY: Record<string, Record<Lang, string>> = {
+  press_arrow: { en: "Yellow arrow: the presser's run at the ball", ko: "노란 화살표: 공으로 달려드는 압박" },
+  carrier_ring: { en: "Yellow ring: the player on the ball", ko: "노란 원: 공을 가진 선수" },
+  carrier_space_ring: { en: "Dashed ring: the room the ball carrier has (nobody presses)", ko: "점선 원: 아무도 압박하지 않는 공 주변 공간" },
+  mark_supported: { en: "Thin white line: who follows whom", ko: "가는 흰 선: 누가 누구를 따라붙는지" },
+  lane_screened: { en: "Pink dots ending in a bar: a pass the defence has blocked", ko: "막대로 끝나는 분홍 점선: 수비가 막은 패스 길" },
+  press_cut_lane: { en: "Pink dots: the pass the presser cuts on the way in", ko: "분홍 점: 압박 선수가 달려가며 끊는 패스 길" },
+  screen_marker: { en: "Pink ring: the defender standing in that pass", ko: "분홍 원: 그 패스 길에 서 있는 수비수" },
+  line_back: { en: "White dashes: the back line", ko: "흰 점선: 최종 수비 라인" },
+  line_mid: { en: "Faint dashes: the midfield line", ko: "옅은 점선: 미드필드 라인" },
+  line_front: { en: "Faintest dashes: the front line", ko: "가장 옅은 점선: 최전방 라인" },
+  exposure_hatched: { en: "Cyan stripes: the space left behind the line", ko: "하늘색 빗금: 라인 뒤에 비워 둔 공간" },
+  runner_ring: { en: "Cyan ring: the runner going into it", ko: "하늘색 원: 그 공간으로 뛰는 선수" },
+  cover_late: { en: "Cyan dashes: the cover, arriving late", ko: "하늘색 점선: 늦게 도착하는 커버" },
+  cover_in_time: { en: "Green line: the cover, arriving in time", ko: "초록 선: 제때 도착하는 커버" },
+  cover_link: { en: "Cyan arrow: where the runner is heading", ko: "하늘색 화살표: 침투 선수가 향하는 곳" },
+  lane_open: { en: "Green arrow: a pass that is still on", ko: "초록 화살표: 아직 열려 있는 패스" },
+  outlet_target: { en: "Green ring: the open player out wide", ko: "초록 원: 측면에 비어 있는 선수" },
+  free_receiver_ring: { en: "Cyan dashed ring: a free player who can be reached", ko: "하늘색 점선 원: 패스를 받을 수 있는 빈 선수" },
+  ghost_path: { en: "White dots: how the players moved", ko: "흰 점: 선수들이 움직인 길" },
+};
+const ROLE_TEXT: Record<string, Record<Lang, string>> = {
+  presser: { en: "Presser", ko: "압박" }, carrier: { en: "On the ball", ko: "공 소유" },
+  runner: { en: "Runner", ko: "침투" }, cover: { en: "Cover", ko: "커버" },
+  passer: { en: "Pass", ko: "패스" }, receiver: { en: "Receives", ko: "받음" },
+};
+const BD_UI: Record<Lang, Record<string, string>> = {
+  en: { intro: "What does this defence take away, and what does it leave open?", go: "Break down the defence",
+        sub: "One moment in four steps. Every line on the pitch is measured from the tracking data.", live: "Just watch",
+        back: "Back", next: "Next", exit: "Exit", stop: "Exit the breakdown", busy: "Analysing the clip…", ball: "White arrow: where the ball actually went",
+        approve: "Approve and put on air", explore: "Explore the desk", onair: "On air", none: "Nothing more to show here.",
+        marks: "White tether: who follows whom (sustained marking)" },
+  ko: { intro: "이 수비는 무엇을 막고, 그 대가로 무엇을 내줄까?", go: "수비 전술 해부",
+        sub: "한 장면을 4단계로 보여 드려요. 경기장 위의 선은 모두 추적 데이터로 계산한 것입니다.", live: "그냥 경기 보기",
+        back: "이전", next: "다음", exit: "끝내기", stop: "해부 끝내기", busy: "클립을 분석하는 중…", ball: "흰 화살표: 공이 실제로 간 길",
+        approve: "승인하고 방송에 내보내기", explore: "직접 살펴보기", onair: "방송 중", none: "이 단계에서 더 보여 줄 것이 없어요.",
+        marks: "흰 끈: 누가 누구를 따라붙는지 (지속된 마킹)" },
+};
+
 const SUGGESTIONS: Record<"en" | "ko", string[]> = {
   en: ["What did the defence shut down?", "What did that leave open?", "What happened next?", "Why did the coach set it up like that?"],
   ko: ["수비가 무엇을 막았어?", "그 대가로 무엇을 내줬어?", "그다음에 어떻게 됐어?", "감독은 왜 그렇게 세웠어?"],
@@ -92,6 +146,10 @@ export function App() {
   const [selEl, setSelEl] = useState<OverlayElement | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [userPicked, setUserPicked] = useState(false);
+  const [bd, setBd] = useState<Breakdown | null>(null);  // the guided breakdown on screen, if any
+  const [bdStep, setBdStep] = useState(0);
+  const [bdBusy, setBdBusy] = useState(false);
+  const [intro, setIntro] = useState(true);  // a clip opens on the question the app answers
   const [autoReplay, setAutoReplay] = useState(false);  // paused or ended on an empty live pitch: showing the moment
   const liveChosen = useRef(false);  // the user picked Live while paused: respect it until the next Play
   const [error, setError] = useState<string | null>(null);
@@ -132,6 +190,7 @@ export function App() {
     let retry = 0;
     let timer: number | undefined;
     setSelEp(null); setSelRev(null); setOverlay(null); setPacket(null); setInsights({}); setSelEl(null);
+    setBd(null); setBdStep(0); setIntro(true);
     setUserPicked(false); setView("live"); setAutoReplay(false); setFollowed(null); setOnlyFollowed(false); setSurface("inspector_preview"); setEpisodes([]); setSession(null);
     currentReplay.current = null;  // drop anything the previous session's socket still delivers
     const connect = (s: Session) => {
@@ -276,8 +335,20 @@ export function App() {
       else setError(String(e));
     }
   };
-  const decide = async (decision: "approve" | "reject") => {
-    if (!session || !insight) return;
+  const replayFromStart = async () => {
+    if (!session || session.replay_id !== currentReplay.current) return;
+    try {
+      const snap = await api.control(session, "seek", epoch, range[0]);
+      applySnapshot(snap);
+      setUserPicked(false); setView("live"); setSelRev(null); setAutoReplay(false); liveChosen.current = false;
+      applySnapshot(await api.control(session, "play", snap.analysis_epoch));
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) setNotice("Replay moved to a new epoch; resynchronised.");
+      else setError(String(e));
+    }
+  };
+  const decide = async (decision: "approve" | "reject"): Promise<boolean> => {
+    if (!session || !insight) return false;
     try {
       const v = await api.decide(session, insight.insight.insight_id, insight.insight.revision,
         insight.insight.evidence_hash, decision);
@@ -286,13 +357,50 @@ export function App() {
         : v.approved_revision != null  // a newer revision was rejected: the approved one stays on air
           ? `Rejected revision ${v.insight.revision}. Broadcast keeps approved revision ${v.approved_revision}.`
           : "Rejected. Hidden from broadcast.");
+      return true;
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) {
         setNotice("The evidence changed: a newer revision needs review.");
         await refreshInsights(session);
       } else setError(String(e));
+      return false;
     }
   };
+  // The breakdown tells one finished moment: the analysis first runs to the end of the clip (each step still shows
+  // the revision that first had it), then the moment the viewer picked, or else the best complete trade-off.
+  const startBreakdown = async () => {
+    if (!session || session.replay_id !== currentReplay.current || bdBusy) return;
+    setIntro(false); setBdBusy(true);
+    try {
+      let eps = episodes;
+      if (playing || clock < range[1] - 0.1) {
+        const snap = await api.control(session, "seek", epoch, range[1]);
+        applySnapshot(snap); eps = snap.episodes;
+      }
+      const complete = eps.filter((e) => e.analysis_status === "complete_tradeoff");
+      const pick = (userPicked && eps.find((e) => e.episode_id === selEp))
+        || (complete.length ? complete : eps).slice().sort((a, b) => b.story_priority - a.story_priority)[0];
+      if (!pick) { setNotice("No moment in this clip to break down."); return; }
+      const b = await api.breakdown(session, pick.episode_id, language);
+      setUserPicked(true); setSelEp(pick.episode_id); setSelEl(null); setFocus("both"); setAutoReplay(false);
+      setBd(b); setBdStep(0);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) setNotice("Replay moved to a new epoch; resynchronised.");
+      else setError(String(e));
+    } finally { setBdBusy(false); }
+  };
+  const exitBreakdown = () => { setBd(null); setBdStep(0); };
+  // each step shows the moment as the analysis had it then; the last one is the latest revision, ready for approval
+  useEffect(() => {
+    if (!bd) return;
+    setView("replay"); setSelEl(null);
+    if (bdStep < bd.steps.length) { setSurface("inspector_preview"); setSelRev(bd.steps[bdStep].revision); }
+    else setSelRev(null);
+  }, [bd, bdStep]);
+  useEffect(() => {  // the breakdown speaks the chosen language
+    if (!bd || !session || bd.language === language) return;
+    api.breakdown(session, bd.episode_id, language).then(setBd).catch((e) => setError(String(e)));
+  }, [language, bd, session]);
   const exportJson = async () => {
     if (!session || !insight) return;
     const data = await api.exportJson(session, insight.insight.insight_id);
@@ -321,6 +429,18 @@ export function App() {
     setView("replay"); setSelRev(null); setAutoReplay(true);
   }, [playing, view, surface, liveExpired, clock, range]);
   const layersPresent = useMemo(() => Array.from(new Set(overlaySnap?.elements.map((e) => e.layer) ?? [])), [overlaySnap]);
+  const bdCur = bd && bdStep < bd.steps.length ? bd.steps[bdStep] : null;
+  const L: Lang = language;
+  // a breakdown step draws only its own layers, and dims everyone but the players it is about
+  const shownHidden = useMemo(() => bdCur ? new Set(layersPresent.filter((l) => !bdCur.layers.includes(l))) : hidden,
+    [bdCur, layersPresent, hidden]);
+  const bdKey = useMemo(() => !bdCur ? [] : Array.from(new Set(overlaySnap?.elements
+    .filter((e) => !shownHidden.has(e.layer) && e.geometry.type !== "label").map((e) => e.style_token) ?? []))
+    .filter((t) => BD_KEY[t]), [bdCur, overlaySnap, shownHidden]);
+  const bdTags = useMemo(() => bdCur ? Object.fromEntries(Object.entries(bdCur.roles)
+    .map(([pid, r]) => [pid, { text: ROLE_TEXT[r]?.[L] ?? r, role: r }])) : undefined, [bdCur, L]);
+  const showIntro = intro && !bd && !playing && clock <= range[0] + 0.05 && surface === "inspector_preview"
+    && view === "live";
   const stylesPresent = useMemo(() => Array.from(new Set(overlaySnap?.elements.filter((e) => !hidden.has(e.layer)).map((e) => e.style_token) ?? [])), [overlaySnap, hidden]);
   const claimById = useMemo(() => Object.fromEntries((packet?.claims ?? []).map((c) => [c.claim_id, c])), [packet]);
   const metricById = useMemo(() => Object.fromEntries((packet?.metrics ?? []).map((m) => [m.metric_id, m])), [packet]);
@@ -329,9 +449,10 @@ export function App() {
   const claimLabel = (c: string) => <>{CLAIM_TEXT[c]}{heuristicCodes.has(c) && <> <small>heuristic</small></>}</>;
   const highlight = useMemo(() => {
     const s = new Set<string>();
+    if (bdCur) { for (const p of [...bdCur.player_ids, ...(bdCur.marks ?? []).flat()]) s.add(p); return s; }
     if (selEl) for (const cid of selEl.claim_ids) for (const p of claimById[cid]?.player_ids ?? []) s.add(p);
     return s;
-  }, [selEl, claimById]);
+  }, [selEl, claimById, bdCur]);
   // an earlier revision on the pitch is told with its own narration, never with what happened later
   const viewingPast = view === "replay" && surface === "inspector_preview" && !!ep && selRev !== null
     && selRev !== ep.revision;
@@ -357,6 +478,10 @@ export function App() {
     if (selEl) document.querySelector(".insp")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [selEl]);
 
+  const bdPanel = bd && <BreakdownPanel bd={bd} step={bdStep} lang={L} keys={bdKey} texts={texts} insight={insight}
+    approvedRev={approvedRev} surface={surface} onStep={setBdStep} onExit={exitBreakdown}
+    onApprove={async () => { if (await decide("approve")) setSurface("broadcast"); }} />;
+
   if (!frame) return <div className="boot">{error ?? "Loading PitchIQ…"}</div>;
   return (
     <div className="app">
@@ -368,14 +493,17 @@ export function App() {
         {/* while a clip switch is starting its replay there is no session, so the controls wait for it instead of
             dropping the click (over a slow link that takes a noticeable moment) */}
         <button disabled={!session} onClick={() => {
+          setIntro(false);
+          if (bd) { exitBreakdown(); setView("live"); setSelRev(null); setSurface("inspector_preview"); }
           if (!playing && autoReplay) { setView("live"); setSelRev(null); setAutoReplay(false); }
-          control(playing ? "pause" : "play");
+          if (!playing && clock >= range[1] - 0.1) replayFromStart();  // at the end, Play starts the clip again
+          else control(playing ? "pause" : "play");
         }}>{playing ? "Pause" : "Play"}</button>
         <input type="range" min={t0} max={t1} step={0.2} value={clock} aria-label="Seek" disabled={!session}
           style={{ "--p": `${((clock - t0) / Math.max(t1 - t0, 1e-6)) * 100}%` } as CSSProperties}
           onChange={(e) => setClock(parseFloat(e.target.value))}
-          onMouseUp={(e) => control("seek", parseFloat((e.target as HTMLInputElement).value))}
-          onKeyUp={(e) => control("seek", parseFloat((e.target as HTMLInputElement).value))} />
+          onMouseUp={(e) => { setIntro(false); exitBreakdown(); control("seek", parseFloat((e.target as HTMLInputElement).value)); }}
+          onKeyUp={(e) => { setIntro(false); exitBreakdown(); control("seek", parseFloat((e.target as HTMLInputElement).value)); }} />
         <span className="clock" title="match clock · time into the clip"><b>{matchClock(clock)}</b><span>{fmtClock(clock, t0)} / {fmtClock(t1, t0)}{details ? ` · epoch ${epoch}` : ""}</span></span>
         <select value={myClub} onChange={(e) => setMyClub(e.target.value)} aria-label="My club">
           <option value="">Pick your club</option>
@@ -395,6 +523,9 @@ export function App() {
       <main className="desk">
         <section className="stage">
           <div className="toolbar">
+            <button className={`bd-go${bd ? " on" : ""}`} disabled={!session || bdBusy}
+              onClick={() => (bd ? exitBreakdown() : startBreakdown())}>
+              {bdBusy ? BD_UI[L].busy : bd ? `✕ ${BD_UI[L].stop}` : `▶ ${BD_UI[L].go}`}</button>
             <div className="seg">
               <button className={surface === "inspector_preview" ? "on" : ""} onClick={() => setSurface("inspector_preview")}>Inspector</button>
               <button className={surface === "broadcast" ? "on" : ""} onClick={() => setSurface("broadcast")}>Broadcast</button>
@@ -430,8 +561,10 @@ export function App() {
               style={{ "--kit": teamColor(tm.team_id) } as CSSProperties}>{tm.display_name}{tm.attack_direction ? (tm.attack_direction === 1 ? " →" : " ←") : ""}{ep?.defending_team_id === tm.team_id ? " · defending" : ""}</span>)}
             <span className="lg r" /> what the defence takes away <span className="lg x" /> what it leaves open
 </p>
-          <div className="pitch-wrap" data-focus={focus}>
-            <div className={`badge ${surface === "broadcast" ? "bc" : "pv"}`}>
+          <div className={`pitch-wrap${bdCur ? ` bd-on bd-${bdCur.key}` : ""}`} data-focus={focus}>
+            {bdCur ? <div className="badge bd-badge">{bdStep + 1} / {BD_STEPS.length} · {BD_STEPS[bdStep].title[L]}
+              {` · ${matchClockTenths(bdCur.match_time_s)}`}</div>
+            : <div className={`badge ${surface === "broadcast" ? "bc" : "pv"}`}>
               {surface === "broadcast" ? "BROADCAST" : "PREVIEW"}
               {overlay && (liveExpired
                 ? <> · <span className="state live">LIVE</span> · nothing current{details
@@ -439,10 +572,21 @@ export function App() {
                     : ` · last moment ${matchClock(overlay.analyzed_through_s)}`}</>
                 : <> · <span className={`state${overlay.overlay.display_mode === "live" ? " live" : ""}`}>{overlay.overlay.display_mode === "live" ? "LIVE" : "REPLAY"}</span>
                     {` · ${matchClock(overlay.overlay.match_time_s)}`}{details ? ` · analysed through ${fmtClock(overlay.analyzed_through_s, t0)}` : ""}</>)}
-            </div>
+            </div>}
+            {showIntro && <div className="intro">
+              <div className="intro-card">
+                <h2>{BD_UI[L].intro}</h2>
+                <p>{BD_UI[L].sub}</p>
+                <div className="row">
+                  <button className="primary" onClick={startBreakdown} disabled={!session || bdBusy}>▶ {BD_UI[L].go}</button>
+                  <button onClick={() => { setIntro(false); control("play"); }} disabled={!session}>{BD_UI[L].live}</button>
+                </div>
+              </div>
+            </div>}
             {surface === "broadcast" && approvedRev === null
               ? <div className="empty">No approved insight for this moment yet. Approve it in Inspector.</div>
-              : shownFrame && <Pitch frame={shownFrame} overlay={overlaySnap} labels={overlay?.label_text} hiddenLayers={hidden}
+              : shownFrame && <Pitch frame={shownFrame} overlay={overlaySnap} labels={overlay?.label_text} hiddenLayers={shownHidden}
+                  ballPath={bdCur?.key === "what_happened" ? bdCur.ball_path : undefined} tags={bdTags} marks={bdCur?.marks}
                   selected={surface === "inspector_preview" ? selEl?.element_id : undefined}
                   onSelect={surface === "inspector_preview" ? setSelEl : undefined}
                   highlight={surface === "inspector_preview" ? highlight : undefined} teamColor={teamColor} jersey={jersey} followed={followed}
@@ -454,12 +598,13 @@ export function App() {
             <div className="caption">{overlay.on_air.map((t, i) => <p key={i}>{t}</p>)}</div>}
           {surface === "broadcast" && approvedRev !== null && insight && insight.insight.revision !== approvedRev &&
             <p className="air-note">On air: approved revision {approvedRev}. Revision {insight.insight.revision} is newer and waits for approval in Inspector.</p>}
-          <Timeline episodes={onlyFollowed && followed ? episodes.filter((e) => e.player_ids?.includes(followed)) : episodes}
+          {bd && surface === "broadcast" && bdPanel}
+          {!bd && <Timeline episodes={onlyFollowed && followed ? episodes.filter((e) => e.player_ids?.includes(followed)) : episodes}
             empty={onlyFollowed && followed ? `No moments involving #${jersey(followed)} yet` : "No moments yet"}
             myClub={myClub} t0={t0} t1={t1} clock={clock} selected={selEp} selRev={selRev}
             onSelect={(id) => { setUserPicked(true); setSelEp(id); setSelRev(null); setSelEl(null); }}
-            onRevision={(id, r) => { setUserPicked(true); setSelEp(id); setSelRev(r); setView("replay"); setSurface("inspector_preview"); }} />
-          {surface === "inspector_preview" && <div className="layers">
+            onRevision={(id, r) => { setUserPicked(true); setSelEp(id); setSelRev(r); setView("replay"); setSurface("inspector_preview"); }} />}
+          {surface === "inspector_preview" && !bd && <div className="layers">
             {layersPresent.map((l) => (
               <label key={l} className={`lt-${l}`}><input type="checkbox" checked={!hidden.has(l)} onChange={() => {
                 const n = new Set(hidden); n.has(l) ? n.delete(l) : n.add(l); setHidden(n);
@@ -470,7 +615,8 @@ export function App() {
         </section>
 
         <aside className="rail">
-          {ep ? <div className="card">
+          {bd && surface !== "broadcast" && bdPanel}
+          {!bd && (ep ? <div className="card">
             <h2>Moment at {matchClock(ep.detected_at_s)} <span className={`chip ${ep.analysis_status}`}>{ep.analysis_status.replace("_", " ")}</span>
               {myClub && ep.defending_team_id && <span className="chip club">{ep.defending_team_id === myClub
                 ? (language === "ko" ? "우리 팀 수비 장면" : "Your club is defending here")
@@ -511,8 +657,8 @@ export function App() {
               </div>
             </div>}
           </div> : <div className="card"><p>No moment yet. Press Play: pink marks the passes the defence takes away, cyan the space it
-            leaves open.</p></div>}
-          <Inspector el={selEl} claimById={claimById} metricById={metricById} packet={packet} t0={t0} details={details} />
+            leaves open.</p></div>)}
+          {!bd && <Inspector el={selEl} claimById={claimById} metricById={metricById} packet={packet} t0={t0} details={details} />}
           {session && <AskPanel key={session.replay_id} session={session} audience={audience} language={language}
             episodes={episodes} t0={t0} onError={(e) => setError(e)} onAnswered={refreshHealth}
             onShow={(id) => { setUserPicked(true); setSelEp(id); setSelRev(null); setSelEl(null); setView("replay"); setSurface("inspector_preview"); }} />}
@@ -522,6 +668,43 @@ export function App() {
             onShow={(id) => { setUserPicked(true); setSelEp(id); setSelRev(null); setSelEl(null); setView("replay"); setSurface("inspector_preview"); }} />}
         </aside>
       </main>
+    </div>
+  );
+}
+
+function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, surface, onStep, onExit, onApprove }: {
+  bd: Breakdown; step: number; lang: Lang; keys: string[]; texts: string[]; insight?: InsightView;
+  approvedRev: number | null; surface: Surface; onStep: (n: number) => void; onExit: () => void; onApprove: () => void;
+}) {
+  const ui = BD_UI[lang];
+  const cur = step < bd.steps.length ? bd.steps[step] : null;
+  const meta = BD_STEPS[step];
+  const onAir = surface === "broadcast" && approvedRev !== null;
+  const lines = cur ? cur.sentences : texts;
+  return (
+    <div className={`bd bd-${meta.key}`}>
+      <ol className="bd-steps">{BD_STEPS.map((s, i) => (
+        <li key={s.key}><button className={`${i === step ? "on" : i < step ? "done" : ""} k-${s.key}`} onClick={() => onStep(i)}
+          aria-current={i === step ? "step" : undefined}><b>{i + 1}</b> {s.title[lang]}</button></li>))}</ol>
+      <div className="bd-body">
+        <h3 className="bd-title">{meta.title[lang]}</h3>
+        <p className="bd-q">{meta.q[lang]}</p>
+        <div className="bd-text">{lines.length ? lines.map((t, i) => <p key={i}>{t}</p>) : <p className="meta">{ui.none}</p>}</div>
+        {cur && (keys.length > 0 || (cur.ball_path?.length ?? 0) > 1 || !!cur.marks?.length) && <ul className="bd-key">
+          {cur.key === "what_happened" && (cur.ball_path?.length ?? 0) > 1 && <li><i className="sw ball_path" />{ui.ball}</li>}
+          {!!cur.marks?.length && <li><i className="sw bd_mark" />{ui.marks}</li>}
+          {keys.map((k) => <li key={k}><i className={`sw ${k}`} />{BD_KEY[k][lang]}</li>)}
+        </ul>}
+        {!cur && insight && <p className="meta">{SOURCE_TEXT[insight.insight.source_mode] ?? insight.insight.source_mode}
+          {insight.provenance ? ` (${insight.provenance.model})` : ""} · {onAir ? ui.onair : insight.insight.review_status === "approved"
+            ? "approved" : "awaiting approval"}</p>}
+      </div>
+      <div className="row">
+        <button onClick={() => onStep(step - 1)} disabled={step === 0}>◀ {ui.back}</button>
+        {cur ? <button className="primary" onClick={() => onStep(step + 1)}>{ui.next} ▶</button>
+          : <button className="primary" onClick={onApprove} disabled={!insight || onAir}>{onAir ? `✓ ${ui.onair}` : ui.approve}</button>}
+        <button onClick={onExit}>{cur ? ui.exit : ui.explore}</button>
+      </div>
     </div>
   );
 }

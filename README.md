@@ -9,11 +9,13 @@ Football broadcasters want AI analysis on air, but they cannot put an invented n
 - what a defence **restricts**, such as short passes that a nearby defender would reach in time;
 - what it **exposes**, such as space behind a high line that cover reaches too late.
 
+**Break down the defence**, a guided mode, tells one moment in four steps a fan can follow: who presses the ball and who follows whom, which passes that shuts, what it leaves open, and where the ball actually went. Each step draws only its own marks on the pitch and names the players it is about.
+
 Each moment's evidence is kept as numbered revisions with a sha256 hash; what happens next is added as a new revision and never overwrites an old one. Agents built with Microsoft Agent Framework, calling `gpt-5-mini` on Microsoft Foundry, choose how each moment is told, answer viewer questions and build recaps, in English and Korean. They return only ids and codes, picking among sentences that code has already filled in from the evidence (or a fixed note), and code checks every choice. Nothing reaches the broadcast view or the graphics export until a producer approves that exact revision and its evidence hash.
 
 **Submitted for Best Enterprise Solution:** sign-off on exact evidence, a hashed evidence trail, bounded cost and keyless Azure sign-in are built in code, and most of these controls have named tests ([Enterprise controls](#enterprise-controls-in-code)). Not built yet: login and a producer role (Microsoft Entra ID); in this demo, whoever opens a replay acts as its producer.
 
-**Live demo:** [pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io](https://pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io) (no login; Azure Container Apps with Foundry agents on) · **Video (under 2 min):** _(link added at release)_ · **Try it:** [six steps](#try-it) · **License:** [MIT](LICENSE)
+**Live demo:** [pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io](https://pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io) (no login; Azure Container Apps with Foundry agents on) · **Video (under 2 min):** _(link added at release)_ · **Try it:** [seven steps](#try-it) · **License:** [MIT](LICENSE)
 
 ![PitchIQ pitch view of a replay moment. Pink dashed lanes ending in a stop bar are the short passes Red's press screens. A cyan hatched area marks the space behind Red's back line, where cover arrives 1.5 s late.](docs/images/hero_restricted_exposed.png)
 
@@ -71,7 +73,7 @@ Most controls have tests, named in the table (all in `backend/tests/`).
 | **Ingest** | Replays tracking for 22 players and the ball at 5 Hz, with timestamped events, as a stream. An event reaches the analysis only after its `available_at_s` time. Every frame is validated against typed contracts (schema 2.0). | `backend/app/contracts/`, `backend/app/replay/` |
 | **Interpret** | Code analyses a trailing window: phase, defensive lines (it abstains when unsure), man-oriented marking, pressure, ground-pass lane access with approximate offside, cover arrival including the goalkeeper, and central player counts. The results become trade-off episodes that keep restricted and exposed claims apart. The attack's response, the defence's adjustment and the outcome are added as new revisions. | `backend/app/analytics/` |
 | **Explain** | The Analyst and Producer agents choose which claims to tell, in what order, with which caveats, and which validated sentences each audience gets. Ask PitchIQ answers viewer questions. Code fills in every number from the evidence packet. | `backend/app/agents/`, `backend/app/narrative/` |
-| **Render** | SVG overlays on the pitch: screened lanes, exposure zones, cover timing, line height, local player counts and pressure. Each element links to its players, frames and metrics. Also: Before/After views, an episode timeline, a broadcast view with a caption bar, and JSON export of an approved moment. | `backend/app/overlay/`, `frontend/src/` |
+| **Render** | SVG overlays on the pitch: screened lanes, exposure zones, cover timing, line height, local player counts and pressure. Each element links to its players, frames and metrics. Also: Before/After views, an episode timeline, a broadcast view with a caption bar, and JSON export of an approved moment. **Break down the defence** walks through one moment in four steps (the press and who follows whom, what it takes away, what it leaves open, what happened, with the ball's path from the frames), each on the revision that first had it, then puts it on air after approval. Its sentences are the code-rendered ones; no model writes them. | `backend/app/overlay/`, `backend/app/replay/breakdown.py`, `frontend/src/` |
 | **Personalize** | Fan or Analyst depth, in English or Korean, built from the same evidence (four validated variants per insight). **My club** marks every moment as your club defending or attacking. **Follow a player**: click any player for a ring and their measured speed (a sprint at 7 m/s or more) and filter the timeline to the moments whose evidence names them. Choices stay in the browser. | `frontend/src/App.tsx`, `frontend/src/Pitch.tsx`, `backend/app/narrative/registry.py` |
 
 Who does what:
@@ -172,8 +174,8 @@ Also built: an MCP server (Model Context Protocol, an open standard) that expose
 | Robustness check: counter-examples | Wrong emphasis in 1 of 72 (target 0). | 2026-10-23 | Same report |
 | Robustness check: abstention | On the 72 plays where exposure was expected, the story stayed partial or unmatched in 1. Exposed-claim recall was lowest in two of the six set-ups: 18 of 24 and 17 of 24 designed exposed claims (two per play, 12 plays each). | 2026-10-23 | Same report |
 | Analysis latency | p50 7.9 ms, p95 9.4 ms per 5 Hz step (target: p95 under 200 ms) | 2026-10-23 | 12,669 frames, single process, CPU on an HPC compute node, during the holdout run |
-| Tests | 274 passed | 2026-10-25 | `make test` |
-| Browser walkthrough | 62 of 62 checks passed, no browser console errors | 2026-10-25 | Headless Chromium drives the real UI in offline mode (`make walkthrough`), including two checks over a slow link (400 ms per request). See `docs/walkthrough/report.json` and the screenshots |
+| Tests | 275 passed | 2026-10-25 | `make test` |
+| Browser walkthrough | 71 of 71 checks passed, no browser console errors | 2026-10-25 | Headless Chromium drives the real UI in offline mode (`make walkthrough`), including the five steps of the guided breakdown and two checks over a slow link (400 ms per request). See `docs/walkthrough/report.json` and the screenshots |
 | Deployed app | Managed identity reached Foundry: an Ask answered in 5.9 s with 2 tool calls, a Recap in 8.2 s, both validated; `/mcp` listed its 5 tools over HTTPS; a 1× replay streamed over the WebSocket. | 2026-10-24 | Calls from the development machine to the public URL. Log: [`docs/foundry_live/MEASUREMENTS.md`](docs/foundry_live/MEASUREMENTS.md) |
 | Browser walkthrough on the public URL | 58 checks passed, 0 failed, no console errors. With Foundry on, the 4 checks of particular template sentences are kept as information, because the agents may choose other validated sentences. | 2026-10-25 | The same walkthrough with `--base-url` against the live app (image `sha-6c98218`). Same log |
 
@@ -252,12 +254,13 @@ make dev
 
 ### Try it
 
-1. Open the live demo (no login; all data is synthetic). With **Clip 1** selected, press **Play** at 1×. Pink dashed lanes ending in a stop bar show what the press takes away; the cyan hatched area shows what it leaves open.
-2. When the clip ends, the desk replays its main moment. Click a lane, zone or label: the evidence panel shows the players and measurements behind it (**Details** adds frame numbers and ids).
-3. In **Ask PitchIQ**, ask "Why did Red set up like that at 10:22?" or click a suggested question. Under the answer, "How the agent answered" (open for the newest answer) lists the tool calls and the code check. Offline, Ask returns the narration of the main moment for any question.
-4. When the card says "Written by Microsoft Foundry agents" (this can take several seconds after the clip ends; if the agents' plan fails its code check or the daily cap is reached, the card stays "validated templates", which you can approve too), click **Approve**, then **Export JSON** on the same card, then switch to **Broadcast**. Broadcast hides the side panel; switch back to **Inspector** to continue.
-5. Switch between **Fan** and **Analyst**, and between **EN** and **KO**.
-6. Choose a club under **Pick your club**, click any player to follow them, then press **Recap so far**.
+1. Open the live demo (no login; all data is synthetic). **Clip 1** opens on a question: click **Break down the defence**. Step through the press (yellow; white tethers show who follows whom), what it takes away (pink), what it leaves open (cyan) and what happened (the white arrow is the ball's path), then **On air** to approve the moment and see it on the broadcast view. **KO** switches the breakdown to Korean. Click **Exit the breakdown** to continue.
+2. Press **Play** at 1× (at the end of a clip, Play starts it again from the beginning). Pink dashed lanes ending in a stop bar show what the press takes away; the cyan hatched area shows what it leaves open.
+3. When the clip ends, the desk replays its main moment. Click a lane, zone or label: the evidence panel shows the players and measurements behind it (**Details** adds frame numbers and ids).
+4. In **Ask PitchIQ**, ask "Why did Red set up like that at 10:22?" or click a suggested question. Under the answer, "How the agent answered" (open for the newest answer) lists the tool calls and the code check. Offline, Ask returns the narration of the main moment for any question.
+5. When the card says "Written by Microsoft Foundry agents" (this can take several seconds after the clip ends; if the agents' plan fails its code check or the daily cap is reached, the card stays "validated templates", which you can approve too), click **Approve**, then **Export JSON** on the same card, then switch to **Broadcast**. Broadcast hides the side panel; switch back to **Inspector** to continue.
+6. Switch between **Fan** and **Analyst**, and between **EN** and **KO**.
+7. Choose a club under **Pick your club**, click any player to follow them, then press **Recap so far**.
 
 ### Other commands
 
@@ -299,6 +302,7 @@ make walkthrough SRUN= # headless-browser walkthrough -> docs/walkthrough/
 | Built and verified | Not done yet |
 |---|---|
 | Causal analytics, trade-off episodes, overlays, the evidence panel, approval with a decision record, the broadcast view, JSON export | |
+| The guided breakdown of a moment (four steps from the evidence, then on air) | |
 | Analyst → Producer (what they changed is shown, computed in code), Ask PitchIQ and the Recap workflow, with live Foundry calls | The demo video |
 | Fan and Analyst wording in EN and KO; My club and Follow a player | |
 | MCP server (stdio and streamable HTTP), mounted at `/mcp` and live on the demo URL | |

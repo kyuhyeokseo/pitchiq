@@ -13,6 +13,8 @@ from app.agents.workflow import render_variants
 from app.api.app import STORE, app
 from app.contracts import SentencePlan
 from app.narrative.registry import FORMAT, TEMPLATES
+from app.narrative.render import render_sentence
+from app.overlay.builder import key_state
 from app.replay.catalog import load_clip
 
 from .v2_helpers import PUBLIC, load_public, run_analyzer
@@ -483,3 +485,43 @@ def test_websocket_sends_snapshot_then_resyncs_after_seek(client):
     with pytest.raises(Exception):
         with c.websocket_connect(f"/ws/replays/{rid}?token=wrong") as ws:
             ws.receive_json()
+
+
+def test_the_breakdown_tells_the_moment_in_four_steps_from_the_evidence(client):
+    c = client
+    clip = load_clip("clip_001")
+    rid, H, _ = _create(c)
+    ep = "ep_clip_001_red_press_vs_depth_f0048"
+    # before the outcome is known, the last step says so and draws no ball path (the replay's own causality)
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 13.4, "expected_epoch": 1},
+           headers=H)
+    early = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": ep}, headers=H).json()
+    assert [s["key"] for s in early["steps"]] == ["press", "takes_away", "leaves_open", "what_happened"]
+    assert early["steps"][3]["ball_path"] == [] and "not been observed" in " ".join(early["steps"][3]["sentences"])
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.end_s, "expected_epoch": 2}, headers=H)
+    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": ep}, headers=H).json()
+    press, takes, opens, happened = b["steps"]
+    assert press["roles"] == {"red_09": "presser", "blue_05": "carrier"} and "closes down" in press["sentences"][0]
+    # who follows whom: every sustained marking pair of the revision's own state, defender first
+    state = key_state(next(p for p in STORE.sessions[rid].analyzer.packets[ep] if p.episode.revision == press["revision"]))
+    assert press["marks"] == [[m.defender_id, m.attacker_id] for m in state.markings if m.status == "ok"]
+    assert ["red_04", "blue_09"] in press["marks"] and all(d.startswith("red") for d, _ in press["marks"])
+    assert "short passes" in takes["sentences"][0] and "screened_lanes" in takes["layers"]
+    assert "exposure" in opens["layers"] and "BLU #9" in opens["sentences"][0] and opens["roles"]["blue_09"] == "runner"
+    assert happened["revision"] > opens["revision"] and "received by BLU #9" in happened["sentences"][-1]
+    assert happened["roles"] == {"blue_05": "passer", "blue_09": "receiver"}
+    # the ball's path runs from the passer to the receiver, from the frames themselves
+    s = STORE.sessions[rid]
+    at = lambda t: next(f for f in s.clip.frames if abs(f.match_time_s - t) < 0.11)  # noqa: E731
+    pos = lambda f, pid: next((p.position.x_m, p.position.y_m) for p in f.players if p.player_id == pid)  # noqa: E731
+    first, last = happened["ball_path"][0], happened["ball_path"][-1]
+    assert abs(first[0] - pos(at(625.0), "blue_05")[0]) < 3 and abs(last[0] - pos(at(627.6), "blue_09")[0]) < 3
+    # every sentence is one the narration renders for that revision (code-filled numbers, no new prose)
+    texts = {t for v in c.get(f"/api/replays/{rid}/insights", headers=H).json() for t in v["texts"]["fan_en"]}
+    pk = {p.episode.revision: p for p in s.analyzer.packets[ep]}
+    for step in b["steps"]:
+        rendered = {render_sentence(x, pk[step["revision"]], "en", s.clip.meta)
+                    for x in producer_plan(pk[step["revision"]], analyst_plan(pk[step["revision"]])).variant("fan", "en").sentences}
+        assert set(step["sentences"]) <= rendered
+    assert texts  # the insights exist for the same evidence
+    assert c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_none"}, headers=H).status_code == 404

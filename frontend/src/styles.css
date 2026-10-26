@@ -73,7 +73,7 @@ select option { background: var(--panel); color: var(--fg); }
 .seg button { border: 0; border-radius: 4px; padding: 6px 12px; color: var(--fg); background: transparent; }
 .seg button:hover:not(:disabled):not(.on) { background: rgba(255, 255, 255, 0.08); }
 .seg button.on { background: var(--rule-2); color: #fff; font-weight: 700; }
-.toolbar > .seg:first-child button.on { background: #fff; color: var(--panel-2); }
+.toolbar > .seg:first-of-type button.on { background: #fff; color: var(--panel-2); }
 .seg.focus button.r.on { background: var(--pink); color: var(--bg); }
 .seg.focus button.x.on { background: var(--cyan); color: var(--bg); }
 .prefs { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -298,3 +298,51 @@ button.link { background: none; border: none; color: var(--fg); padding: 0 4px; 
 .steps li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 7px; height: 7px; border-radius: 1px; background: rgba(255, 255, 255, 0.7); }
 .steps li.bad { color: var(--pink); } .steps li.bad::before { background: var(--pink); }
 .steps li.tool { margin-left: 14px; color: var(--fg); } .steps li.tool::before { background: var(--lilac); }
+
+/* ---- the guided breakdown: one moment in four steps, then on air */
+.bd-go { background: var(--green); color: #1e0021; border: 0; font-weight: 700; padding: 7px 18px; }
+.bd-go.on { background: transparent; color: var(--green); box-shadow: inset 0 0 0 1.5px var(--green); }
+.intro { position: absolute; inset: 0; z-index: 3; display: grid; place-items: center; padding: 16px;
+  background: rgba(14, 0, 16, 0.58); }
+.intro-card { max-width: 560px; text-align: center; background: rgba(30, 0, 33, 0.94); border-radius: 16px; padding: 24px 28px; }
+.intro-card h2 { margin: 0 0 10px; font-size: clamp(20px, 2.4vw, 28px); line-height: 1.2; letter-spacing: -0.02em; }
+.intro-card p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.intro-card .row { justify-content: center; margin-top: 18px; }
+.intro-card .row button { height: 40px; padding: 0 20px; }
+button.primary { background: #fff; color: var(--panel-2); border: 0; font-weight: 700; }
+.intro-card button.primary { background: var(--green); color: #1e0021; }
+.bd-badge { background: #fff; color: var(--panel-2); font-size: 13px; font-weight: 700; padding: 4px 12px; }
+.bd { background: var(--panel); border-radius: 16px; padding: 14px 20px 16px; border-top: 4px solid var(--bd, #fff); }
+.bd-press { --bd: var(--yellow); } .bd-takes_away { --bd: var(--pink); } .bd-leaves_open { --bd: var(--cyan); }
+.bd-what_happened { --bd: #fff; } .bd-on_air { --bd: var(--green); }
+.bd-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.bd-steps button { border: 0; border-radius: 999px; padding: 4px 12px 4px 4px; font-size: 13px; background: var(--rule); color: var(--muted); }
+.bd-steps button b { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 4px; border-radius: 50%;
+  background: var(--rule-2); color: var(--fg); font-size: 12px; }
+.bd-steps button.done { color: var(--fg); }
+.bd-steps button.on { background: #fff; color: var(--panel-2); font-weight: 700; }
+.bd-steps button.on b { background: var(--bd); color: #1e0021; }
+.bd-title { margin: 14px 0 2px; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--bd); }
+.bd-q { margin: 0 0 10px; color: var(--muted); font-size: 15px; }
+.bd-text p { margin: 0 0 6px; font-size: 18px; line-height: 1.4; font-weight: 600; letter-spacing: -0.01em; }
+.bd-key { list-style: none; margin: 10px 0 0; padding: 10px 0 0; border-top: 1px solid var(--rule); display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 18px; font-size: 14px; color: var(--fg); }
+.bd-key .sw { width: 22px; margin-right: 8px; }
+.bd .row button.primary { padding: 0 22px; }
+.sw.mark_supported { border-top: 1.5px solid #fff; }
+.sw.ghost_path { border-top: 3px dotted #fff; }
+.sw.ball_path { border-top: 3px dashed #fff; }
+/* a step dims the players it is not about, but every one of the 22 stays visible */
+.pitch-wrap.bd-on .pitch:has(.pl.hl) .pl:not(.hl) .pl-body { fill-opacity: 0.4; }
+.pitch-wrap.bd-on .pitch:has(.pl.hl) .pl:not(.hl) .pl-tx { fill: rgba(255, 255, 255, 0.75); }
+.pl-tag rect { fill: #fff; stroke: #1e0021; stroke-width: 0.12; }
+.pl-tag text { fill: #1e0021; font-size: 1.45px; font-weight: 700; pointer-events: none; }
+.pl-tag.presser rect { fill: var(--yellow); }
+.pl-tag.runner rect, .pl-tag.cover rect { fill: var(--cyan); }
+.pl-tag { pointer-events: none; }
+.ball-path { fill: none; stroke: #fff; stroke-width: 0.5; stroke-dasharray: 1.3 0.7; stroke-linecap: round; stroke-linejoin: round; }
+.ball-path-shadow { fill: none; stroke: rgba(14, 0, 16, 0.45); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
+.ball-path-start { fill: #fff; }
+.arrowhead.ball_path { fill: #fff; }
+.bd-mark { stroke: #fff; stroke-width: 0.4; stroke-linecap: round; opacity: 0.95; }
+.sw.bd_mark { border-top: 2px solid #fff; }

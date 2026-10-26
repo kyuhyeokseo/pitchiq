@@ -17,7 +17,12 @@ type Props = {
   followed?: string | null;  // the player the viewer follows: ring and current speed
   onPlayer?: (playerId: string) => void;
   quietLabels?: Set<string>;  // label layers not drawn for this audience (their lines and areas stay)
+  ballPath?: number[][];  // where the ball went (world metres), drawn as a white arrow
+  tags?: Record<string, { text: string; role: string }>;  // a tag over the players a step is about (presser, runner...)
+  marks?: string[][];  // [defender, attacker]: who follows whom, drawn as a white tether
 };
+// tags of the player who acts go first, so they get the spot above the player
+const TAG_ORDER = ["presser", "runner", "passer", "carrier", "cover", "receiver"];
 
 // a run at or above the defender speed the analysis assumes (analytics_config.yaml: defender_speed_mps) is a sprint
 const SPRINT_MPS = 7.0;
@@ -138,7 +143,7 @@ function Element({ el, pos, label, place, selected, onSelect }: {
 }
 
 export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onSelect, highlight, teamColor, jersey, followed, onPlayer,
-  quietLabels }: Props) {
+  quietLabels, ballPath, tags, marks }: Props) {
   const pos: Record<string, XY> = {};
   for (const p of frame.players) pos[p.player_id] = p.position;
   const els = (overlay?.elements ?? []).filter((e) => !hiddenLayers.has(e.layer));
@@ -152,8 +157,20 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
   const onBall = frame.players.reduce((a, b) => (d2(b.position) < d2(a.position) ? b : a), frame.players[0]);
   const rank = (id: string) => (id === onBall?.player_id ? 2 : highlight?.has(id) || id === followed ? 1 : 0);
   const players = [...frame.players].sort((a, b) => rank(a.player_id) - rank(b.player_id));
+  // player tags first: above the player, else below, else further out, so two tags never sit on each other; the
+  // overlay labels then keep clear of them
+  const tagBoxes: [number, number, number, number][] = [];
+  const tagged = !tags ? [] : frame.players.filter((p) => tags[p.player_id])
+    .sort((a, b) => TAG_ORDER.indexOf(tags[a.player_id].role) - TAG_ORDER.indexOf(tags[b.player_id].role)).map((p) => {
+      const t = tags[p.player_id], w = labelWidth(t.text) * 0.85, x = sx(p.position), y0 = sy(p.position);
+      const y = [-3.2, 3.2, -5.9, 5.9].map((dy) => y0 + dy).find((y) => !tagBoxes.some((o) =>
+        x - w / 2 < o[2] && o[0] < x + w / 2 && y - 1.25 < o[3] && o[1] < y + 1.25)) ?? y0 - 3.2;
+      tagBoxes.push([x - w / 2, y - 1.25, x + w / 2, y + 1.25]);
+      return { id: p.player_id, t, w, x, y };
+    });
   const obstacles: [number, number, number][] = [...frame.players.map((p): [number, number, number] =>
-    [sx(p.position), sy(p.position), PLAYER_R]), [sx(ball), sy(ball), 0.8]];
+    [sx(p.position), sy(p.position), PLAYER_R]), [sx(ball), sy(ball), 0.8],
+    ...tagged.flatMap(({ x, y, w }) => [-1, 0, 1].map((k): [number, number, number] => [x + (k * w) / 3, y, 1.4]))];
   const places = placeLabels((overlay?.elements ?? []).filter((e) => over.includes(e)).flatMap((e) => {
     const g = e.geometry, text = labels[e.element_id];
     const p = g.type === "label" ? resolve(g.at, pos) : null;
@@ -172,7 +189,7 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
         <marker id="bar" viewBox="0 0 10 10" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="10" refX="2.2" refY="5" orient="auto">
           <path d="M0 3.8V6.2" className="lane-bar" />
         </marker>
-        {["press_arrow", "cover_link", "lane_open"].map((t) => (
+        {["press_arrow", "cover_link", "lane_open", "ball_path"].map((t) => (
           <marker key={t} id={`arrow-${t}`} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="3" markerHeight="3" orient="auto-start-reverse">
             <path d="M0 0 L10 5 L0 10z" className={`arrowhead ${t}`} />
           </marker>
@@ -181,6 +198,15 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
       <rect x={-3} y={-3} width={111} height={74} className="turf" />
       <PitchLines />
       {under.map((e) => <Element key={e.element_id} el={e} pos={pos} selected={selected === e.element_id} onSelect={onSelect} />)}
+      {marks?.map(([d, a]) => {
+        const p = pos[d], q = pos[a];
+        return p && q ? <line key={`mk-${d}-${a}`} className="bd-mark" x1={sx(p)} y1={sy(p)} x2={sx(q)} y2={sy(q)} /> : null;
+      })}
+      {ballPath && ballPath.length > 1 && <g className="ball-path-g">
+        <polyline points={ballPath.map(([x, y]) => `${x},${68 - y}`).join(" ")} className="ball-path-shadow" />
+        <polyline points={ballPath.map(([x, y]) => `${x},${68 - y}`).join(" ")} className="ball-path" markerEnd="url(#arrow-ball_path)" />
+        <circle cx={ballPath[0][0]} cy={68 - ballPath[0][1]} r={0.7} className="ball-path-start" />
+      </g>}
       {players.map((p) => {
         const speed = Math.hypot(p.velocity.vx_mps, p.velocity.vy_mps);
         const isFollowed = p.player_id === followed;
@@ -197,6 +223,12 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
         );
       })}
       <circle cx={sx(ball)} cy={sy(ball)} r={0.6 + Math.min(frame.ball.z_m, 12) * 0.05} className="ball" />
+      {tagged.map(({ id, t, w, x, y }) => (
+        <g key={`tag-${id}`} className={`pl-tag ${t.role}`} transform={`translate(${x} ${y})`}>
+          <rect x={-w / 2} y={-1.25} width={w} height={2.5} rx={1.25} />
+          <text textAnchor="middle" dominantBaseline="central">{t.text}</text>
+        </g>
+      ))}
       {over.map((e) => {  // every leader line under every tag, so no leader crosses another tag's text
         const pl = places[e.element_id], g = e.geometry, p = g.type === "label" ? resolve(g.at, pos) : null;
         return pl?.leader && p && labels[e.element_id] ? <line key={`ld-${e.element_id}`} className={`label-leader layer-${e.layer}`}

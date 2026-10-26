@@ -35,6 +35,7 @@ from ..contracts.registry import METRIC_REGISTRY_VERSION
 from ..narrative.registry import REGISTRY_VERSION
 from ..overlay.builder import build_overlay, key_state, validate_overlay
 from ..replay.catalog import list_clips, load_clip
+from ..replay.breakdown import breakdown as breakdown_of
 from ..replay.session import ReplaySession, SessionStore, StaleEpoch, StaleRevision
 from .. import telemetry
 
@@ -370,6 +371,19 @@ def decide(rid: str, insight_id: str, req: Decision, x_session_token: str | None
     view = _insight_view(s, insight_id)
     view["decision"] = rv.record(insight_id)
     return view
+
+
+@app.get("/api/replays/{rid}/breakdown")
+def breakdown(rid: str, episode_id: str, language: Literal["en", "ko"] = "en",
+              x_session_token: str | None = Header(default=None)) -> dict:
+    """The guided breakdown of one moment from what the replay has seen so far: the press, what it takes away, what it
+    leaves open and what happened, each with its revision, drawing layers, players and code-rendered sentences."""
+    s = _session(rid, x_session_token)
+    with s.lock:
+        revs = list(s.analyzer.packets.get(episode_id, []))
+    if not revs:
+        raise HTTPException(404, "unknown episode")
+    return breakdown_of(revs, s.clip, language)
 
 
 @app.get("/api/replays/{rid}/recap")

@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:35091",
+  "base": "http://127.0.0.1:35407",
   "checks": [
     {
       "check": "health endpoint",
@@ -29,7 +29,7 @@
     {
       "check": "live overlay elements drawn from backend",
       "ok": true,
-      "detail": "17 elements"
+      "detail": "19 elements"
     },
     {
       "check": "A live: the player on the ball is drawn on top",
@@ -64,7 +64,7 @@
     {
       "check": "A exposed: pitch labels do not overlap or leave the pitch",
       "ok": true,
-      "detail": "{\"n\": 2, \"overlaps\": 0, \"outside\": 0}"
+      "detail": "{\"n\": 4, \"overlaps\": 0, \"outside\": 0}"
     },
     {
       "check": "inspector shows the metrics behind the clicked area",
@@ -292,6 +292,51 @@
       "detail": "2 -> 0"
     },
     {
+      "check": "Breakdown: a new clip opens on the question the app answers",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "Breakdown 1, the press: presser and ball carrier tagged, who-follows-whom tethers drawn",
+      "ok": true,
+      "detail": "tags ['On the ball', 'Presser'], 7 tethers | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | The press |  | Who goes to the ball, and who follows whom? |  | RED #9 closes down the p"
+    },
+    {
+      "check": "Breakdown 2, what it takes away: the blocked passes, and nothing of the exposed side",
+      "ok": true,
+      "detail": "1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What it takes away |  | Which passes does the defence shut? |  | Red United are shutting"
+    },
+    {
+      "check": "Breakdown 3, what it leaves open: the space behind and the runner, no blocked passes",
+      "ok": true,
+      "detail": "tags ['Cover', 'Runner'] | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What it leaves open |  | What is the price of it? |  | The cost: the back line sits 50.9"
+    },
+    {
+      "check": "Breakdown 3: pitch labels do not overlap or leave the pitch",
+      "ok": true,
+      "detail": "{\"n\": 2, \"overlaps\": 0, \"outside\": 0}"
+    },
+    {
+      "check": "Breakdown 4, what happened: the ball's path from the passer to the receiver",
+      "ok": true,
+      "detail": "tags ['Pass', 'Receives'] | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What happened |  | Did the attack use it? |  | What happened next (synthetic play): a pa"
+    },
+    {
+      "check": "Breakdown 5, on air: approving puts the moment's caption on the broadcast view",
+      "ok": true,
+      "detail": "Restricted: 4/4 eligible ground-pass options from BLU #5 are screened (a defender reaches the lane or the receiver within 0.1 s of the ball).\n\nExposed: back lin"
+    },
+    {
+      "check": "Breakdown: exit returns to the desk",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "Play at the end of a clip starts it again from the beginning",
+      "ok": true,
+      "detail": "0.0s / 23.8s"
+    },
+    {
       "check": "25 clip switches free their replays (no 429, at most 2 open)",
       "ok": true,
       "detail": "sessions 1, sockets 1"
@@ -313,9 +358,9 @@
     }
   ],
   "console_errors": [],
-  "passed": 62,
+  "passed": 71,
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-26T00:41:40Z"
+  "time_utc": "2026-10-26T01:55:40Z"
 }
