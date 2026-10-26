@@ -191,7 +191,7 @@ The spec defines twelve claim codes, each with a minimum evidence gate. Ten are 
   - A live overlay expires after 0.6 s.
   - Before and After are two frozen snapshots, each drawn on its own frame.
   - There are no "ghosts" of future positions, and old numbers are never drawn over current positions.
-- **Broadcast path:** live suggestion → approval → retrospective replay of that moment, labelled "REPLAY · analyzed through t" and never backdated.
+- **Broadcast path:** live suggestion → approval → retrospective replay of that moment, labelled "REPLAY · analysed through t" and never backdated.
 - **Approval states:**
   - `review_status` (suggested, approved, rejected) belongs to the insight revision. `broadcast_visibility` (hidden, scheduled, showing, expired) belongs to the session.
   - An approval carries the revision and its evidence hash, and stale evidence returns 409.
