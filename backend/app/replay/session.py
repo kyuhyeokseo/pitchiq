@@ -239,6 +239,8 @@ class ReplaySession:
             self._advance_to(self.clip.frame_at(t))
             self.clock_s = t
             self.last_wall = time.monotonic()
+            if t >= self.clip.end_s - 1e-9:  # a seek to the end ends the replay, in the reply itself: a client must
+                self.playing = False         # not learn it only from a socket message that may arrive first
 
     def next_seq(self) -> int:
         self.seq += 1

@@ -517,6 +517,23 @@ def main() -> int:
             except PlaywrightTimeout:
                 started = False
             check("Play right after a clip switch over a slow link starts the new clip", started)
+            # break down, leave, then Play at the end: the rewind must not ask for moments the rewound replay has not
+            # found yet (each such request is a 404 in the console)
+            failed: list[str] = []
+            slow.on("response", lambda r: failed.append(f"{r.status} {r.url}") if r.status >= 400 else None)
+            with slow.expect_response(lambda r: "/control" in r.url) as seek:
+                slow.locator(".bd-go").click()
+            rid = seek.value.url.split("/api/replays/")[1].split("/")[0]  # the replay this check is about
+            slow.wait_for_selector(".bd", timeout=60000)
+            slow.locator(".bd-go").click()
+            slow.get_by_role("button", name="Inspector").click()
+            slow.wait_for_timeout(1500)
+            slow.get_by_role("button", name="Play", exact=True).click()
+            slow.get_by_role("button", name="Pause", exact=True).wait_for(timeout=15000)
+            slow.wait_for_timeout(3000)
+            failed = [f for f in failed if f"/api/replays/{rid}/" in f]
+            check("Play at the end over a slow link rewinds without asking for moments not found yet", not failed,
+                  "; ".join(failed[:3]))
             slow.close()
             browser.close()
         check("no browser console errors", not console, "; ".join(console[:5]))

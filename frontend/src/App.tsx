@@ -323,7 +323,9 @@ export function App() {
 
   useEffect(() => {
     if (!session || !ep) { setPacket(null); return; }
-    api.evidence(session, ep.episode_id, selRev ?? undefined).then(setPacket).catch((e) => setError(String(e)));
+    // a 404 is a moment the replay no longer has after a seek back (as for the overlay)
+    api.evidence(session, ep.episode_id, selRev ?? undefined).then(setPacket)
+      .catch((e) => { if (!(e instanceof ApiError && e.status === 404)) setError(String(e)); });
   }, [session, ep?.episode_id, ep?.revision, selRev]);
 
   // ---------------------------------------------------------------- controls
@@ -337,10 +339,14 @@ export function App() {
   };
   const replayFromStart = async () => {
     if (!session || session.replay_id !== currentReplay.current) return;
+    // back to the live desk, with no moments listed or selected, before the seek leaves: the rewound replay has not
+    // found them yet, so nothing may ask for them, and a replay answer still in flight is dropped instead of drawn
+    setUserPicked(false); setEpisodes([]); setSelEp(null); setSelEl(null); setView("live"); setSurface("inspector_preview");
+    setSelRev(null); setAutoReplay(false);
+    liveChosen.current = false;
     try {
       const snap = await api.control(session, "seek", epoch, range[0]);
       applySnapshot(snap);
-      setUserPicked(false); setView("live"); setSelRev(null); setAutoReplay(false); liveChosen.current = false;
       applySnapshot(await api.control(session, "play", snap.analysis_epoch));
     } catch (e) {
       if (e instanceof ApiError && e.status === 409) setNotice("Replay moved to a new epoch; resynchronised.");

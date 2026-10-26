@@ -102,6 +102,24 @@ def test_the_socket_tells_the_client_when_the_clip_ends(client):
     assert stopped, "no snapshot after the clip ended"
 
 
+def test_a_seek_to_the_end_while_playing_ends_the_replay_in_its_reply(client):
+    # the reply must say so itself: over a slow link the socket's clip-end snapshot can arrive before this reply, and a
+    # reply still saying "playing" would then leave the client showing Pause on an ended clip
+    rid, H = _create(client)
+    end = STORE.sessions[rid].clip.end_s
+    assert client.post(f"/api/replays/{rid}/control", json={"action": "play", "expected_epoch": 1},
+                       headers=H).json()["playing"] is True
+    snap = client.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": end, "expected_epoch": 1},
+                       headers=H).json()
+    assert snap["playing"] is False and snap["clock_s"] == pytest.approx(end)
+    # a seek elsewhere keeps playing
+    client.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": end - 8, "expected_epoch": 2}, headers=H)
+    client.post(f"/api/replays/{rid}/control", json={"action": "play", "expected_epoch": 3}, headers=H)
+    snap = client.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": end - 5, "expected_epoch": 3},
+                       headers=H).json()
+    assert snap["playing"] is True
+
+
 def test_playback_keeps_wall_time_when_the_socket_syncs_often(client):
     # the WebSocket loop syncs every 0.1 s; at 1x, 10 s of wall time must play 10 s of the clip, not more
     rid, _ = _create(client)
