@@ -127,6 +127,23 @@ after the run; the counter restarts with each deployment). `/api/health` reporte
 The same check on image `sha-9afb2c2` (the fan-caption fix), 2026-10-25 about 16:20 US Eastern: 58 passed, 0 failed,
 4 template-sentence checks kept as information (the agents chose other sentences in 3, the expected one appeared in 1).
 
+### The guided breakdown on the public URL (2026-10-25 and 10-26, US Eastern)
+
+- Image `sha-3612feb` (first breakdown build), 10-25 about 22:15: 66 passed, 1 failed, 4 kept as information. The
+  failure was a browser console 404: Play at the end of a clip rewound while a request for the moment it had shown
+  was still on its way. Looking into it found a second timing problem over a slow link (a seek to the end while
+  playing could leave Pause on an ended clip). Both were fixed in `4e11e09`; see `docs/evaluation.md`.
+- Image `sha-4e11e09`, 10-25 23:28, first run after the deployment (empty narration cache), the video take scripted
+  at 1920x1080 (`Break down the defence`, the four steps, On air, approve, then the desk and one Ask question):
+  the first step appeared 5.2 s after the click (the analysis runs to the end of the clip on the 0.5 vCPU replica);
+  the On air step showed "Microsoft Foundry agents (gpt-5-mini)" 23.1 s after the click; the approved caption went to
+  the broadcast view; Ask answered "Why did Red set up like that at 10:22?" in 6.4 s in the browser (6.0 s agent time,
+  1 run, 2 tool calls, 7,143 input and 136 output tokens), with the fixed intent note first. No page errors.
+- Image `sha-b3e6013` (the question card stays up while the clip is analysed), 10-26 00:26: 68 passed, 0 failed, no
+  console errors, 4 template-sentence checks kept as information (the expected sentence appeared in 2, the agents chose
+  other validated sentences in 2). `/api/health` after the run: `build.sha` b3e6013, 89 of the 300 daily runs used,
+  last call succeeded.
+
 ## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
 
 The app (in process, `TestClient`) with `APPLICATIONINSIGHTS_CONNECTION_STRING` set to the project's existing
