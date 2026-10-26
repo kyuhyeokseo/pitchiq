@@ -144,6 +144,16 @@ The same check on image `sha-9afb2c2` (the fan-caption fix), 2026-10-25 about 16
   other validated sentences in 2). `/api/health` after the run: `build.sha` b3e6013, 89 of the 300 daily runs used,
   last call succeeded.
 
+- Image `sha-631c890` (fixes from the four persona usability runs), 10-26 13:23, first run after the deployment:
+  the first step 7.1 s after the click; On air showed the Foundry text 31.3 s after the click; Ask 6.5 s. The public
+  walkthrough at 13:30 stopped at the On air approval: the socket had opened after the breakdown's seek and did not
+  send the insights built by it, so nothing could be approved for about 30 s. Fixed in `d47c0fe`.
+- Image `sha-d47c0fe` (the socket sends the insights so far when it opens), 10-26 13:53, first run after the
+  deployment: the first step 5.6 s after the click; On air had the validated-template text at once and showed the
+  Foundry text 26.1 s after the click; Ask answered in 7.8 s in the browser. No page errors. Public walkthrough at
+  13:59: 70 passed, 0 failed, no console errors, 4 template-sentence checks kept as information (expected sentence in
+  2, other validated sentences in 2). `/api/health` after the run: 90 of the 300 daily runs used, last call succeeded.
+
 ## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
 
 The app (in process, `TestClient`) with `APPLICATIONINSIGHTS_CONNECTION_STRING` set to the project's existing
