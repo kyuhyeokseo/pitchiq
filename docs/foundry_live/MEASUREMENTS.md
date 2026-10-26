@@ -153,6 +153,13 @@ The same check on image `sha-9afb2c2` (the fan-caption fix), 2026-10-25 about 16
   Foundry text 26.1 s after the click; Ask answered in 7.8 s in the browser. No page errors. Public walkthrough at
   13:59: 70 passed, 0 failed, no console errors, 4 template-sentence checks kept as information (expected sentence in
   2, other validated sentences in 2). `/api/health` after the run: 90 of the 300 daily runs used, last call succeeded.
+- Image `sha-3344b47` (moment chips in the breakdown, the next pass when no outcome is recorded, templates-0.3.2,
+  gliding playback), deployed 10-26 18:44. Public walkthrough at 18:46: 71 passed, 0 failed, no console errors, 4
+  template-sentence checks kept as information (expected sentence in 2, other validated sentences in 2). Playback on
+  the public URL (Clip 1, Just watch at 1x, 5 s): players moved on 300 of 301 animation frames, at most 0.13 m per
+  animation frame. A rehearsal of the video path after that (not a first run: the walkthrough had already built the
+  moment's narration): the first step 3.6 s after the click, On air with the Foundry text at once, Ask 7.3 s, no page
+  errors. `/api/health` after the runs: 87 of the 300 daily runs used since the deployment, last call succeeded.
 
 ## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
 
