@@ -359,7 +359,7 @@ def main() -> int:
             page.screenshot(path=str(args.out / "13_c_negative.png"))
 
             play_clip("clip_007")
-            card = open_episode("ep_clip_007_red_central_screen_f0025")
+            card = open_episode("ep_clip_007_red_central_screen_f0027")
             check("D: trap on the left centre-back is a restricting-only story",
                   "partial" in card and "Central routes screened" in card, card[:220].replace("\n", " | "))
             # the presser stands in the square pass back to the central centre-back (a pass to the keeper is not an

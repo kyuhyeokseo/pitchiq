@@ -55,9 +55,10 @@ from .tradeoffs import (
     to_claim,
 )
 
-ANALYTICS_VERSION = "analytics-0.3.0"  # 0.2: backward passes (lanes.max_backward_m) are not short options; 0.3: no
+ANALYTICS_VERSION = "analytics-0.4.0"  # 0.2: backward passes (lanes.max_backward_m) are not short options; 0.3: no
 # "space behind taken away" while the ball is behind the back line (claims.recovery_margin_m); the closing speed of
-# the defender running hardest at an unpressed carrier (carrier_closing_mps, pressure.closing_run_from_m)
+# the defender running hardest at an unpressed carrier (carrier_closing_mps, pressure.closing_run_from_m); 0.4: a press
+# that started (a run at the carrier, or contact) holds within pressure.hold_distance_m 3.5 m (pressers stand 3 m off)
 JOINABLE = frozenset({"accessible_free_receiver", "wide_outlet_available", "local_central_overload"})
 JOIN_TARGETS = frozenset({"press_vs_depth", "central_screen"})
 SUSTAIN_KEY = {"restricted": "sustain_s", "exposed": "exposure_sustain_s", "context": "sustain_s"}
@@ -350,7 +351,7 @@ class TacticalAnalyzer:
             carrier = self.buf.owner[k]
             ongoing = {fam for (team, fam), eid in self.open_key.items()
                        if team == r.phase.defending and fam in ("press_vs_depth", "central_screen")
-                       and self.episodes[eid].lifecycle != "candidate" and self.episodes[eid].anchor_carrier == carrier}
+                       and self.episodes[eid].anchor_carrier == carrier}
             if len(ongoing) == 1:
                 del out["central_routes_screened" if ongoing == {"press_vs_depth"} else "short_options_screened"]
             else:

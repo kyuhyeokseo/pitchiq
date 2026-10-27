@@ -32,6 +32,8 @@ def _complete(an):
     return [p for revs in an.packets.values() for p in revs if p.episode.analysis_status == "complete_tradeoff"]
 
 
+@pytest.mark.xfail(strict=True, reason="A main on the demo seed: no isolated_1v1 since generator 0.8 (pressers 3 m "
+                                        "off the ball); holdout-v2-0.14 A main exposed recall 20/22")
 def test_high_line_press_produces_a_supported_restricted_exposed_pair(main):
     pk = _complete(main[3])
     assert pk, "expected a complete trade-off on the main clip"

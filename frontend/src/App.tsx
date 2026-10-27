@@ -698,7 +698,7 @@ export function App() {
             {teams.map((tm: any) => <span key={tm.team_id} className={`kit${ep?.defending_team_id === tm.team_id ? " def" : ""}`}
               style={{ "--kit": teamColor(tm.team_id) } as CSSProperties}>{tm.display_name}{tm.attack_direction ? (tm.attack_direction === 1 ? " →" : " ←") : ""}{ep?.defending_team_id === tm.team_id ? " · defending" : ""}</span>)}
             <span className="lg r" /> what the defence takes away <span className="lg x" /> what it leaves open
-            {showFree && <><span className="lg free" /> unmarked (no defender within 8 m)</>}
+            {showFree && <><span className="lg free" /> unmarked (no defender within 10 m)</>}
 </p>
           <div className={`pitch-wrap${bdCur ? ` bd-on bd-${bdCur.key}` : ""}`} data-focus={focus}>
             {bdCur ? <div className="badge bd-badge">{bdStep + 1} / {BD_STEPS.length} · {BD_STEPS[bdStep].title[L]}

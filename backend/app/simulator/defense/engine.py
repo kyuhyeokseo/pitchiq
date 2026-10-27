@@ -94,6 +94,11 @@ STORY_LEASH_M = 20.0
 SCREEN_SPACING_M = 5.0
 # A marker stands at least this far from his man (tight, but two players are not drawn on top of each other).
 MARK_MIN_M = 3.0
+# 0.8 (the user's review): a presser stands off the man on the ball as a marker does, on the line of the pass he cuts,
+# so both players and the cut lane between them can be seen. A plan's longer stand-off (a press that lets him turn)
+# keeps its extra distance over the usual 1.6 m.
+PRESS_STOP_M = 3.0
+PRESS_LEAD_S = 0.6
 # A screen is not set on a man a team-mate already has (within this): the screener takes the most dangerous free
 # forward option instead.
 MARKED_M = 3.5
@@ -341,10 +346,13 @@ class DefenseSimulation:
                 cut = self.pos[j]
             else:
                 cut = np.array(p["cut"], float)
-            d = cut - self.pos[c]
+            # off where the man on the ball is going, so a carrier dribbling at him does not close the gap
+            at = self._predicted(c, 0.0, PRESS_LEAD_S)
+            d = cut - at
             n = np.linalg.norm(d)
-            off = d / n * p.get("stop", 1.4) if n > 1e-6 else np.zeros(2)
-            return self.pos[c] + off, p.get("speed", 7.0)
+            stop = PRESS_STOP_M + max(p.get("stop", 1.4) - 1.6, 0.0)
+            off = d / n * stop if n > 1e-6 else np.zeros(2)
+            return at + off, p.get("speed", 7.0)
         if kind == "run":
             return np.array(p["to"], dtype=float), p.get("speed", 7.5)
         if kind == "carry":
@@ -474,7 +482,7 @@ class DefenseSimulation:
         if self.engager is not None and self.engager[1] == i:
             c = self.engager[0]
             to_goal = np.array([105.0, 34.0]) - self.pos[c]
-            return self.pos[c] + to_goal / max(float(np.linalg.norm(to_goal)), 1e-6) * 1.3, 7.0
+            return self.pos[c] + to_goal / max(float(np.linalg.norm(to_goal)), 1e-6) * PRESS_STOP_M, 7.0
         kind = seg.kind
         if kind in ("chase", "attack_ball") or (kind == "recover" and "who" in seg.p):
             return tg, cap  # tracking a runner in behind, or going for the ball

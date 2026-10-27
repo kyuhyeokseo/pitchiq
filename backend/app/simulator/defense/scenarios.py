@@ -645,9 +645,10 @@ def family_e(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
          "speed": 15.0},
     ]
     if step:
-        # steps out to stop the carry, straight in front of the ball - not along the line to the man behind him
+        # steps out to stop the carry, in front of the ball on its outside - away from the line to the man behind him
+        # (0.8: standing 3 m off, straight in front still reached that pass)
         segs["D:LCM"].append(Seg(("rcb_ball_arrive", t_out), "press",
-                                 {"cut": (70.0, carry_to[1]), "stop": 1.8, "speed": 7.2}))
+                                 {"cut": (70.0, carry_to[1] - 25.0), "stop": 1.8, "speed": 7.2}))
         # the attacking midfielder moves into the space the stepping midfielder left
         segs["A:RCM"].append(Seg(("rcb_ball_arrive", t_out + 0.3), "run", {"to": _j(ar, (37.5, 33.0), 0.5),
                                                                           "speed": 5.0}))

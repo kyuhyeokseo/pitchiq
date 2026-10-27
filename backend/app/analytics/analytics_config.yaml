@@ -2,7 +2,7 @@
 # These are development heuristics for synthetic play, not validated football
 # thresholds. Freeze before holdout evaluation; if changed after looking at
 # test results, report on a new split. Change log at the bottom.
-version: "analytics-0.3.0"
+version: "analytics-0.4.0"
 
 window:
   state_s: 3.0            # trailing window for lines / marking
@@ -33,7 +33,7 @@ pressure:
   gate_distance_m: 6.0
   gate_closing_mps: 1.0
   gate_duration_s: 0.6
-  contact_distance_m: 2.0
+  contact_distance_m: 3.5    # pressers stand about 3 m off the carrier (generator 0.8); was 2.0
   closing_run_mps: 4.0      # "nobody closes him down" only if no defender runs at the carrier this fast ...
   closing_run_from_m: 16.0  # ... from within this distance
 lanes:
@@ -118,3 +118,7 @@ overlay:
 # 0.3.0 (2026-10-27): claims.recovery_margin_m (no "space behind taken away" while the ball is behind the line);
 #   carrier_closing_mps with pressure.closing_run_from_m (the narration does not say "nobody closes him down" while a
 #   defender runs at him at closing_run_mps or more).
+# 0.4.0 (2026-10-27): pressure.contact_distance_m 2.0 -> 3.5 (generator 0.8 pressers stand about 3 m off the
+#   carrier so both players can be seen; at 2.0 m a press ended as soon as the presser stopped closing). A story
+#   already open on the carrier, even before its claims are supported, keeps its family when a defender steps
+#   onto him (a marker 3 m off now counts as a presser a moment earlier).

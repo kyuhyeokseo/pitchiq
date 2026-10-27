@@ -30,8 +30,8 @@ type Props = {
 // edge. The keeper, the man on the ball and anyone in an offside position are left out, and only FREE_MAX of them (within FREE_REACH_M of the ball:
 // a switch to the far side counts) are ringed, the most room first. Whether a pass to him is on is the analysis'
 // call (lanes), not this ring's.
-const FREE_M = 8.0;
-const FREE_KEEP_M = 6.5;
+const FREE_M = 10.0;
+const FREE_KEEP_M = 8.5;
 const FREE_REACH_M = 60.0;
 const FREE_MAX = 3;
 // tags of the player who acts go first, so they get the spot above the player

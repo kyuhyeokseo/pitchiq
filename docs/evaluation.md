@@ -296,6 +296,7 @@ Robustness check, run as new versions with new seeds each time something changed
 | holdout-v2-0.11 | second fan review: recovery runs (10 m), engage from 32 m, markers 3 m off, no press cut onto a marked man, B compact's midfield ahead of its line, G's far centre-back recovers to his box; backward limit 6 m | 139/144 | 224/230 | 1/72 | 85/108 | 11/72 |
 | holdout-v2-0.12 (2026-10-27) | third fan review: generator 0.7 (A cover, B compact, C press cut, C support, G main and offside, E step), analytics 0.3 (no "space behind taken away" while the ball is behind the line) | 141/144 | 225/231 | 3/72 | 82/108 | 15/72 |
 | holdout-v2-0.13 (2026-10-27) | second AI analyst review: no "nobody closes him down" while a defender runs at the carrier; G main's midfield zonal, G offside's striker cuts the pass to the keeper, C support's holding midfielder holds his line | 139/144 | 219/225 | 3/72 | 78/108 | 20/72 |
+| holdout-v2-0.14 (2026-10-27) | project lead's review: pressers stand 3 m off the ball (generator 0.8), a press holds within 3.5 m and an open story keeps its family (analytics 0.4), E step's midfielder steps out on the carrier's outside | 140/144 | 229/238 | 4/72 | 82/106 | 8/71 |
 
 A second screenshot review as football fans (three reviewers, all 12 clips) then found: the back line holding the box
 edge, keepers at home, no back passes counted, clips ending at the turnover, unmarked players ringed; and, still,
@@ -381,3 +382,43 @@ Robustness check after these changes (rows 0.12 and 0.13 in the table above, new
 Feature sweep on the final build of this round (`evaluation/walkthrough/sweep.py`, offline): 12 clips, 27 moments,
 every breakdown step, On air and the desk features, no page errors or failed actions; while playing, players move at
 most 0.16 m per animation frame. `make test`: 282 passed. Browser walkthrough: see the measured results in the README.
+
+## Generator 0.8, analytics 0.4: pressers stand off the ball (2026-10-27)
+
+From the project lead's review of the live clips: the presser and the man on the ball were drawn on top of each other
+(clip 1: Red #9 on Blue #5), which hid both the press and the pass he cuts. Unmarked rings also moved from 8 m to 10 m.
+
+Changed:
+- **Generator 0.8:** a presser stands 3 m off the man on the ball, on the line of the pass he cuts, measured from where
+  the carrier is going (0.6 s ahead) so a carrier dribbling at him does not close the gap; a plan's longer stand-off
+  keeps its extra distance. A defender engaging a free carrier near goal stands 3 m goal-side of him (was 1.3 m).
+  E step's midfielder steps out on the carrier's outside: 3 m off and straight in front, he still reached the pass to
+  the man behind him. Over the 12 demo clips, the frames with an opponent within 2.5 m of the man on the ball (the
+  two discs touching) fell from 207 to 51; the rest are presses on their way in, recovery runs alongside a runner and
+  tackles.
+- **Analytics 0.4:** `pressure.contact_distance_m` 3.5 (was 2.0): at 2.0 m a press ended as soon as a presser
+  standing 3 m off stopped closing. A marker 3 m off the man who receives now counts as a presser a moment earlier,
+  which turned clip 1's man-oriented press into a lane-oriented story; a story already open on the carrier, even
+  before its claims are supported, now keeps its family when a defender steps onto him. A rule that started a press
+  only on a run at the carrier was tried first and dropped: it lost the press in clip 3, where the striker moves from
+  marking 3 m off onto the lane 3 m off without closing.
+- **Display:** an unmarked player has no opponent within 10 m (was 8 m; kept until one comes within 8.5 m).
+
+Demo clips (seed 7) after the change:
+- Clips 1, 3 and 9 keep their complete trade-offs (clip 1's is still detected at 10:25).
+- Two exposed claims are no longer seen on the demo seed: clip 1's isolated 1v1 and clip 3's dropping ten as a free
+  receiver. Both held for about 0.4 s just before the pass. In clip 3 the striker, standing 3 m off on the pass to the
+  other centre-back, now also reaches the pass to the ten (14 degrees apart); a wider drop was tried and dropped (a
+  midfielder came near that pass instead). The tests that expect them are strict expected failures.
+- Clip 7 (the trap) gains a complete trade-off at 7:00 (space behind and a 1 v 1 for the striker) besides the
+  restricting-only trap.
+
+Robustness check (row 0.14, new seeds 19000-19011, not re-run after the results): 140 of 144 matched, precision
+229/238, wrong emphasis 4 of 72 (C support 3, A cover 1), exposed recall 82/106, abstention 8 of 71. A main found its
+exposed claims in 20 of 22 (18 of 24 in 0.13), E step in 10 of 12 (7 of 12). C main's outcome agreed with the design
+in only 4 of 12 plays (10 of 12 in 0.13), and D escape in 4 of 12 (6 of 12): not investigated before the deadline.
+
+Feature sweep on this build (offline): 12 clips, 28 moments, every breakdown step, On air and the desk features,
+no page errors or failed actions. While playing, players move at most 0.36 m per animation frame, except one frame in
+clip 9 that jumped 1.98 m (the tracking moves at most 1.45 m per 0.2 s there; a rerun of that clip was not completed).
+`make test`: 278 passed, 4 expected failures (above). Browser walkthrough offline: 74 of 74.

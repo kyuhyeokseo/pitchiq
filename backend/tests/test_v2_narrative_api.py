@@ -511,7 +511,7 @@ def test_the_breakdown_tells_the_moment_in_four_steps_from_the_evidence(client):
     c = client
     clip = load_clip("clip_001")
     rid, H, _ = _create(c)
-    ep = "ep_clip_001_red_press_vs_depth_f0062"
+    ep = "ep_clip_001_red_press_vs_depth_f0058"
     # before the outcome is known, the last step says so and draws no ball path (the replay's own causality)
     c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 13.4, "expected_epoch": 1},
            headers=H)
@@ -614,7 +614,7 @@ def test_without_an_outcome_the_breakdown_shows_the_next_pass_the_replay_has_see
     blocked = {(ln.carrier_id, ln.receiver_id) for ln in key_state(pk).lanes if ln.availability == "screened"}
     assert happened["through_blocked"] is (("blue_01", "blue_04") in blocked)
     # the next moment, where Red block the middle: BLU #4's pass is intercepted by RED #5, and the clip ends there
-    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_007_red_central_screen_f0025"},
+    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_007_red_central_screen_f0027"},
               headers=H).json()
     happened = b["steps"][3]
     assert happened["next_pass"]["kind"] == "interception"
@@ -666,6 +666,6 @@ def test_the_breakdown_press_step_and_a_shot_without_an_outcome(client):
     rid, H, _ = _create(c)
     c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": load_clip("clip_001").end_s,
                                                 "expected_epoch": 1}, headers=H)
-    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_001_red_central_screen_f0050"},
+    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_001_red_central_screen_f0048"},
               headers=H).json()
     assert "closes down" in b["steps"][0]["sentences"][0] and b["steps"][0]["press_facts"] is None

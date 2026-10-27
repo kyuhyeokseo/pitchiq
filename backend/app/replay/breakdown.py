@@ -39,7 +39,7 @@ OBSERVED = ("exploited_in_synthetic_play", "not_exploited_in_window")
 ALIGN_S = 1.0  # the press is told on the moment of the cost when that comes more than this much later
 # unmarked players (the same rule as the pitch's rings): no opponent within UNMARKED_M, not followed by a marker, within
 # UNMARKED_REACH_M of the ball (a switch to the far side counts); the UNMARKED_MAX with the most room
-UNMARKED_M, UNMARKED_REACH_M, UNMARKED_MAX = 8.0, 60.0, 3
+UNMARKED_M, UNMARKED_REACH_M, UNMARKED_MAX = 10.0, 60.0, 3
 
 
 def _sentences(pk: EvidencePacket, language: str, clip: Clip, audience: str = "fan") -> list[tuple[str, str | None, str]]:

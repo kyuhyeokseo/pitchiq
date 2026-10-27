@@ -1,10 +1,10 @@
 {
-  "base": "http://127.0.0.1:54865",
+  "base": "http://127.0.0.1:47381",
   "checks": [
     {
       "check": "health endpoint",
       "ok": true,
-      "detail": "{\"status\": \"ok\", \"version\": \"0.2.0\", \"build\": {\"sha\": \"dev\"}, \"analytics_version\": \"analytics-0.3.0\", \"template_registry_version\": \"templates-0.4.0\", \"metric_registry_version\": \"metrics/2.0.0\", \"llm_mode\": \"offline\", \"foundry_configured\": true, \"cloud_enabled\": false, \"telemetry\": {\"enabled\": false, \"error\": null}, \"cloud_disabled_reason\": \"LLM_MODE is not foundry\", \"last_cloud_result\": {\"calls_total\": 0, \"last_call_succeeded\": null, \"last_error\": null, \"last_result_utc\": null, \"pipelines_today\": 0, \"daily_limit\": null}, \"sessions\": 0, \"sockets\": 0}"
+      "detail": "{\"status\": \"ok\", \"version\": \"0.2.0\", \"build\": {\"sha\": \"dev\"}, \"analytics_version\": \"analytics-0.4.0\", \"template_registry_version\": \"templates-0.4.0\", \"metric_registry_version\": \"metrics/2.0.0\", \"llm_mode\": \"offline\", \"foundry_configured\": true, \"cloud_enabled\": false, \"telemetry\": {\"enabled\": false, \"error\": null}, \"cloud_disabled_reason\": \"LLM_MODE is not foundry\", \"last_cloud_result\": {\"calls_total\": 0, \"last_call_succeeded\": null, \"last_error\": null, \"last_result_utc\": null, \"pipelines_today\": 0, \"daily_limit\": null}, \"sessions\": 0, \"sockets\": 0}"
     },
     {
       "check": "pitch renders 22 players",
@@ -64,12 +64,12 @@
     {
       "check": "A exposed: pitch labels do not overlap or leave the pitch",
       "ok": true,
-      "detail": "{\"n\": 5, \"overlaps\": 0, \"outside\": 0}"
+      "detail": "{\"n\": 3, \"overlaps\": 0, \"outside\": 0}"
     },
     {
       "check": "inspector shows the metrics behind the clicked area",
       "ok": true,
-      "detail": "Evidence \u00b7 Exposure | Space behind the line exposed \u00b7 heuristic inference \u00b7 strength 1.00 \u00b7 12.0\u201313.2s | players BLU #9, RED #3, RED #4, RED #5 | Isolated 1v1 exposed"
+      "detail": "Evidence \u00b7 Exposure | Space behind the line exposed \u00b7 heuristic inference \u00b7 strength 1.00 \u00b7 12.0\u201313.2s | players BLU #9, RED #3, RED #4, RED #5 | Back line from its o"
     },
     {
       "check": "Fan/KO narration rendered",
@@ -94,7 +94,7 @@
     {
       "check": "Ask: an answer with its source and real trace",
       "ok": true,
-      "detail": "\u201cWhat did that leave open?\u201d |  | As of 10:32 \u00b7 about the moment at 10:25 |  | Red United are screening the short passes: 3 of 3 nearby options are covered. |  | The cost: the back line is pushed up high, and BLU #9 is running into the space behind it. | "
+      "detail": "\u201cWhat did that leave open?\u201d |  | As of 10:33 \u00b7 about the moment at 10:25 |  | Red United are screening the short passes: 3 of 3 nearby options are covered. |  | The cost: the back line is pushed up high, and BLU #9 is running into the space behind it. | "
     },
     {
       "check": "Ask: show on pitch selects the moment in replay",
@@ -104,22 +104,22 @@
     {
       "check": "Recap: 1-3 moments with their sentences and the source",
       "ok": true,
-      "detail": "2 items | Recap so far |  | Up to three moments for you \u00b7 Microsoft Agent Framework \u00b7 checked line by line |  | Update the recap |  | As of 10:32 \u00b7 deterministic recap |  | Moment at 10:22 | Show on pitch |  | RED #9 closes down the"
+      "detail": "3 items | Recap so far |  | Up to three moments for you \u00b7 Microsoft Agent Framework \u00b7 checked line by line |  | Update the recap |  | As of 10:33 \u00b7 deterministic recap |  | Moment at 10:16 | Show on pitch |  | RED #7 closes down the"
     },
     {
       "check": "negative clip: same press stays a partial analysis",
       "ok": true,
-      "detail": "Moment at 30:59 | partial |  | 3 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | line retreat | Inconclusive | B"
+      "detail": "Moment at 30:56 | partial |  | 3 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | line retreat | Inconclusive | B"
     },
     {
       "check": "negative clip: suppression reason shown",
       "ok": true,
-      "detail": "Evidence |  | Click a line, area or label on the pitch. |  | 1 claim \u00b7 10 measurements \u00b7 analysed up to 31:02 |  | Not claimed: behind space exposed \u2014 secondary cover in time |  | Not claimed: isolated 1v1 \u2014 secondar"
+      "detail": "Evidence |  | Click a line, area or label on the pitch. |  | 2 claims \u00b7 12 measurements \u00b7 analysed up to 31:02 |  | Not claimed: behind space exposed \u2014 secondary cover in time |  | Not claimed: isolated 1v1 \u2014 seconda"
     },
     {
       "check": "C: press cut + screen + wide outlet form a complete trade-off",
       "ok": true,
-      "detail": "Moment at 22:08 | complete trade-off |  | 6 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Accessible free receiver heuristic | Wide outlet available heuristic | Observed so far | defe"
+      "detail": "Moment at 22:08 | complete trade-off |  | 4 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Wide outlet available heuristic | Observed so far | Exploited in synthetic play | Before (rev"
     },
     {
       "check": "C: outcome revision after the wide pass",
@@ -154,12 +154,12 @@
     {
       "check": "C negative: with the wingers supporting the screen nobody comes free, the story stays partial",
       "ok": true,
-      "detail": "Moment at 40:13 | partial |  | 2 updates so far \u00b7 clip ended |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | No outcome recorded | Befor"
+      "detail": "Moment at 40:06 | partial |  | 3 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | Inconclusive | Before (rev 1)"
     },
     {
       "check": "D: trap on the left centre-back is a restricting-only story",
       "ok": true,
-      "detail": "Moment at 7:00 | partial |  | 2 updates so far \u00b7 finished |  | What is restricted | Central routes screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | Inconclusive | Before (rev 1) | After (rev 2) | Narra"
+      "detail": "Moment at 7:01 | partial |  | 2 updates so far \u00b7 finished |  | What is restricted | Central routes screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | Inconclusive | Before (rev 1) | After (rev 2) | Narra"
     },
     {
       "check": "D: the presser stands in the passing line (press-cut lane drawn)",
@@ -194,7 +194,7 @@
     {
       "check": "D escape: narration tells reception before the step",
       "ok": true,
-      "detail": "received by BLU #5. |  | Defensive adjustment observed next: RED #9 stepped up 14.6 m to BLU #5. |  | Scores are heuristic evidence strength under fixed speed assumptio"
+      "detail": "received by BLU #5. |  | Defensive adjustment observed next: RED #9 stepped up 14.5 m to BLU #5. |  | Scores are heuristic evidence strength under fixed speed assumptio"
     },
     {
       "check": "D escape: pitch labels do not overlap or leave the pitch",
@@ -294,17 +294,17 @@
     {
       "check": "Breakdown 1, the press: presser and ball carrier tagged, who-follows-whom tethers drawn",
       "ok": true,
-      "detail": "tags ['On the ball', 'Presser'], 6 tethers | Moments in this clip | 10:14 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it takes away | 3 What it leaves op"
+      "detail": "tags ['On the ball', 'Presser'], 6 tethers | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
     },
     {
       "check": "Breakdown 2, what it takes away: the blocked passes, and nothing of the exposed side",
       "ok": true,
-      "detail": "Moments in this clip | 10:14 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it takes away | 3 What it leaves op"
+      "detail": "Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
     },
     {
       "check": "Breakdown 3, what it leaves open: the space behind and the runner, no blocked passes",
       "ok": true,
-      "detail": "tags ['Cover', 'Runner'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it takes away | 3 What it leaves op"
+      "detail": "tags ['Cover', 'Runner'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
     },
     {
       "check": "Breakdown 3: pitch labels do not overlap or leave the pitch",
@@ -314,7 +314,7 @@
     {
       "check": "Breakdown 4, what happened: the ball's path from the passer to the receiver",
       "ok": true,
-      "detail": "tags ['Pass', 'Receives here'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it takes away | 3 What it leaves op"
+      "detail": "tags ['Pass', 'Receives here'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
     },
     {
       "check": "Breakdown 5, on air: approving puts the moment's caption on the broadcast view",
@@ -324,7 +324,7 @@
     {
       "check": "Breakdown: another moment of the clip from the panel, and the next pass it saw in step 4",
       "ok": true,
-      "detail": "3 moments | 1 / 5 \u00b7 The press \u00b7 10:14.2 \u00b7 rev 1 | tags ['Pass', 'Receives here'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it takes away | 3 What it leaves op"
+      "detail": "4 moments | 1 / 5 \u00b7 The press \u00b7 10:14.2 \u00b7 rev 1 | tags ['Pass', 'Receives here'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
     },
     {
       "check": "Breakdown: exit returns to the desk",
@@ -334,7 +334,7 @@
     {
       "check": "Play at the end of a clip starts it again from the beginning",
       "ok": true,
-      "detail": "0.0s / 20.8s"
+      "detail": "0.0s / 21.0s"
     },
     {
       "check": "Pause mid-clip keeps the pitch on the paused frame (no jump to an earlier moment)",
@@ -344,7 +344,7 @@
     {
       "check": "Seek bar: a drag lands where it is let go and the pitch shows that time",
       "ok": true,
-      "detail": "624.8 | PREVIEW \u00b7 LIVE \u00b7 10:24"
+      "detail": "625.0 | PREVIEW \u00b7 LIVE \u00b7 10:25"
     },
     {
       "check": "25 clip switches free their replays (no 429, at most 2 open)",
@@ -377,5 +377,5 @@
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-27T16:36:34Z"
+  "time_utc": "2026-10-27T20:49:20Z"
 }
