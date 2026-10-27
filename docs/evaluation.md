@@ -253,3 +253,58 @@ Not changed (analytics or synthetic data, noted for later work): back-line dista
 from the drawn line by several metres; some observed-change trails do not match the quoted distance; the lane model
 counts some passes as blocked that are then played, or with no defender in the lane; "behind" counts that read oddly
 (3 v 0); a free striker at the edge of the box with nothing open claimed; overlapping discs in tight marking pairs.
+
+## Generator 0.6: team behaviour after a review as a football fan (2026-10-26)
+
+The project lead reviewed the demo clips as a football fan and found team behaviour that does not look like football:
+midfielders bunched together (clip 2 Red #6 and #10, clip 3 Blue #6 and #10), a back line that kept retreating while
+the attackers kept coming (end of clip 2), a centre-back following a striker across instead of holding his side (clip 11
+Red #4), a keeper far off his line (clip 11), a defender screening the pass to a man a team-mate already marked (clip 6),
+a ground switch between centre-backs past two strikers (clip 10), back passes counted as passes the defence "took away",
+and clips that ran on after the defence had won the ball. Changes (generator 0.6, analytics 0.2, UI):
+- **Team shape:** each defending player stays within a leash of his formation spot (moved with the ball), keeps his
+  spacing, and the back line holds the edge of its box unless the ball or his man is deeper; the nearest outfield
+  defender engages a free carrier in a dangerous spot (goal-distance danger); a screen skips a man a team-mate already
+  has; markers stand at least 2.4 m off their man; the defending keeper stays within about 7 m of his line (8 m for a
+  ball in behind); a pressing player is free of the leash while he presses the ball.
+- **Passes:** linking passes wait up to 2 s for a likely lane (pass success from the pass length and the defenders who can
+  reach its line first); the staged passes were re-checked with the same measure and the scenarios moved where a
+  presser stood in the line of the pass to his own man (A, B, C, D), E's switch goes over the screen to the far full back,
+  C support goes back to the keeper instead of into a marked full back, and G's striker shoots once he is through.
+- **Scenarios:** B's holding midfielder follows the pivot up the pitch (the mistake that leaves the gap behind him), C's
+  screens stand apart and pick up their men once the ball goes wide, E's back line sits about 42 m from goal (a
+  mid-block) and its front three hold their height, G's near centre-back chases the run while the far one holds his side,
+  A's striker curves in from outside to show the ball inside onto the markers.
+- **Clip ends:** 1.6 s after the defence wins the ball (3.5 s after the last planned action otherwise).
+- **Analytics 0.2:** a receiver more than 6 m back toward the carrier's own goal is not a short option.
+- **UI:** the unmarked players of the team on the ball are ringed (no defender within 5 m; the three nearest the ball within 40 m).
+
+On the regenerated demo clips: the defending keeper is at most 8.1 m off his line (19.1 m before), the deepest four
+defenders never go deeper than 14 m from their goal (1.8 m before, clip 2), every staged
+ground pass has a pass-success value of at least 0.5 (several were under 0.1), and every clip's designed story is still
+told: a complete trade-off in the seven clips built for one, partial in the five counter-examples.
+
+Robustness check, run as new versions with new seeds each time something changed after results were seen:
+
+| version | what changed before it | matched | designed precision | wrong emphasis | exposed recall | abstention |
+|---|---|---|---|---|---|---|
+| holdout-v2-0.6 (2026-10-23) | (generator 0.5) | 144/144 | 241/242 | 1/72 | 95/108 | 1/72 |
+| holdout-v2-0.7 | generator 0.6, backward limit 3 m | 128/144 | 193/207 | 2/72 | 65/106 | 14/71 |
+| holdout-v2-0.8 | backward limit 8 m (3 m also dropped square passes in a back three) | 138/144 | 226/237 | 2/72 | 86/108 | 8/72 |
+| holdout-v2-0.9 | the keeper rule only for the defending keeper; D's centre-back start and escape timing (validation seeds) | 140/144 | 228/236 | 1/72 | 84/108 | 14/72 |
+| holdout-v2-0.10 | A's striker cuts the pass to the full back; marking leash 18 m (found on the demo clip, seed 7) | 137/144 | 221/234 | 3/72 | 82/108 | 15/72 |
+| holdout-v2-0.11 | second fan review: recovery runs (10 m), engage from 32 m, markers 3 m off, no press cut onto a marked man, B compact's midfield ahead of its line, G's far centre-back recovers to his box; backward limit 6 m | 139/144 | 224/230 | 1/72 | 85/108 | 11/72 |
+
+A second screenshot review as football fans (three reviewers, all 12 clips) then found: the back line holding the box
+edge, keepers at home, no back passes counted, clips ending at the turnover, unmarked players ringed; and, still,
+a striker left unchallenged 28 m out at the end of clip 2, recovery runs that were too slow, a presser cutting the pass
+to a man a team-mate had, diagonal passes 7-8 m back still counted, B compact's midfield level with its back four,
+markers drawn on top of their men, and a far centre-back who held his side but did not recover (clip 11). Those went
+into 0.11. The rings were renamed "unmarked" (no defender within 5 m) and limited to the three nearest the ball within
+40 m: a ring next to a pass the analysis calls screened read as a contradiction when it said "free". Not changed:
+look-alike pairs share their opening (clips 7 and 8, 9 and 10, 11 and 12 are a story and its counter-example from the
+same start), and keepers stay near their line behind a high line, as the project lead asked.
+
+The weakest set-up in 0.11 is the free centre-back in the four-player press (D escape: exposure found in 7 of 12).
+More realistic defending makes the staged mistakes smaller, so the analyzer finds them less often; the numbers also
+move with the seed set.

@@ -91,6 +91,10 @@ def screen_pass_options(buf: ObservationBuffer, k: int, attacking: str, defendin
     for r in buf.members(attacking, outfield=False):
         if r == carrier:
             continue
+        # only forward and square passes are options a defence takes away; a pass back toward the carrier's own goal
+        # (to a centre-back behind him or the goalkeeper) is not counted, screened or not
+        if float(uv[r, 0]) < float(uv[carrier, 0]) - c.max_backward_m:
+            continue
         L = float(np.linalg.norm(uv[r] - ball_uv))
         if not (c.min_length_m <= L <= c.max_length_m):
             continue

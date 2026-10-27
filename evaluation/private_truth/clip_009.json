@@ -1,6 +1,6 @@
 {
   "clip_id": "clip_009",
-  "generator_version": "defense-0.5.0",
+  "generator_version": "defense-0.6.0",
   "seed": 7,
   "private_config": {
     "family": "E",
@@ -61,7 +61,7 @@
     "free_ball_release_t": 3028.8,
     "arrive_1_t": 3029.8,
     "free_ball_arrive_t": 3029.8,
-    "end_t": 3034.8
+    "end_t": 3033.4
   },
   "attacking_team_id": "red",
   "defending_team_id": "blue"

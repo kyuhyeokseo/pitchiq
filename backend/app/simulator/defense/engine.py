@@ -31,9 +31,9 @@ SLOT_KINDS = frozenset({"hold", "check", "screen", "press", "carry", "run"})
 # The game also stays compact when the ball moves on through short passes: a player of the team in possession left
 # far behind the ball moves up, and a defender the ball has gone past gets back goal-side of it.
 TRAIL_MAX_M = 35.0
-BYPASSED_M = 15.0
+BYPASSED_M = 10.0
 RECOVER_SPEED = 6.5
-TAIL_S = 5.0  # a clip ends this long after the last planned ball action has been resolved
+TAIL_S = 3.5  # a clip ends this long after the last planned ball action has been resolved
 # Off-ball players follow the ball and never stand still. Slopes measured on real 11-v-11 play (IDSSE, 7 matches,
 # 4 s windows, least squares of a player's displacement on the ball's): along u they depend on where the player is
 # relative to the ball (metres nearer the goal the team in possession attacks) and on whether the ball went forward
@@ -68,6 +68,63 @@ ROLL_SHARE, ROLL_MAX_MPS = 0.3, 5.0  # rolling speed after it lands: a share of 
 ROLL_DECEL = 3.0  # m/s^2
 ROLL_MAX_S = 2.0
 ONSIDE_M = 0.3  # a pass to a runner is never released with him less than this onside
+# --- team shape (0.6, after a review by the user as a football fan) ---
+# Keepers stay at home: a few metres off the line with the ball near, a little more with it far away, and no
+# further than GK_SWEEP_MAX_M for a ball played in behind.
+GK_OFF_M = ((25.0, 3.0), (70.0, 7.0))  # (ball distance from goal, keeper's distance off his line)
+GK_SWEEP_MAX_M = 8.0
+# A clip ends shortly after the defending team wins the ball (the story is over).
+TURNOVER_TAIL_S = 1.6
+# Goal-distance danger, an expected-threat-like surface: how much a ball (or a man) at a spot threatens the goal.
+# exp(-(d - 6) / 14) times an angle factor: about 0.7 at 11 m central, 0.37 at 20 m, 0.18 at 30 m, 0.04 at 50 m.
+DANGER_SCALE_M = 14.0
+# The back line holds the edge of its box instead of retreating on and on: it goes deeper only with the ball near
+# goal or to stay with a man who is already deeper.
+LINE_FLOOR_M = 16.0
+DEEP_BALL_M = 24.0
+# The man on the ball in a dangerous spot is always engaged by the nearest defender if nobody is on him.
+ENGAGE_DANGER = 0.15  # about 32 m out, centrally
+ENGAGE_FREE_M = 4.0
+# Formation: a defender's spot moves with the ball (the block shifts about half the ball's movement along the
+# pitch and a third across it); behaviours may take him only this far from it, so the shape holds.
+BLOCK_SHIFT = (0.5, 0.33)
+LEASH_M = {"mark": 18.0, "screen": 10.0, "cover": 10.0, "hold": 8.0, "check": 8.0, "press": 18.0,
+           "press_mark": 18.0}  # a man-marker follows his man further than a zonal player strays
+STORY_LEASH_M = 20.0
+SCREEN_SPACING_M = 5.0
+# A marker stands at least this far from his man (tight, but two players are not drawn on top of each other).
+MARK_MIN_M = 3.0
+# A screen is not set on a man a team-mate already has (within this): the screener takes the most dangerous free
+# forward option instead.
+MARKED_M = 3.5
+# Passes: a ground pass is played only when it is likely to arrive, waiting up to PASS_WAIT_S for the lane to clear.
+PASS_MIN_P = 0.5
+PASS_WAIT_S = 2.0
+INTERCEPT_SPEED = 6.5  # how fast a defender closes on a passing lane (m/s), after his reaction
+INTERCEPT_REACT_S = 0.3
+
+
+def danger(p: np.ndarray) -> float:
+    """Goal-distance danger of a spot for the team attacking toward u = 105 (see DANGER_SCALE_M)."""
+    d = float(np.hypot(105.0 - p[0], 34.0 - p[1]))
+    angle = (105.0 - float(p[0])) / max(d, 1e-6)  # cosine of the angle off the goal axis
+    return float(np.exp(-max(d - 6.0, 0.0) / DANGER_SCALE_M) * (0.55 + 0.45 * max(angle, 0.0)))
+
+
+def pass_success(start: np.ndarray, end: np.ndarray, speed: float, opponents: np.ndarray) -> float:
+    """Chance a ground pass from start to end arrives: every opponent who can reach a point of its line before the
+    ball cuts it with a probability that grows with his time margin, and a long pass is harder (60 m: e^-1). The last
+    30 % of the line does not count: a defender pressing the receiver does not cut the pass to him."""
+    d = end - start
+    L = float(np.linalg.norm(d))
+    if L < 1e-6:
+        return 1.0
+    f = np.clip(((opponents - start) @ d) / (L * L), 0.05, 0.7)
+    pts = start + f[:, None] * d
+    t_ball = f * L / speed
+    t_def = np.linalg.norm(opponents - pts, axis=1) / INTERCEPT_SPEED + INTERCEPT_REACT_S
+    cut = 1.0 / (1.0 + np.exp((t_def - t_ball) / 0.15))
+    return float(np.prod(1.0 - cut) * np.exp(-L / 60.0))
 
 
 def key_index(key: str) -> int:
@@ -143,6 +200,8 @@ class DefenseSimulation:
         pos = np.zeros((N, 2))
         for key, (u, v) in plan.init.items():
             pos[key_index(key)] = (u, v)
+        # the defending keeper starts at home (GK_OFF_M), whatever spot the plan gave him
+        pos[11, 0] = max(pos[11, 0], 105.0 - GK_OFF_M[1][1])
         self.pos = clip_to_pitch(pos)
         self.vel = np.zeros((N, 2))
         self.vel[:11, 0] = 0.3
@@ -177,6 +236,11 @@ class DefenseSimulation:
         self.frames: list[SimFrame] = []
         self.markers: dict[str, float | int | None] = {}
         self.cur_seg: list[Seg | None] = [None] * N  # each player's active behaviour on the current step
+        self.init_pos = self.pos.copy()  # the formation: each player's spot at the start, moved with the ball
+        self.ball0 = self.ball.copy()
+        self.engager: tuple[int, int] | None = None  # (carrier, defender) engaging a man on the ball near goal
+        self.pass_wait: dict[int, float] = {}  # ball step -> when it was first ready (waiting for a clear lane)
+        self.turnover_t: float | None = None  # when the defending team won the ball
         self._record()
 
     # ------------------------------------------------------------- helpers
@@ -234,6 +298,8 @@ class DefenseSimulation:
         p, kind = seg.p, seg.kind
         lag = p.get("lag", self.plan.lag_s)
         if kind in ("hold", "check"):  # a slot that follows the play; a check also shows for the ball around it
+            if i == self.owner:  # the man on the ball shields it where he is (his slot must not chase his own ball)
+                return pos.copy(), 1.5
             _, _, ball0 = self.seg_start[i]
             at = np.array(p["at"], dtype=float)
             follow = np.array(p["shift"]) * (self.ball - ball0) if "shift" in p else self._follow(i, ball0)
@@ -255,7 +321,11 @@ class DefenseSimulation:
                 far = float(np.clip((np.linalg.norm(pred - self.ball) - LOOSE_FROM_M) / LOOSE_SPAN_M, 0.0, 1.0))
                 # a defender in the back line can drop off inside only, holding the line's height (loose_gs 0)
                 gs, inside = gs + p.get("loose_gs", LOOSE_GS_M) * far, inside + LOOSE_INSIDE_M * far
-            return pred + np.array([side * gs, inside * np.sign(34.0 - pred[1])]), p.get("speed", 7.0)
+            off = np.array([side * gs, inside * np.sign(34.0 - pred[1])])
+            n = float(np.linalg.norm(off))
+            if 1e-6 < n < MARK_MIN_M:
+                off = off * (MARK_MIN_M / n)
+            return pred + off, p.get("speed", 7.0)
         if kind == "press_mark":  # press the assigned man while he has the ball, otherwise mark him
             if self._carrier() == key_index(p["who"]):
                 return self._target(i, Seg(seg.t, "press", p))
@@ -264,7 +334,13 @@ class DefenseSimulation:
             c = self._carrier()
             if c is None or (c < 11) == (i < 11):
                 return self.pos[i].copy(), 3.0
-            cut = self.pos[key_index(p["cut"])] if isinstance(p.get("cut"), str) else np.array(p["cut"], float)
+            if isinstance(p.get("cut"), str):
+                j = key_index(p["cut"])
+                if i not in self.steady and self._marked_by_mate(j, i):  # a team-mate has him: cut a free option
+                    j = self._free_option(i, self.pos[c], j)
+                cut = self.pos[j]
+            else:
+                cut = np.array(p["cut"], float)
             d = cut - self.pos[c]
             n = np.linalg.norm(d)
             off = d / n * p.get("stop", 1.4) if n > 1e-6 else np.zeros(2)
@@ -298,6 +374,8 @@ class DefenseSimulation:
         if kind == "screen":  # stand on the passing line between the ball and an opponent (a cover shadow)
             j = key_index(p["who"])
             src = self.ball if p.get("from", "ball") == "ball" else self.pos[key_index(p["from"])]
+            if i not in self.steady and self._marked_by_mate(j, i):  # a team-mate has him: take a free forward option
+                j = self._free_option(i, src, j)
             tgt_pos = self._predicted(j, lag, 0.3)
             return src + p.get("frac", 0.5) * (tgt_pos - src), p.get("speed", 6.5)
         if kind == "attack_ball":  # go for the ball: the landing point while it travels, else the ball
@@ -310,13 +388,18 @@ class DefenseSimulation:
                 return pos.copy(), 2.0
             aim = self.flight.end if self.flight is not None else self.ball
             return aim + np.array([side * p.get("goal_side_m", 1.0), 0.0]), p.get("speed", 8.0)
-        if kind == "gk":
+        if kind == "gk":  # the defending keeper stays at home: a few metres off his line (GK_OFF_M), tracking the
+            # ball across; the keeper of the team building up stands where the plan puts him (an option at the back)
             at = np.array(p["at"], dtype=float)
-            return np.array([at[0], 34.0 + p.get("track", 0.15) * (self.ball[1] - 34.0)]), p.get("speed", 4.0)
-        if kind == "sweep":  # goalkeeper advances toward the ball's landing point, staying in his area
+            ball_d = float(np.hypot(self.ball[0] - 105.0, self.ball[1] - 34.0))
+            off = float(np.interp(ball_d, [GK_OFF_M[0][0], GK_OFF_M[1][0]], [GK_OFF_M[0][1], GK_OFF_M[1][1]]))
+            u = max(float(at[0]), 105.0 - off) if i >= 11 else float(at[0])
+            return np.array([u, 34.0 + p.get("track", 0.15) * (self.ball[1] - 34.0)]), p.get("speed", 4.0)
+        if kind == "sweep":  # goalkeeper comes toward the ball's landing point, but only a few metres off his line
             aim = self.flight.end if self.flight is not None else self.ball
             lo, hi = p.get("u_range", (88.5, 103.0))
-            return np.array([np.clip(aim[0], lo, hi), np.clip(aim[1], 20.0, 48.0)]), p.get("speed", 6.0)
+            lo = max(lo, 105.0 - GK_SWEEP_MAX_M)
+            return np.array([np.clip(aim[0], lo, hi), np.clip(aim[1], 24.0, 44.0)]), p.get("speed", 6.0)
         raise ValueError(f"unknown behaviour {kind}")
 
     def _follow(self, i: int, ball0: np.ndarray) -> np.ndarray:
@@ -346,7 +429,7 @@ class DefenseSimulation:
             return clip_to_pitch(tg, 2.0), min(cap, 5.0)
         return self._spread(i, end + self._follow(i, ball0) + HOLD_WANDER_M * self.wander[i]), min(cap, 5.0)
 
-    def _spread(self, i: int, tg: np.ndarray) -> np.ndarray:
+    def _spread(self, i: int, tg: np.ndarray, spacing: float = SPACING_M) -> np.ndarray:
         """Move a slot off outfield team-mates closer than SPACING_M, so players offer angles instead of bunching,
         and keep it a couple of metres inside the lines (a full back does not run into the touchline)."""
         if i in self.steady:
@@ -354,11 +437,81 @@ class DefenseSimulation:
         mates = self.pos[1:11] if i < 11 else self.pos[12:22]
         d = tg - mates
         n = np.linalg.norm(d, axis=1)
-        close = (n < SPACING_M) & (np.linalg.norm(mates - self.pos[i], axis=1) > 1e-9)
+        close = (n < spacing) & (np.linalg.norm(mates - self.pos[i], axis=1) > 1e-9)
         if close.any():
             unit = d[close] / np.maximum(n[close], 1e-6)[:, None]
-            tg = tg + (unit * (SPACING_M - n[close])[:, None]).sum(axis=0)
+            tg = tg + (unit * (spacing - n[close])[:, None]).sum(axis=0)
         return clip_to_pitch(tg, 2.0)
+
+    def _marked_by_mate(self, j: int, i: int) -> bool:
+        """Whether a team-mate of player i (outfield) already stands within MARKED_M of opponent j."""
+        mates = [k for k in (range(12, N) if i >= 11 else range(1, 11)) if k != i]
+        return bool(np.min(np.linalg.norm(self.pos[mates] - self.pos[j], axis=1)) < MARKED_M)
+
+    def _free_option(self, i: int, src: np.ndarray, j: int) -> int:
+        """The most dangerous forward option of the team on the ball that no team-mate of i has (else j)."""
+        best, best_d = j, -1.0
+        for k in (range(1, 11) if i >= 11 else range(12, N)):
+            if k == self.owner or self._marked_by_mate(k, i):
+                continue
+            q = self.pos[k]
+            if float(np.linalg.norm(q - src)) > 32.0 or q[0] < src[0] - 3.0:  # in reach, and not a pass backward
+                continue
+            dk = danger(q)
+            if dk > best_d:
+                best, best_d = k, dk
+        return best
+
+    def _shape(self, i: int, seg: Seg | None, tg: np.ndarray, cap: float) -> tuple[np.ndarray, float]:
+        """The defending team's shape on top of each man's behaviour: the nearest man engages a free carrier in a
+        dangerous spot, everyone else stays within a leash of his formation spot (moved with the ball) and apart
+        from team-mates, and the back line holds the edge of its box unless the ball, or a man it follows, is
+        deeper (goal-distance danger, DANGER_SCALE_M)."""
+        if i < 12 or seg is None or self.possession == 1 or i == self.owner:
+            return tg, cap
+        if self.flight is not None and i == self.flight.receiver:
+            return tg, cap
+        if self.engager is not None and self.engager[1] == i:
+            c = self.engager[0]
+            to_goal = np.array([105.0, 34.0]) - self.pos[c]
+            return self.pos[c] + to_goal / max(float(np.linalg.norm(to_goal)), 1e-6) * 1.3, 7.0
+        kind = seg.kind
+        if kind in ("chase", "attack_ball") or (kind == "recover" and "who" in seg.p):
+            return tg, cap  # tracking a runner in behind, or going for the ball
+        pressing = kind == "press" or (kind == "press_mark" and self._carrier() == key_index(seg.p["who"]))
+        if pressing:
+            return tg, cap  # a press on the ball goes where the ball is
+        anchor = self.init_pos[i] + np.array([BLOCK_SHIFT[0] * (self.ball[0] - self.ball0[0]),
+                                              BLOCK_SHIFT[1] * (self.ball[1] - self.ball0[1])])
+        leash = STORY_LEASH_M if i in self.steady else LEASH_M.get(kind)
+        if kind in ("hold", "check") and "shift" in seg.p:
+            leash = None  # a spot the plan pins is a designed position (a press, a step-up), not a drift
+        if leash is not None:
+            off = tg - anchor
+            n = float(np.linalg.norm(off))
+            if n > leash:
+                tg = anchor + off * (leash / n)
+        if kind in ("screen", "cover") and i not in self.steady:
+            tg = self._spread(i, tg, SCREEN_SPACING_M)
+        ball_d = float(np.hypot(105.0 - self.ball[0], 34.0 - self.ball[1]))
+        floor_u = 105.0 - (LINE_FLOOR_M if ball_d > DEEP_BALL_M else 6.0)
+        if tg[0] > floor_u:
+            who = seg.p.get("who") if kind in ("mark", "press_mark") else seg.p.get("track") if kind == "cover" else None
+            if who is None or self.pos[key_index(who), 0] <= floor_u:
+                tg = np.array([floor_u, float(tg[1])])
+        return tg, cap
+
+    def _update_engager(self) -> None:
+        """The man on the ball in a dangerous spot with nobody on him is engaged by the nearest outfield defender,
+        who stays on him while the danger lasts."""
+        c = self.owner
+        if c < 0 or c >= 11 or self.possession != 0 or danger(self.pos[c]) < ENGAGE_DANGER:
+            self.engager = None
+            return
+        if self.engager is not None and self.engager[0] == c:
+            return
+        d = np.linalg.norm(self.pos[12:N] - self.pos[c], axis=1)
+        self.engager = (c, 12 + int(np.argmin(d))) if float(d.min()) > ENGAGE_FREE_M else None
 
     def _after_long_ball(self, i: int, seg: Seg | None, tg: np.ndarray, cap: float) -> tuple[np.ndarray, float]:
         """Players still holding a slot from before a long ball shift with the play instead of standing still."""
@@ -448,6 +601,7 @@ class DefenseSimulation:
             self.owner = gk
             self.possession = 1 - passer_team
             self._emit("interception", self.possession, gk, None, f.event, self.ball)
+            self.turnover_t = self.t
         else:
             opp = range(11, N) if passer_team == 0 else range(0, 11)
             d_recv = float(np.linalg.norm(self.pos[f.receiver] - f.end))
@@ -463,6 +617,7 @@ class DefenseSimulation:
                 self.possession = 1 - passer_team
                 self._emit("interception", self.possession, best_j, None, f.event, self.ball)
                 self.markers["interception_t"] = self.t
+                self.turnover_t = self.t
             else:
                 self.owner = f.receiver
                 self.possession = passer_team
@@ -497,6 +652,20 @@ class DefenseSimulation:
         return near > RECEIVE_M and (self.k - f.k1) * DT < ROLL_MAX_S - 1e-9
 
     def _trigger_ok(self, cfg: dict) -> bool:
+        """A planned ball action is played once its trigger is met; a ground pass also waits (up to PASS_WAIT_S)
+        until it is likely to arrive (pass_success), instead of being played through defenders."""
+        if not self._trigger_ready(cfg):
+            return False
+        # only the build-up's linking passes wait: a named pass is part of the story, timed by the plan
+        if cfg["kind"] != "pass" or cfg.get("style") == "lofted" or cfg.get("trigger") is not None or cfg.get("name"):
+            return True
+        since = self.pass_wait.setdefault(self.step_i, self.t)
+        if self.t - since >= PASS_WAIT_S - 1e-9:
+            return True
+        opp = self.pos[11:N] if self.owner < 11 else self.pos[0:11]
+        return pass_success(self.ball, self.pos[key_index(cfg["to"])], cfg.get("speed", 15.0), opp) >= PASS_MIN_P
+
+    def _trigger_ready(self, cfg: dict) -> bool:
         t = self.t
         if self.owner < 0 or self.owner != key_index(cfg["from"]):
             return False
@@ -567,6 +736,7 @@ class DefenseSimulation:
                     self._release(cfg)
             tgt = np.empty((N, 2))
             cap = np.empty(N)
+            self._update_engager()
             for i, key in enumerate(keys):
                 seg = self._active_seg(i, key)
                 self.cur_seg[i] = seg
@@ -574,6 +744,7 @@ class DefenseSimulation:
                 tg, cp = self._settle(i, seg, tg, cp)
                 tg, cp = self._after_long_ball(i, seg, tg, cp)
                 tg, cp = self._keep_compact(i, seg, tg, cp)
+                tg, cp = self._shape(i, seg, tg, cp)
                 tgt[i], cap[i] = tg + self.noise[i], cp
             if self.flight is not None and self.flight.receiver is not None:
                 r, f = self.flight.receiver, self.flight
@@ -601,6 +772,8 @@ class DefenseSimulation:
                 self.done_t = self.t
             if self.done_t is not None and self.t >= self.done_t + TAIL_S - 1e-9:
                 break
+            if self.turnover_t is not None and self.t >= self.turnover_t + TURNOVER_TAIL_S - 1e-9:
+                break  # the defending team has won the ball: the story is over
         if self.flight is not None:
             self.markers["unresolved_flight"] = True
         self.markers["end_t"] = self.t

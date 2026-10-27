@@ -37,9 +37,9 @@ PRESS_TEMPLATES = ("press_cut", "passive_screen", "press_numbers")
 OBSERVED = ("exploited_in_synthetic_play", "not_exploited_in_window")
 
 
-def _sentences(pk: EvidencePacket, language: str, clip: Clip) -> list[tuple[str, str | None, str]]:
-    """(template key, claim id, rendered text) of the deterministic fan plan for this revision."""
-    plan = producer_plan(pk, analyst_plan(pk)).variant("fan", language)
+def _sentences(pk: EvidencePacket, language: str, clip: Clip, audience: str = "fan") -> list[tuple[str, str | None, str]]:
+    """(template key, claim id, rendered text) of the deterministic fan (or analyst) plan for this revision."""
+    plan = producer_plan(pk, analyst_plan(pk)).variant(audience, language)
     return [(s.template_key, s.claim_id, render_sentence(s, pk, language, clip.meta)) for s in plan.sentences]
 
 
@@ -186,10 +186,11 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: floa
         exposed = about_target(r_open) if target else []
         exposed = exposed or [c for c in r_open.claims if c.claim_id in r_open.episode.exposed_claim_ids]
         ids = {c.claim_id for c in exposed}
+        # the fan plan keeps a few sentences; when none is about these claims, the analyst plan says it
+        texts = ([t for _, cid, t in _sentences(r_open, language, clip) if cid in ids]
+                 or [t for _, cid, t in _sentences(r_open, language, clip, "analyst") if cid in ids])
         steps.append(_step("leaves_open", r_open, _layers(c.code for c in exposed),
-                           [p for c in exposed for p in c.player_ids],
-                           [t for _, cid, t in _sentences(r_open, language, clip) if cid in ids],
-                           _runner_and_cover(r_open, exposed)))
+                           [p for c in exposed for p in c.player_ids], texts, _runner_and_cover(r_open, exposed)))
     else:
         # nothing open is supported: say so, and why a claim was held back when the analysis recorded a reason
         # (code:reason:player, such as a run from an offside position)

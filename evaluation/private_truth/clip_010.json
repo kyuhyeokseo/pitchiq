@@ -1,6 +1,6 @@
 {
   "clip_id": "clip_010",
-  "generator_version": "defense-0.5.0",
+  "generator_version": "defense-0.6.0",
   "seed": 7,
   "private_config": {
     "family": "E",
@@ -22,7 +22,7 @@
     "optional": [],
     "window_clip_s": [
       2.2,
-      9.6
+      10.0
     ],
     "executed": true
   },
@@ -59,9 +59,9 @@
     "rcb_ball_arrive_t": 3386.2,
     "release_1_t": 3392.0,
     "switch_release_t": 3392.0,
-    "arrive_1_t": 3393.6,
-    "switch_arrive_t": 3393.6,
-    "end_t": 3398.6
+    "arrive_1_t": 3394.0,
+    "switch_arrive_t": 3394.0,
+    "end_t": 3397.6
   },
   "attacking_team_id": "red",
   "defending_team_id": "blue"

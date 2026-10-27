@@ -343,6 +343,11 @@ button.primary { background: #fff; color: var(--panel-2); border: 0; font-weight
 .pl-tag.runner rect, .pl-tag.cover rect { fill: var(--cyan); }
 .pl-tag { pointer-events: none; }
 .pl-tag-lead { stroke: #fff; stroke-width: 0.22; stroke-opacity: 0.9; }
+/* an unmarked player of the team on the ball: amber dashes, never read as a press (yellow) or an exposure (cyan) */
+.free-ring { fill: none; stroke: #ffb02e; stroke-width: 0.35; stroke-dasharray: 0.9 0.5; }
+.free-tx { fill: #ffb02e; font-size: 1.5px; font-weight: 700; pointer-events: none; paint-order: stroke;
+  stroke: rgba(14, 0, 16, 0.75); stroke-width: 0.35; }
+.lg.free { border: 1.5px dashed #ffb02e; border-radius: 50%; width: 10px; height: 10px; }
 .ball-path { fill: none; stroke: #fff; stroke-width: 0.5; stroke-dasharray: 1.3 0.7; stroke-linecap: round; stroke-linejoin: round; }
 .ball-path-shadow { fill: none; stroke: rgba(14, 0, 16, 0.45); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
 .ball-path-start { fill: #fff; }

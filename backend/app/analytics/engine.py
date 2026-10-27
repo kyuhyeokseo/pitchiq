@@ -55,7 +55,7 @@ from .tradeoffs import (
     to_claim,
 )
 
-ANALYTICS_VERSION = "analytics-0.1.1"
+ANALYTICS_VERSION = "analytics-0.2.0"  # 0.2: backward passes (lanes.max_backward_m) are not short options
 JOINABLE = frozenset({"accessible_free_receiver", "wide_outlet_available", "local_central_overload"})
 JOIN_TARGETS = frozenset({"press_vs_depth", "central_screen"})
 SUSTAIN_KEY = {"restricted": "sustain_s", "exposed": "exposure_sustain_s", "context": "sustain_s"}

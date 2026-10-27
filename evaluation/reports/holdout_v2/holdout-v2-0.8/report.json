@@ -1,0 +1,7726 @@
+{
+ "config": {
+  "version": "holdout-v2-0.8",
+  "seeds": [
+   13000,
+   13011
+  ],
+  "changes_from_previous": [
+   "analyzer 0.2: the backward limit for a short option is 8 m (0.7 used 3 m, which also dropped square passes between the centre-backs of a back three and removed D's lane-cut trap on the demo clip; found by a unit test on the demo clips, not by holdout results)"
+  ],
+  "changes_in_0_7": [
+   "generator 0.6: keepers stay within about 7 m of their line (8 m for a ball in behind); a clip ends 1.6 s after the defending team wins the ball, 3.5 s after the last planned action otherwise",
+   "generator 0.6: the defending team keeps a leash to its formation spots (moved with the ball) and its spacing, the back line holds the edge of its box unless the ball or its man is deeper, the nearest defender engages a free carrier in a dangerous spot (goal-distance danger), a screen skips a man a team-mate already has, markers stand at least 2.4 m off their man",
+   "generator 0.6: linking passes wait (up to 2 s) for a likely lane; pressers mark goal-side until their man has the ball; B's holding midfielder follows the pivot; C's screens stand apart and pick up their men once the ball goes wide, and in C support the centre-back goes back to the keeper; E hold switches over the screen to the far full back; G's near centre-back chases the run and the striker shoots",
+   "analyzer 0.2: a pass more than 3 m back toward the carrier's own goal is not a short option (screened or open)"
+  ],
+  "changes_in_0_6": [
+   "generator 0.5: a pass to a runner is never released offside (the trigger allows for the line stepping up), and a ball played into space rolls on until someone reaches it (no reception from 2 m away)",
+   "generator 0.5: in C support the far winger steps into the lane to the far centre-back (left open, that square ball was the free man the support is meant to take away)",
+   "generator 0.5: C's story players shift their feet where they wait and the carrier keeps the ball moving",
+   "definition: D main's story accepts either restriction label (central routes screened or short options screened), as C has since 0.2; the analyzer names it by whichever it sees first on the carrier"
+  ],
+  "changes_in_0_5": [
+   "generator 0.4.1: D's double pivot holds its height and slides across, so its markers stay in the build-up zone (the D trap's 4 v 5 count)",
+   "frontend: overlapping episodes are stacked on separate timeline rows (one bar could cover another and could not be clicked)"
+  ],
+  "changes_in_0_4": [
+   "generator 0.4: in A, the midfield, the ball-far wide midfielder and the far full back (inside only, at the line's height) drop off a man far from the ball (loose marking, slopes from IDSSE); the striker's marker and the second centre-back stay tight",
+   "generator 0.4: C's pivot slides across, C's midfield screen is released once the ball goes wide, E's free man waits at his height before moving into the space",
+   "analyzer: an outcome revision after a turnover no longer pulls in the other team's state (it used to stop the analysis)"
+  ],
+  "perturb": {
+   "lag_scale": [
+    0.75,
+    1.35
+   ],
+   "cushion_scale": [
+    0.85,
+    1.2
+   ],
+   "speed_scale": [
+    0.93,
+    1.07
+   ],
+   "timing_scale": [
+    0.9,
+    1.15
+   ],
+   "start_jitter_m": 1.0
+  },
+  "matching": {
+   "iou_min": 0.3
+  },
+  "targets": {
+   "supported_claim_precision": 0.9,
+   "counter_example_wrong_emphasis": 0
+  }
+ },
+ "generator_version": "defense-0.6.0",
+ "analytics_config_sha256": "2fe49bbcccbad1207702717fc3c7c0fad306233c099ac7a6e6b1e281fe82b130",
+ "run": {
+  "host": "hpc-compute-node",
+  "time_utc": "2026-10-27T02:06:48Z",
+  "wall_s": 99.5,
+  "seeds": [
+   13000,
+   13011
+  ]
+ },
+ "by_variant": {
+  "A:cover": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 11,
+   "onset_lag_s_median": 2.2,
+   "onset_lag_s_max": 4.0,
+   "complete_when_expected": "0/0",
+   "complete_when_not_expected": "0/12",
+   "restricted_recall": "11/12 (0.92)",
+   "exposed_recall": "0/0",
+   "designed_precision": "11/11 (1.00)",
+   "extra_claims": {},
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "12/12",
+   "abstained": 0,
+   "unmatched_episodes_per_min": 9.73
+  },
+  "A:main": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 9,
+   "onset_lag_s_median": 2.2,
+   "onset_lag_s_max": 4.0,
+   "complete_when_expected": "9/12",
+   "complete_when_not_expected": "0/0",
+   "restricted_recall": "9/12 (0.75)",
+   "exposed_recall": "13/24 (0.54)",
+   "designed_precision": "22/22 (1.00)",
+   "extra_claims": {},
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "9/12",
+   "abstained": 3,
+   "unmatched_episodes_per_min": 10.98
+  },
+  "B:compact": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 12,
+   "onset_lag_s_median": 0.8,
+   "onset_lag_s_max": 0.8,
+   "complete_when_expected": "0/0",
+   "complete_when_not_expected": "0/12",
+   "restricted_recall": "12/12 (1.00)",
+   "exposed_recall": "0/0",
+   "designed_precision": "12/12 (1.00)",
+   "extra_claims": {},
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "12/12",
+   "abstained": 0,
+   "unmatched_episodes_per_min": 6.65
+  },
+  "B:main": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 12,
+   "onset_lag_s_median": 0.8,
+   "onset_lag_s_max": 0.8,
+   "complete_when_expected": "12/12",
+   "complete_when_not_expected": "0/0",
+   "restricted_recall": "12/12 (1.00)",
+   "exposed_recall": "23/24 (0.96)",
+   "designed_precision": "35/35 (1.00)",
+   "extra_claims": {},
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "11/12",
+   "abstained": 0,
+   "unmatched_episodes_per_min": 12.16
+  },
+  "C:main": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 12,
+   "onset_lag_s_median": 1.4,
+   "onset_lag_s_max": 2.6,
+   "complete_when_expected": "12/12",
+   "complete_when_not_expected": "0/0",
+   "restricted_recall": "12/12 (1.00)",
+   "exposed_recall": "22/24 (0.92)",
+   "designed_precision": "34/34 (1.00)",
+   "extra_claims": {},
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "12/12",
+   "abstained": 0,
+   "unmatched_episodes_per_min": 3.21
+  },
+  "C:support": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 12,
+   "onset_lag_s_median": 1.4,
+   "onset_lag_s_max": 2.6,
+   "complete_when_expected": "0/0",
+   "complete_when_not_expected": "3/12",
+   "restricted_recall": "12/12 (1.00)",
+   "exposed_recall": "0/0",
+   "designed_precision": "12/15 (0.80)",
+   "extra_claims": {
+    "accessible_free_receiver": 2,
+    "wide_outlet_available": 1
+   },
+   "wrong_emphasis_clips": 2,
+   "outcome_agreement": "12/12",
+   "abstained": 0,
+   "unmatched_episodes_per_min": 4.56
+  },
+  "D:escape": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 10,
+   "onset_lag_s_median": 5.1,
+   "onset_lag_s_max": 6.4,
+   "complete_when_expected": "8/12",
+   "complete_when_not_expected": "0/0",
+   "restricted_recall": "10/12 (0.83)",
+   "exposed_recall": "5/12 (0.42)",
+   "designed_precision": "15/21 (0.71)",
+   "extra_claims": {
+    "behind_space_exposed": 3,
+    "isolated_1v1": 3
+   },
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "3/12",
+   "abstained": 4,
+   "unmatched_episodes_per_min": 8.0
+  },
+  "D:main": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 12,
+   "onset_lag_s_median": 2.3,
+   "onset_lag_s_max": 3.0,
+   "complete_when_expected": "0/0",
+   "complete_when_not_expected": "2/12",
+   "restricted_recall": "12/12 (1.00)",
+   "exposed_recall": "0/0",
+   "designed_precision": "12/14 (0.86)",
+   "extra_claims": {
+    "accessible_free_receiver": 2
+   },
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "12/12",
+   "abstained": 0,
+   "unmatched_episodes_per_min": 3.12
+  },
+  "E:hold": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 12,
+   "onset_lag_s_median": 0.8,
+   "onset_lag_s_max": 2.6,
+   "complete_when_expected": "0/0",
+   "complete_when_not_expected": "0/12",
+   "restricted_recall": "12/12 (1.00)",
+   "exposed_recall": "0/0",
+   "designed_precision": "12/12 (1.00)",
+   "extra_claims": {},
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "12/12",
+   "abstained": 0,
+   "unmatched_episodes_per_min": 1.07
+  },
+  "E:step": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 12,
+   "onset_lag_s_median": 0.8,
+   "onset_lag_s_max": 2.6,
+   "complete_when_expected": "11/12",
+   "complete_when_not_expected": "0/0",
+   "restricted_recall": "12/12 (1.00)",
+   "exposed_recall": "11/12 (0.92)",
+   "designed_precision": "23/23 (1.00)",
+   "extra_claims": {},
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "11/12",
+   "abstained": 1,
+   "unmatched_episodes_per_min": 5.2
+  },
+  "G:main": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 12,
+   "onset_lag_s_median": 0.8,
+   "onset_lag_s_max": 1.0,
+   "complete_when_expected": "12/12",
+   "complete_when_not_expected": "0/0",
+   "restricted_recall": "12/12 (1.00)",
+   "exposed_recall": "12/12 (1.00)",
+   "designed_precision": "25/25 (1.00)",
+   "extra_claims": {},
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "12/12",
+   "abstained": 0,
+   "unmatched_episodes_per_min": 4.67
+  },
+  "G:offside": {
+   "clips": 12,
+   "executed": 12,
+   "story_matched": 12,
+   "onset_lag_s_median": 0.8,
+   "onset_lag_s_max": 1.0,
+   "complete_when_expected": "0/0",
+   "complete_when_not_expected": "1/12",
+   "restricted_recall": "12/12 (1.00)",
+   "exposed_recall": "0/0",
+   "designed_precision": "13/13 (1.00)",
+   "extra_claims": {},
+   "wrong_emphasis_clips": 0,
+   "outcome_agreement": "12/12",
+   "abstained": 0,
+   "unmatched_episodes_per_min": 5.59
+  }
+ },
+ "overall": {
+  "clips": 144,
+  "executed": 144,
+  "story_matched": 138,
+  "designed_claim_precision": "226/237 (0.95)",
+  "restricted_recall": "138/144 (0.96)",
+  "exposed_recall": "86/108 (0.80)",
+  "counter_example_clips": 72,
+  "counter_example_wrong_emphasis_clips": 2,
+  "abstention_rate": "8/72 (0.11)",
+  "unmatched_episodes_per_min": 6.7,
+  "analysis_step_wall_ms": {
+   "p50": 7.8,
+   "p95": 9.4,
+   "max": 39.24,
+   "frames": 11344
+  },
+  "plans": {
+   "revisions": 1218,
+   "valid": 1218,
+   "invalid": {},
+   "fallback_ratio": 1.0,
+   "model_calls": 0
+  }
+ },
+ "clips": [
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.2,
+   "episodes": 4,
+   "plans": {
+    "revisions": 12,
+    "valid": 12,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    8.6,
+    18.6
+   ],
+   "matched": true,
+   "iou": 0.68,
+   "onset_lag_s": 4.0,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.6,
+   "episodes": 3,
+   "plans": {
+    "revisions": 11,
+    "valid": 11,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    9.6,
+    19.0
+   ],
+   "matched": true,
+   "iou": 0.896,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed",
+     "isolated_1v1"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.6,
+   "episodes": 6,
+   "plans": {
+    "revisions": 19,
+    "valid": 19,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    8.8,
+    19.0
+   ],
+   "matched": true,
+   "iou": 0.745,
+   "onset_lag_s": 3.4,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 5,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed",
+     "isolated_1v1"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 21.0,
+   "episodes": 5,
+   "plans": {
+    "revisions": 16,
+    "valid": 16,
+    "complete_revisions": 7
+   },
+   "story_window_s": [
+    10.0,
+    19.4
+   ],
+   "matched": true,
+   "iou": 0.917,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed",
+     "isolated_1v1"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.8,
+   "episodes": 6,
+   "plans": {
+    "revisions": 16,
+    "valid": 16,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    9.4,
+    19.2
+   ],
+   "matched": true,
+   "iou": 0.714,
+   "onset_lag_s": 3.2,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 5,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.6,
+   "episodes": 4,
+   "plans": {
+    "revisions": 11,
+    "valid": 11,
+    "complete_revisions": 2
+   },
+   "story_window_s": [
+    9.8,
+    19.0
+   ],
+   "matched": false,
+   "iou": 0.0,
+   "onset_lag_s": null,
+   "expected_complete": true,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 0,
+   "exposed_expected": 2,
+   "exposed_found": 0,
+   "claims_found": 0,
+   "claims_designed": 0,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 4,
+   "matched_episode": null
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.4,
+   "episodes": 3,
+   "plans": {
+    "revisions": 11,
+    "valid": 11,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    8.6,
+    18.8
+   ],
+   "matched": true,
+   "iou": 0.863,
+   "onset_lag_s": 2.2,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.2,
+   "episodes": 5,
+   "plans": {
+    "revisions": 16,
+    "valid": 16,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    9.8,
+    18.6
+   ],
+   "matched": true,
+   "iou": 0.795,
+   "onset_lag_s": 2.0,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed",
+     "isolated_1v1"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.6,
+   "episodes": 4,
+   "plans": {
+    "revisions": 13,
+    "valid": 13,
+    "complete_revisions": 7
+   },
+   "story_window_s": [
+    9.0,
+    19.0
+   ],
+   "matched": true,
+   "iou": 0.922,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.0,
+   "episodes": 5,
+   "plans": {
+    "revisions": 14,
+    "valid": 14,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    9.0,
+    18.4
+   ],
+   "matched": true,
+   "iou": 0.787,
+   "onset_lag_s": 2.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.6,
+   "episodes": 4,
+   "plans": {
+    "revisions": 10,
+    "valid": 10
+   },
+   "story_window_s": [
+    10.6,
+    19.0
+   ],
+   "matched": false,
+   "iou": 0.0,
+   "onset_lag_s": null,
+   "expected_complete": true,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 0,
+   "exposed_expected": 2,
+   "exposed_found": 0,
+   "claims_found": 0,
+   "claims_designed": 0,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 4,
+   "matched_episode": null
+  },
+  {
+   "family": "A",
+   "variant": "main",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.2,
+   "episodes": 5,
+   "plans": {
+    "revisions": 13,
+    "valid": 13
+   },
+   "story_window_s": [
+    8.8,
+    18.6
+   ],
+   "matched": false,
+   "iou": 0.0,
+   "onset_lag_s": null,
+   "expected_complete": true,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 0,
+   "exposed_expected": 2,
+   "exposed_found": 0,
+   "claims_found": 0,
+   "claims_designed": 0,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 5,
+   "matched_episode": null
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.0,
+   "episodes": 3,
+   "plans": {
+    "revisions": 14,
+    "valid": 14,
+    "complete_revisions": 9
+   },
+   "story_window_s": [
+    6.2,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.88,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.8,
+   "episodes": 4,
+   "plans": {
+    "revisions": 21,
+    "valid": 21,
+    "complete_revisions": 17
+   },
+   "story_window_s": [
+    6.4,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.815,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.6,
+   "episodes": 4,
+   "plans": {
+    "revisions": 17,
+    "valid": 17,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    6.2,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.885,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.8,
+   "episodes": 4,
+   "plans": {
+    "revisions": 16,
+    "valid": 16,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    6.2,
+    11.0
+   ],
+   "matched": true,
+   "iou": 0.889,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.6,
+   "episodes": 4,
+   "plans": {
+    "revisions": 16,
+    "valid": 16,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    6.4,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.733,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.2,
+   "episodes": 5,
+   "plans": {
+    "revisions": 19,
+    "valid": 19,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    6.2,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.84,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.6,
+   "episodes": 5,
+   "plans": {
+    "revisions": 21,
+    "valid": 21,
+    "complete_revisions": 12
+   },
+   "story_window_s": [
+    6.6,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.87,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.8,
+   "episodes": 5,
+   "plans": {
+    "revisions": 21,
+    "valid": 21,
+    "complete_revisions": 11
+   },
+   "story_window_s": [
+    6.2,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.595,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.6,
+   "episodes": 5,
+   "plans": {
+    "revisions": 20,
+    "valid": 20,
+    "complete_revisions": 11
+   },
+   "story_window_s": [
+    6.2,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.88,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.0,
+   "episodes": 5,
+   "plans": {
+    "revisions": 19,
+    "valid": 19,
+    "complete_revisions": 12
+   },
+   "story_window_s": [
+    6.0,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.71,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.6,
+   "episodes": 7,
+   "plans": {
+    "revisions": 23,
+    "valid": 23,
+    "complete_revisions": 12
+   },
+   "story_window_s": [
+    6.8,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.643,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 6,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "not_yet_observed"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "main",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.4,
+   "episodes": 6,
+   "plans": {
+    "revisions": 23,
+    "valid": 23,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    6.2,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.88,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 5,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [
+     "between_lines_receiver",
+     "press_block_disconnected"
+    ],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.4,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.892,
+   "onset_lag_s": 1.4,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.4,
+   "episodes": 1,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.8,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.865,
+   "onset_lag_s": 1.6,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 6
+   },
+   "story_window_s": [
+    3.4,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.686,
+   "onset_lag_s": 1.4,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 1,
+   "plans": {
+    "revisions": 5,
+    "valid": 5,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.4,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.895,
+   "onset_lag_s": 1.4,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 6
+   },
+   "story_window_s": [
+    3.6,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.673,
+   "onset_lag_s": 1.4,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.6,
+   "episodes": 1,
+   "plans": {
+    "revisions": 5,
+    "valid": 5,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.6,
+    10.0
+   ],
+   "matched": true,
+   "iou": 0.652,
+   "onset_lag_s": 1.4,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.6,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.919,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.6,
+   "episodes": 1,
+   "plans": {
+    "revisions": 5,
+    "valid": 5,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.6,
+    10.0
+   ],
+   "matched": true,
+   "iou": 0.706,
+   "onset_lag_s": 2.6,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.4,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.429,
+   "onset_lag_s": 1.4,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.8,
+   "episodes": 3,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 7
+   },
+   "story_window_s": [
+    3.4,
+    10.2
+   ],
+   "matched": true,
+   "iou": 0.919,
+   "onset_lag_s": 1.4,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 6
+   },
+   "story_window_s": [
+    3.4,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.66,
+   "onset_lag_s": 1.6,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "main",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 9,
+    "valid": 9,
+    "complete_revisions": 7
+   },
+   "story_window_s": [
+    3.4,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.921,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 2,
+   "exposed_found": 2,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 17.6,
+   "episodes": 3,
+   "plans": {
+    "revisions": 7,
+    "valid": 7
+   },
+   "story_window_s": [
+    8.6,
+    16.0
+   ],
+   "matched": true,
+   "iou": 0.568,
+   "onset_lag_s": 4.0,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    9.6,
+    16.6
+   ],
+   "matched": true,
+   "iou": 0.944,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 17.8,
+   "episodes": 5,
+   "plans": {
+    "revisions": 12,
+    "valid": 12
+   },
+   "story_window_s": [
+    8.8,
+    16.2
+   ],
+   "matched": true,
+   "iou": 0.649,
+   "onset_lag_s": 3.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.2,
+   "episodes": 4,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    10.0,
+    16.6
+   ],
+   "matched": true,
+   "iou": 0.941,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 17.8,
+   "episodes": 5,
+   "plans": {
+    "revisions": 11,
+    "valid": 11
+   },
+   "story_window_s": [
+    9.4,
+    16.2
+   ],
+   "matched": true,
+   "iou": 0.647,
+   "onset_lag_s": 3.2,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 17.4,
+   "episodes": 4,
+   "plans": {
+    "revisions": 9,
+    "valid": 9
+   },
+   "story_window_s": [
+    9.8,
+    15.8
+   ],
+   "matched": true,
+   "iou": 0.567,
+   "onset_lag_s": 3.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 17.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    8.6,
+    16.2
+   ],
+   "matched": true,
+   "iou": 0.816,
+   "onset_lag_s": 2.2,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 17.6,
+   "episodes": 4,
+   "plans": {
+    "revisions": 10,
+    "valid": 10
+   },
+   "story_window_s": [
+    9.8,
+    16.0
+   ],
+   "matched": true,
+   "iou": 0.806,
+   "onset_lag_s": 2.0,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 17.8,
+   "episodes": 3,
+   "plans": {
+    "revisions": 7,
+    "valid": 7
+   },
+   "story_window_s": [
+    9.0,
+    16.2
+   ],
+   "matched": true,
+   "iou": 0.946,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.6,
+   "episodes": 6,
+   "plans": {
+    "revisions": 16,
+    "valid": 16
+   },
+   "story_window_s": [
+    9.0,
+    19.0
+   ],
+   "matched": true,
+   "iou": 0.8,
+   "onset_lag_s": 2.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 5,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 17.4,
+   "episodes": 4,
+   "plans": {
+    "revisions": 9,
+    "valid": 9
+   },
+   "story_window_s": [
+    10.6,
+    15.8
+   ],
+   "matched": true,
+   "iou": 0.731,
+   "onset_lag_s": 2.2,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "A",
+   "variant": "cover",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 17.6,
+   "episodes": 4,
+   "plans": {
+    "revisions": 9,
+    "valid": 9
+   },
+   "story_window_s": [
+    8.8,
+    16.0
+   ],
+   "matched": false,
+   "iou": 0.0,
+   "onset_lag_s": null,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 0,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 0,
+   "claims_designed": 0,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 4,
+   "matched_episode": null
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 19.8,
+   "episodes": 3,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    6.0,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.917,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.4,
+   "episodes": 4,
+   "plans": {
+    "revisions": 11,
+    "valid": 11,
+    "complete_revisions": 2
+   },
+   "story_window_s": [
+    6.4,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.913,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.4,
+   "episodes": 4,
+   "plans": {
+    "revisions": 12,
+    "valid": 12
+   },
+   "story_window_s": [
+    6.2,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.913,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    6.2,
+    11.0
+   ],
+   "matched": true,
+   "iou": 0.92,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    6.4,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.913,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    6.2,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.909,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 19.6,
+   "episodes": 4,
+   "plans": {
+    "revisions": 12,
+    "valid": 12
+   },
+   "story_window_s": [
+    6.6,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.905,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.8,
+   "episodes": 3,
+   "plans": {
+    "revisions": 10,
+    "valid": 10
+   },
+   "story_window_s": [
+    6.2,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.595,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.4,
+   "episodes": 5,
+   "plans": {
+    "revisions": 14,
+    "valid": 14,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    6.2,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.913,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 4,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.0,
+   "episodes": 3,
+   "plans": {
+    "revisions": 6,
+    "valid": 6
+   },
+   "story_window_s": [
+    6.0,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.913,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 18.6,
+   "episodes": 4,
+   "plans": {
+    "revisions": 10,
+    "valid": 10
+   },
+   "story_window_s": [
+    6.8,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.895,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "B",
+   "variant": "compact",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 20.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    6.2,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.595,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "line_separation",
+    "restricted": [
+     "behind_depth_reduced"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift",
+     "lane_change"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.4,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.733,
+   "onset_lag_s": 1.4,
+   "expected_complete": false,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 2,
+   "claims_designed": 1,
+   "extra_claims": [
+    "accessible_free_receiver"
+   ],
+   "wrong_emphasis": [
+    "accessible_free_receiver"
+   ],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "not_exploited_in_window"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.8,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.653,
+   "onset_lag_s": 1.6,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.6,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.6,
+    11.0
+   ],
+   "matched": true,
+   "iou": 0.686,
+   "onset_lag_s": 1.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.4,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.68,
+   "onset_lag_s": 1.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.6,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.4,
+    11.0
+   ],
+   "matched": true,
+   "iou": 0.692,
+   "onset_lag_s": 1.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.6,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.673,
+   "onset_lag_s": 1.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 3,
+    "valid": 3
+   },
+   "story_window_s": [
+    3.4,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.946,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.6,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.592,
+   "onset_lag_s": 2.6,
+   "expected_complete": false,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 2,
+   "claims_designed": 1,
+   "extra_claims": [
+    "accessible_free_receiver"
+   ],
+   "wrong_emphasis": [
+    "accessible_free_receiver"
+   ],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "not_exploited_in_window"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.6,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.48,
+   "onset_lag_s": 1.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.0,
+   "episodes": 3,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 2
+   },
+   "story_window_s": [
+    3.4,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.673,
+   "onset_lag_s": 1.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.2,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.686,
+   "onset_lag_s": 1.4,
+   "expected_complete": false,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 2,
+   "claims_designed": 1,
+   "extra_claims": [
+    "wide_outlet_available"
+   ],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [
+     "wide_outlet_available"
+    ],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "not_exploited_in_window"
+   }
+  },
+  {
+   "family": "C",
+   "variant": "support",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.6,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.673,
+   "onset_lag_s": 1.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "attacker_drop",
+     "defender_step"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 10.4,
+   "episodes": 1,
+   "plans": {
+    "revisions": 5,
+    "valid": 5,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.8,
+    8.8
+   ],
+   "matched": true,
+   "iou": 0.545,
+   "onset_lag_s": -3.0,
+   "expected_complete": false,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 2,
+   "claims_designed": 1,
+   "extra_claims": [
+    "accessible_free_receiver"
+   ],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "not_exploited_in_window"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 11.0,
+   "episodes": 1,
+   "plans": {
+    "revisions": 2,
+    "valid": 2
+   },
+   "story_window_s": [
+    3.8,
+    9.4
+   ],
+   "matched": true,
+   "iou": 0.643,
+   "onset_lag_s": 2.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 10.6,
+   "episodes": 1,
+   "plans": {
+    "revisions": 5,
+    "valid": 5,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    4.0,
+    9.0
+   ],
+   "matched": true,
+   "iou": 0.533,
+   "onset_lag_s": -3.2,
+   "expected_complete": false,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 2,
+   "claims_designed": 1,
+   "extra_claims": [
+    "accessible_free_receiver"
+   ],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "not_exploited_in_window"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 11.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    3.8,
+    9.6
+   ],
+   "matched": true,
+   "iou": 0.621,
+   "onset_lag_s": 3.0,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 10.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    3.8,
+    8.8
+   ],
+   "matched": true,
+   "iou": 0.72,
+   "onset_lag_s": 2.2,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 4,
+    "valid": 4,
+    "complete_revisions": 2
+   },
+   "story_window_s": [
+    3.8,
+    9.4
+   ],
+   "matched": true,
+   "iou": 0.452,
+   "onset_lag_s": 2.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.6,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    4.0,
+    9.0
+   ],
+   "matched": true,
+   "iou": 0.462,
+   "onset_lag_s": 2.4,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 4,
+    "valid": 4,
+    "complete_revisions": 2
+   },
+   "story_window_s": [
+    3.8,
+    9.2
+   ],
+   "matched": true,
+   "iou": 0.561,
+   "onset_lag_s": 1.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 10.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    4.0,
+    9.2
+   ],
+   "matched": true,
+   "iou": 0.731,
+   "onset_lag_s": 2.2,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 10.6,
+   "episodes": 1,
+   "plans": {
+    "revisions": 2,
+    "valid": 2
+   },
+   "story_window_s": [
+    3.8,
+    9.0
+   ],
+   "matched": true,
+   "iou": 0.808,
+   "onset_lag_s": 1.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 10.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 4,
+    "valid": 4,
+    "complete_revisions": 2
+   },
+   "story_window_s": [
+    3.8,
+    9.2
+   ],
+   "matched": true,
+   "iou": 0.63,
+   "onset_lag_s": 2.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "main",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 10.4,
+   "episodes": 1,
+   "plans": {
+    "revisions": 2,
+    "valid": 2
+   },
+   "story_window_s": [
+    3.8,
+    8.8
+   ],
+   "matched": true,
+   "iou": 0.64,
+   "onset_lag_s": 2.6,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "central_screen",
+    "restricted": [
+     "central_routes_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.4,
+   "episodes": 3,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.8,
+    11.8
+   ],
+   "matched": true,
+   "iou": 0.439,
+   "onset_lag_s": -3.0,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "not_exploited_in_window"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 16.4,
+   "episodes": 3,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 6
+   },
+   "story_window_s": [
+    3.8,
+    12.8
+   ],
+   "matched": true,
+   "iou": 0.467,
+   "onset_lag_s": 4.4,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.2,
+   "episodes": 3,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 6
+   },
+   "story_window_s": [
+    4.0,
+    11.6
+   ],
+   "matched": true,
+   "iou": 0.359,
+   "onset_lag_s": 5.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 0,
+   "claims_found": 3,
+   "claims_designed": 1,
+   "extra_claims": [
+    "behind_space_exposed",
+    "isolated_1v1"
+   ],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed",
+     "isolated_1v1"
+    ],
+    "changes": [],
+    "outcome": "not_yet_observed"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.8,
+   "episodes": 4,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    3.8,
+    12.2
+   ],
+   "matched": true,
+   "iou": 0.349,
+   "onset_lag_s": 6.4,
+   "expected_complete": true,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 5
+   },
+   "story_window_s": [
+    3.8,
+    11.2
+   ],
+   "matched": false,
+   "iou": 0.0,
+   "onset_lag_s": null,
+   "expected_complete": true,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 0,
+   "exposed_expected": 1,
+   "exposed_found": 0,
+   "claims_found": 0,
+   "claims_designed": 0,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": null
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 16.0,
+   "episodes": 3,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    3.8,
+    12.4
+   ],
+   "matched": true,
+   "iou": 0.372,
+   "onset_lag_s": 6.2,
+   "expected_complete": true,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.6,
+   "episodes": 3,
+   "plans": {
+    "revisions": 9,
+    "valid": 9,
+    "complete_revisions": 6
+   },
+   "story_window_s": [
+    4.0,
+    12.0
+   ],
+   "matched": true,
+   "iou": 0.417,
+   "onset_lag_s": -3.2,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [],
+    "outcome": "not_exploited_in_window"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.8,
+   "episodes": 3,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 6
+   },
+   "story_window_s": [
+    3.8,
+    12.2
+   ],
+   "matched": true,
+   "iou": 0.381,
+   "onset_lag_s": 6.0,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 0,
+   "claims_found": 3,
+   "claims_designed": 1,
+   "extra_claims": [
+    "behind_space_exposed",
+    "isolated_1v1"
+   ],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed",
+     "isolated_1v1"
+    ],
+    "changes": [],
+    "outcome": "not_yet_observed"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.8,
+   "episodes": 4,
+   "plans": {
+    "revisions": 11,
+    "valid": 11,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    4.0,
+    12.2
+   ],
+   "matched": true,
+   "iou": 0.561,
+   "onset_lag_s": 3.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 3,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 4,
+    "valid": 4,
+    "complete_revisions": 2
+   },
+   "story_window_s": [
+    3.8,
+    11.8
+   ],
+   "matched": true,
+   "iou": 0.35,
+   "onset_lag_s": 6.0,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 0,
+   "claims_found": 3,
+   "claims_designed": 1,
+   "extra_claims": [
+    "behind_space_exposed",
+    "isolated_1v1"
+   ],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed",
+     "isolated_1v1"
+    ],
+    "changes": [],
+    "outcome": "not_yet_observed"
+   }
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 16.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 6
+   },
+   "story_window_s": [
+    3.8,
+    12.4
+   ],
+   "matched": false,
+   "iou": 0.0,
+   "onset_lag_s": null,
+   "expected_complete": true,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 0,
+   "exposed_expected": 1,
+   "exposed_found": 0,
+   "claims_found": 0,
+   "claims_designed": 0,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": null
+  },
+  {
+   "family": "D",
+   "variant": "escape",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.2,
+   "episodes": 3,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    3.8,
+    11.6
+   ],
+   "matched": true,
+   "iou": 0.59,
+   "onset_lag_s": 3.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.4,
+    9.6
+   ],
+   "matched": true,
+   "iou": 0.923,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    2.4,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.932,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.4,
+    9.4
+   ],
+   "matched": true,
+   "iou": 0.921,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.4,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.933,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.4,
+    9.8
+   ],
+   "matched": true,
+   "iou": 0.744,
+   "onset_lag_s": 2.6,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.6,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.6,
+    10.0
+   ],
+   "matched": true,
+   "iou": 0.925,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.4,
+    9.4
+   ],
+   "matched": true,
+   "iou": 0.703,
+   "onset_lag_s": 1.0,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.4,
+    9.6
+   ],
+   "matched": true,
+   "iou": 0.947,
+   "onset_lag_s": 1.0,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 7,
+    "valid": 7,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.6,
+    9.8
+   ],
+   "matched": true,
+   "iou": 0.923,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.8,
+   "episodes": 3,
+   "plans": {
+    "revisions": 9,
+    "valid": 9,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.6,
+    9.2
+   ],
+   "matched": true,
+   "iou": 0.771,
+   "onset_lag_s": 2.2,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.4,
+   "episodes": 3,
+   "plans": {
+    "revisions": 8,
+    "valid": 8,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    2.4,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.773,
+   "onset_lag_s": 2.6,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "step",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 4,
+    "valid": 4
+   },
+   "story_window_s": [
+    2.6,
+    9.2
+   ],
+   "matched": true,
+   "iou": 0.943,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "defender_step"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.0,
+   "episodes": 1,
+   "plans": {
+    "revisions": 3,
+    "valid": 3
+   },
+   "story_window_s": [
+    2.4,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.952,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.8,
+   "episodes": 1,
+   "plans": {
+    "revisions": 4,
+    "valid": 4
+   },
+   "story_window_s": [
+    2.4,
+    11.2
+   ],
+   "matched": true,
+   "iou": 0.846,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.0,
+   "episodes": 1,
+   "plans": {
+    "revisions": 3,
+    "valid": 3
+   },
+   "story_window_s": [
+    2.4,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.952,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.2,
+   "episodes": 1,
+   "plans": {
+    "revisions": 4,
+    "valid": 4
+   },
+   "story_window_s": [
+    2.4,
+    11.6
+   ],
+   "matched": true,
+   "iou": 0.92,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.6,
+   "episodes": 1,
+   "plans": {
+    "revisions": 4,
+    "valid": 4
+   },
+   "story_window_s": [
+    2.4,
+    10.0
+   ],
+   "matched": true,
+   "iou": 0.577,
+   "onset_lag_s": 2.6,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    2.6,
+    10.2
+   ],
+   "matched": true,
+   "iou": 0.949,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.6,
+   "episodes": 1,
+   "plans": {
+    "revisions": 4,
+    "valid": 4
+   },
+   "story_window_s": [
+    2.4,
+    10.0
+   ],
+   "matched": true,
+   "iou": 0.558,
+   "onset_lag_s": 1.0,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.0,
+   "episodes": 1,
+   "plans": {
+    "revisions": 4,
+    "valid": 4
+   },
+   "story_window_s": [
+    2.4,
+    10.4
+   ],
+   "matched": true,
+   "iou": 0.976,
+   "onset_lag_s": 1.0,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.2,
+   "episodes": 1,
+   "plans": {
+    "revisions": 4,
+    "valid": 4
+   },
+   "story_window_s": [
+    2.6,
+    10.6
+   ],
+   "matched": true,
+   "iou": 0.769,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.6,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6
+   },
+   "story_window_s": [
+    2.6,
+    10.0
+   ],
+   "matched": true,
+   "iou": 0.608,
+   "onset_lag_s": 2.2,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 4,
+    "valid": 4
+   },
+   "story_window_s": [
+    2.4,
+    10.8
+   ],
+   "matched": true,
+   "iou": 0.786,
+   "onset_lag_s": 2.6,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "E",
+   "variant": "hold",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.6,
+   "episodes": 1,
+   "plans": {
+    "revisions": 3,
+    "valid": 3
+   },
+   "story_window_s": [
+    2.6,
+    10.0
+   ],
+   "matched": true,
+   "iou": 0.712,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 0,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "line_retreat"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    3.0,
+    13.6
+   ],
+   "matched": true,
+   "iou": 0.963,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.6,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    3.0,
+    13.0
+   ],
+   "matched": true,
+   "iou": 0.961,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    3.2,
+    13.4
+   ],
+   "matched": true,
+   "iou": 0.962,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.4,
+   "episodes": 3,
+   "plans": {
+    "revisions": 12,
+    "valid": 12,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    3.2,
+    13.8
+   ],
+   "matched": true,
+   "iou": 0.981,
+   "onset_lag_s": 1.0,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    3.2,
+    13.4
+   ],
+   "matched": true,
+   "iou": 0.962,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.2,
+   "episodes": 3,
+   "plans": {
+    "revisions": 12,
+    "valid": 12,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    3.2,
+    13.6
+   ],
+   "matched": true,
+   "iou": 0.962,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    3.2,
+    13.4
+   ],
+   "matched": true,
+   "iou": 0.962,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    3.0,
+    13.4
+   ],
+   "matched": true,
+   "iou": 0.962,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    3.0,
+    13.2
+   ],
+   "matched": true,
+   "iou": 0.962,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    3.0,
+    13.2
+   ],
+   "matched": true,
+   "iou": 0.962,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 15.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 10
+   },
+   "story_window_s": [
+    3.0,
+    13.6
+   ],
+   "matched": true,
+   "iou": 0.963,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 3,
+   "claims_designed": 3,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver",
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "main",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 14.6,
+   "episodes": 2,
+   "plans": {
+    "revisions": 10,
+    "valid": 10,
+    "complete_revisions": 8
+   },
+   "story_window_s": [
+    3.0,
+    13.0
+   ],
+   "matched": true,
+   "iou": 0.961,
+   "onset_lag_s": 0.8,
+   "expected_complete": true,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 1,
+   "exposed_found": 1,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": true,
+   "used": true,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "behind_space_exposed"
+    ],
+    "changes": [
+     "block_shift",
+     "line_retreat"
+    ],
+    "outcome": "exploited_in_synthetic_play"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13000,
+   "perturbation": {
+    "lag_scale": 1.164,
+    "cushion_scale": 1.0685,
+    "speed_scale": 1.0086,
+    "timing_scale": 0.9754,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    3.0,
+    8.8
+   ],
+   "matched": true,
+   "iou": 0.933,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13001,
+   "perturbation": {
+    "lag_scale": 0.9445,
+    "cushion_scale": 0.9683,
+    "speed_scale": 0.9579,
+    "timing_scale": 1.1444,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 4,
+    "valid": 4
+   },
+   "story_window_s": [
+    3.0,
+    9.2
+   ],
+   "matched": true,
+   "iou": 0.861,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13002,
+   "perturbation": {
+    "lag_scale": 0.8896,
+    "cushion_scale": 1.0062,
+    "speed_scale": 1.0194,
+    "timing_scale": 0.9272,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.2,
+    8.8
+   ],
+   "matched": true,
+   "iou": 0.931,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13003,
+   "perturbation": {
+    "lag_scale": 1.3383,
+    "cushion_scale": 0.8991,
+    "speed_scale": 1.0073,
+    "timing_scale": 1.1404,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.0,
+   "episodes": 3,
+   "plans": {
+    "revisions": 9,
+    "valid": 9,
+    "complete_revisions": 4
+   },
+   "story_window_s": [
+    3.2,
+    9.4
+   ],
+   "matched": true,
+   "iou": 0.968,
+   "onset_lag_s": 1.0,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13004,
+   "perturbation": {
+    "lag_scale": 1.3072,
+    "cushion_scale": 0.994,
+    "speed_scale": 0.9488,
+    "timing_scale": 0.953,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.6,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.2,
+    9.0
+   ],
+   "matched": true,
+   "iou": 0.935,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13005,
+   "perturbation": {
+    "lag_scale": 0.876,
+    "cushion_scale": 1.1896,
+    "speed_scale": 0.9597,
+    "timing_scale": 1.0575,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.8,
+   "episodes": 3,
+   "plans": {
+    "revisions": 8,
+    "valid": 8
+   },
+   "story_window_s": [
+    3.2,
+    9.2
+   ],
+   "matched": true,
+   "iou": 0.935,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 2,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13006,
+   "perturbation": {
+    "lag_scale": 0.9086,
+    "cushion_scale": 0.9593,
+    "speed_scale": 1.02,
+    "timing_scale": 0.9544,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    3.2,
+    8.8
+   ],
+   "matched": true,
+   "iou": 0.931,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13007,
+   "perturbation": {
+    "lag_scale": 0.7518,
+    "cushion_scale": 0.8646,
+    "speed_scale": 0.9573,
+    "timing_scale": 1.032,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.0,
+    8.8
+   ],
+   "matched": true,
+   "iou": 0.933,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13008,
+   "perturbation": {
+    "lag_scale": 0.9639,
+    "cushion_scale": 1.11,
+    "speed_scale": 0.9397,
+    "timing_scale": 1.0062,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.4,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.0,
+    8.8
+   ],
+   "matched": true,
+   "iou": 0.933,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13009,
+   "perturbation": {
+    "lag_scale": 0.857,
+    "cushion_scale": 1.1476,
+    "speed_scale": 1.0698,
+    "timing_scale": 0.9214,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 12.0,
+   "episodes": 2,
+   "plans": {
+    "revisions": 5,
+    "valid": 5
+   },
+   "story_window_s": [
+    3.0,
+    8.4
+   ],
+   "matched": true,
+   "iou": 0.9,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13010,
+   "perturbation": {
+    "lag_scale": 1.1472,
+    "cushion_scale": 1.1444,
+    "speed_scale": 0.9902,
+    "timing_scale": 1.134,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 13.2,
+   "episodes": 2,
+   "plans": {
+    "revisions": 4,
+    "valid": 4,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    3.0,
+    9.6
+   ],
+   "matched": true,
+   "iou": 0.941,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": true,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 2,
+   "claims_designed": 2,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [
+     "accessible_free_receiver"
+    ],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "not_yet_observed"
+   }
+  },
+  {
+   "family": "G",
+   "variant": "offside",
+   "seed": 13011,
+   "perturbation": {
+    "lag_scale": 1.2234,
+    "cushion_scale": 1.0614,
+    "speed_scale": 0.9554,
+    "timing_scale": 0.9037,
+    "start_jitter_m": 1.0
+   },
+   "executed": true,
+   "duration_s": 11.8,
+   "episodes": 2,
+   "plans": {
+    "revisions": 6,
+    "valid": 6,
+    "complete_revisions": 3
+   },
+   "story_window_s": [
+    3.0,
+    8.2
+   ],
+   "matched": true,
+   "iou": 0.926,
+   "onset_lag_s": 0.8,
+   "expected_complete": false,
+   "complete": false,
+   "restricted_expected": 1,
+   "restricted_found": 1,
+   "exposed_expected": 0,
+   "exposed_found": 0,
+   "claims_found": 1,
+   "claims_designed": 1,
+   "extra_claims": [],
+   "wrong_emphasis": [],
+   "used_expected": false,
+   "used": false,
+   "unmatched_episodes": 1,
+   "matched_episode": {
+    "family": "press_vs_depth",
+    "restricted": [
+     "short_options_screened"
+    ],
+    "exposed": [],
+    "changes": [
+     "block_shift"
+    ],
+    "outcome": "inconclusive"
+   }
+  }
+ ]
+}

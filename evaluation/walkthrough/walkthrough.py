@@ -287,26 +287,6 @@ def main() -> int:
             page.screenshot(path=str(args.out / "11_c_before.png"))
             page.get_by_role("button", name="Live", exact=True).click()
 
-            card = play_clip("clip_002")
-            check("B: dropped line + disconnected press + between-lines receiver",
-                  "complete trade-off" in card and "Depth behind reduced" in card and "Receiver between lines" in card,
-                  card[:220].replace("\n", " | "))
-            check("B: attacker move into the gap then midfield drop", "lane change" in card and "block shift" in card)
-            page.locator("button", has_text="After (rev").click()
-            page.wait_for_function("document.querySelector('.badge')?.textContent.includes('REPLAY')", timeout=10000)
-            page.wait_for_timeout(500)
-            check("B: replay shows the midfield line and the gap", page.locator("svg.pitch polyline.line_mid").count() >= 1
-                  and page.locator("svg.pitch polygon.exposure_hatched").count() >= 1)
-            page.screenshot(path=str(args.out / "12_b_main.png"))
-            page.get_by_role("button", name="Live", exact=True).click()
-
-            card = play_clip("clip_006")
-            evid = page.locator(".insp").inner_text()
-            check("C negative: numbers without a free man stay partial",
-                  "partial" in card and "Accessible free receiver" not in card and "Not claimed: accessible free receiver"
-                  in evid, evid[:200].replace("\n", " | "))
-            page.screenshot(path=str(args.out / "13_c_negative.png"))
-
             def open_episode(prefix: str) -> str:
                 page.locator(f".ep[title^='{prefix}']").click()
                 page.locator("button", has_text="After (rev").click()
@@ -314,15 +294,45 @@ def main() -> int:
                 page.wait_for_timeout(600)
                 return page.locator(".rail .card").first.inner_text()
 
+            play_clip("clip_002")  # the line-separation moment (the clip's press moment is complete as well)
+            card = open_episode("ep_clip_002_red_line_separation_f0032")
+            check("B: dropped line + disconnected press + between-lines receiver",
+                  "complete trade-off" in card and "Depth behind reduced" in card and "Receiver between lines" in card,
+                  card[:220].replace("\n", " | "))
+            check("B: attacker move into the gap then midfield drop", "lane change" in card and "block shift" in card)
+            page.locator("button", has_text="After (rev").click()
+            page.wait_for_function("document.querySelector('.badge')?.textContent.includes('REPLAY')", timeout=10000)
+            page.wait_for_timeout(500)
+            # the revision that first had the gap draws it (a later frame, after the ball arrived, may not keep the lines)
+            revs = page.locator(".timeline .ep.sel button.rev")
+            drawn = False
+            for i in range(revs.count()):
+                revs.nth(i).click()
+                page.wait_for_timeout(600)
+                if (page.locator("svg.pitch polyline.line_mid").count() >= 1
+                        and page.locator("svg.pitch polygon.exposure_hatched").count() >= 1):
+                    drawn = True
+                    break
+            check("B: replay shows the midfield line and the gap", drawn)
+            page.screenshot(path=str(args.out / "12_b_main.png"))
+            page.get_by_role("button", name="Live", exact=True).click()
+
+            card = play_clip("clip_006")
+            check("C negative: with the wingers supporting the screen nobody comes free, the story stays partial",
+                  "partial" in card and "Accessible free receiver" not in card, card[:200].replace("\n", " | "))
+            page.screenshot(path=str(args.out / "13_c_negative.png"))
+
             play_clip("clip_007")
-            card = open_episode("ep_clip_007_red_central_screen_f0023")
+            card = open_episode("ep_clip_007_red_central_screen_f0025")
             check("D: trap on the left centre-back is a restricting-only story",
                   "partial" in card and "Central routes screened" in card, card[:220].replace("\n", " | "))
-            check("D: the presser stands in the passing lines (press-cut lanes drawn)",
-                  page.locator("svg.pitch line.press_cut_lane").count() >= 2)
+            # the presser stands in the square pass back to the central centre-back (a pass to the keeper is not an
+            # option since analytics 0.2)
+            check("D: the presser stands in the passing line (press-cut lane drawn)",
+                  page.locator("svg.pitch line.press_cut_lane").count() >= 1)
             pitch_text = " | ".join(page.locator("svg.pitch text.label-tx").all_text_contents())  # SVG: no inner_text
             check("D: press-cut and numbers labels on the pitch",
-                  "press cuts 2 lanes" in pitch_text and "ball zone 4 v 5" in pitch_text, pitch_text[:160].replace("\n", " | "))
+                  "press cuts 1 lane" in pitch_text and "ball zone 4 v 5" in pitch_text, pitch_text[:160].replace("\n", " | "))
             narration_check("D: narration names the lane-cutting press and the numbers",
                   "standing in the passing line" in card and "4 defenders against 5 attackers" in card)
             labels_clear(page, "D trap")

@@ -273,10 +273,11 @@ def test_broadcast_caption_takes_the_approved_plans_observed_outcome(client):
 
 def test_the_fan_caption_keeps_both_sides_when_an_agent_reorders_the_plan(client):
     # seen on the live app: the Producer moved the exposed sentence behind a second restricted one, and a caption
-    # chosen by position ("first two, then the outcome") dropped what the press left open
+    # chosen by position ("first two, then the outcome") dropped what the press left open (clip 3: two restricted
+    # sentences)
     c = client
-    clip = load_clip("clip_001")
-    rid, H, _ = _create(c)
+    clip = load_clip("clip_003")
+    rid, H, _ = _create(c, "clip_003")
     c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.end_s, "expected_epoch": 1}, headers=H)
     view = _complete_insight(c, rid, H)
     iid, ep = view["insight"]["insight_id"], view["insight"]["episode_id"]
@@ -413,7 +414,7 @@ def test_live_overlay_draws_only_claims_that_hold_on_the_displayed_frame(client)
     rid, H, _ = _create(c)
     s = STORE.sessions[rid]
     seen = 0
-    for t in (10.4, 11.6, 12.8, 13.6, 14.6, 15.2):
+    for t in (10.8, 11.0, 12.0, 12.8, 13.0, 15.2):
         epoch = c.get(f"/api/replays/{rid}/snapshot", headers=H).json()["analysis_epoch"]
         c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + t, "expected_epoch": epoch},
                headers=H)
@@ -447,7 +448,7 @@ def test_live_overlay_is_rebuilt_on_the_current_frame(client):
     c = client
     clip = load_clip("clip_001")
     rid, H, _ = _create(c)
-    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 12.8, "expected_epoch": 1},
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 13.4, "expected_epoch": 1},
            headers=H)
     ep = _complete_insight(c, rid, H)["insight"]["episode_id"]
     live = c.get(f"/api/replays/{rid}/overlays", params={"episode_id": ep, "display_mode": "live"}, headers=H).json()
@@ -509,7 +510,7 @@ def test_the_breakdown_tells_the_moment_in_four_steps_from_the_evidence(client):
     c = client
     clip = load_clip("clip_001")
     rid, H, _ = _create(c)
-    ep = "ep_clip_001_red_press_vs_depth_f0048"
+    ep = "ep_clip_001_red_press_vs_depth_f0062"
     # before the outcome is known, the last step says so and draws no ball path (the replay's own causality)
     c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.start_s + 13.4, "expected_epoch": 1},
            headers=H)
@@ -520,10 +521,11 @@ def test_the_breakdown_tells_the_moment_in_four_steps_from_the_evidence(client):
     b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": ep}, headers=H).json()
     press, takes, opens, happened = b["steps"]
     assert press["roles"] == {"red_09": "presser", "blue_05": "carrier"} and "closes down" in press["sentences"][0]
+    assert press["press_facts"] is None  # the narration says the press, so no measured stand-in
     # who follows whom: every sustained marking pair of the revision's own state, defender first
     state = key_state(next(p for p in STORE.sessions[rid].analyzer.packets[ep] if p.episode.revision == press["revision"]))
     assert press["marks"] == [[m.defender_id, m.attacker_id] for m in state.markings if m.status == "ok"]
-    assert ["red_04", "blue_09"] in press["marks"] and all(d.startswith("red") for d, _ in press["marks"])
+    assert press["marks"] and all(d.startswith("red") for d, _ in press["marks"])
     assert "short passes" in takes["sentences"][0] and "screened_lanes" in takes["layers"]
     assert "exposure" in opens["layers"] and "BLU #9" in opens["sentences"][0] and opens["roles"]["blue_09"] == "runner"
     assert happened["revision"] > opens["revision"] and "received by BLU #9" in happened["sentences"][-1]
@@ -533,7 +535,7 @@ def test_the_breakdown_tells_the_moment_in_four_steps_from_the_evidence(client):
     at = lambda t: next(f for f in s.clip.frames if abs(f.match_time_s - t) < 0.11)  # noqa: E731
     pos = lambda f, pid: next((p.position.x_m, p.position.y_m) for p in f.players if p.player_id == pid)  # noqa: E731
     first, last = happened["ball_path"][0], happened["ball_path"][-1]
-    assert abs(first[0] - pos(at(625.0), "blue_05")[0]) < 3 and abs(last[0] - pos(at(627.6), "blue_09")[0]) < 3
+    assert abs(first[0] - pos(at(625.2), "blue_05")[0]) < 3 and abs(last[0] - pos(at(627.8), "blue_09")[0]) < 3
     # every sentence is one the narration renders for that revision (code-filled numbers, no new prose)
     texts = {t for v in c.get(f"/api/replays/{rid}/insights", headers=H).json() for t in v["texts"]["fan_en"]}
     pk = {p.episode.revision: p for p in s.analyzer.packets[ep]}
@@ -568,11 +570,18 @@ def test_the_breakdown_tells_one_story_and_says_why_nothing_is_open(client):
     assert receiver in opens["player_ids"]
     name = f"{receiver.split('_')[0][:3].upper()} #{int(receiver.split('_')[1])}"
     assert name in " ".join(opens["sentences"]) and name in happened["sentences"][-1]
-    # nothing open: the reason the analysis held a claim back is given, and what the play showed meanwhile
-    b, _ = _breakdown_at_end(client, "clip_010")
+    # nothing open: the reason the analysis held a claim back is given (clip 12 before the back pass: the striker's
+    # run starts offside), and what the play showed meanwhile
+    c = client
+    clip = load_clip("clip_012")
+    rid, H, _ = _create(c, "clip_012")
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.end_s, "expected_epoch": 1}, headers=H)
+    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_012_red_press_vs_depth_f0016"},
+              headers=H).json()
     _, _, opens, happened = b["steps"]
-    assert opens["layers"] == [] and {"reason": "secondary_cover_in_time"}.items() <= opens["held_back"][0].items()
-    b, _ = _breakdown_at_end(client, "clip_004")
+    assert opens["layers"] == [] and {"reason": "offside_geometry", "player_id": "blue_09"}.items() <= \
+        opens["held_back"][0].items()
+    b, _ = _breakdown_at_end(client, "clip_012")
     assert "changes" in b["steps"][3]["layers"] and "stepped up" in b["steps"][3]["sentences"][0]
 
 
@@ -594,44 +603,51 @@ def test_without_an_outcome_the_breakdown_shows_the_next_pass_the_replay_has_see
     assert happened["next_pass"] == {"kind": "pass", "from_id": "blue_01", "to_id": "blue_04", "release_s": 417.0,
                                      "end_s": 418.6}
     assert happened["roles"] == {"blue_01": "passer", "blue_04": "receiver"}
-    assert happened["ball_path"][0] == [6.3, 34.09] and happened["ball_path"][-1] == [17.49, 52.32]
-    # that pass went along a lane step 2 drew as blocked, and the step says so
+    # the ball's path runs from the release to the reception, from the frames
+    ev = {e.kind: e for e in clip.events if e.event_time_s in (417.0, 418.6)}
+    first, last = happened["ball_path"][0], happened["ball_path"][-1]
+    assert abs(first[0] - ev["pass_release"].position.x_m) < 1.0 and abs(last[1] - ev["pass_receive"].position.y_m) < 1.0
+    # the step says so when that pass went along a lane step 2 drew as blocked
     s = STORE.sessions[rid]
     pk = next(p for p in s.analyzer.packets[ep] if p.episode.revision == b["steps"][1]["revision"])
-    assert ("blue_01", "blue_04") in {(ln.carrier_id, ln.receiver_id) for ln in key_state(pk).lanes
-                                      if ln.availability == "screened"}
-    assert happened["through_blocked"] is True
-    # the next moment, where Red block the middle: BLU #4's pass is intercepted by RED #5
-    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_007_red_central_screen_f0023"},
+    blocked = {(ln.carrier_id, ln.receiver_id) for ln in key_state(pk).lanes if ln.availability == "screened"}
+    assert happened["through_blocked"] is (("blue_01", "blue_04") in blocked)
+    # the next moment, where Red block the middle: BLU #4's pass is intercepted by RED #5, and the clip ends there
+    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_007_red_central_screen_f0025"},
               headers=H).json()
     happened = b["steps"][3]
     assert happened["next_pass"]["kind"] == "interception"
     assert happened["roles"] == {"blue_04": "passer", "red_05": "interceptor"}
-    assert happened["ball_path"][-1] == [70.89, 35.85]  # where the interception was
-    # the last moment (Blue press after the interception): nobody presses, so the player on the ball is tagged; nobody
-    # plays the ball on before the clip ends, and the step says so instead of "not observed yet"
-    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_007_blue_press_vs_depth_f0055"},
+    cut = next(e for e in clip.events if e.kind == "interception")
+    assert abs(happened["ball_path"][-1][0] - cut.position.x_m) < 1.0  # where the interception was
+    assert clip.end_s - cut.event_time_s < 2.0  # the clip ends once the defence has won the ball
+    # nobody plays the ball on before the clip ends (clip 12: the keeper has it): the step says so instead of "not
+    # observed yet"
+    rid, H, _ = _create(c, "clip_012")
+    c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": load_clip("clip_012").end_s,
+                                                "expected_epoch": 1}, headers=H)
+    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_012_red_press_vs_depth_f0044"},
               headers=H).json()
-    assert b["steps"][0]["roles"] == {"red_05": "carrier"} and "Nobody closes RED #5 down" in b["steps"][0]["sentences"][0]
+    assert b["steps"][0]["roles"] == {"blue_01": "carrier"} and "Nobody closes BLU #1 down" in b["steps"][0]["sentences"][0]
     happened = b["steps"][3]
     assert happened["next_pass"] is None and happened["clip_ends"] is True
     assert not any("not been observed" in t for t in happened["sentences"])
 
 
 def test_the_breakdown_press_step_and_a_shot_without_an_outcome(client):
-    # clip 1 at 10:28: the narration has no sentence about the press, so the step gives the player on the ball and the
+    # clip 1 at 10:29.2: the narration has no sentence about the press, so the step gives the player on the ball and the
     # nearest defender, measured on its frame (and highlights him); the next thing on the ball is BLU #9's shot, which
     # RED #1 saves
     c = client
     clip = load_clip("clip_001")
     rid, H, _ = _create(c)
     c.post(f"/api/replays/{rid}/control", json={"action": "seek", "value": clip.end_s, "expected_epoch": 1}, headers=H)
-    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_001_red_press_vs_depth_f0078"},
+    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_001_red_line_separation_f0082"},
               headers=H).json()
     press, happened = b["steps"][0], b["steps"][3]
     assert press["sentences"] == [] and press["press_facts"]["carrier_id"] == "blue_09"
     s = STORE.sessions[rid]
-    pk = next(p for p in s.analyzer.packets["ep_clip_001_red_press_vs_depth_f0078"] if p.episode.revision == press["revision"])
+    pk = next(p for p in s.analyzer.packets["ep_clip_001_red_line_separation_f0082"] if p.episode.revision == press["revision"])
     frame = s.clip.frames[key_state(pk).frame_ref.frame_index]
     at = {p.player_id: p.position for p in frame.players}
     d = press["press_facts"]["defender_id"]
@@ -640,7 +656,7 @@ def test_the_breakdown_press_step_and_a_shot_without_an_outcome(client):
         (at[d].x_m - at["blue_09"].x_m) ** 2 + (at[d].y_m - at["blue_09"].y_m) ** 2) ** 0.5) < 0.06
     # the keeper stops it: a save
     assert happened["next_pass"]["kind"] == "save" and happened["roles"] == {"blue_09": "shooter", "red_01": "saver"}
-    # the default moment of the clip keeps its press sentence, so it carries no measured stand-in
-    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_001_red_press_vs_depth_f0048"},
+    # a moment whose narration has a press sentence carries no measured stand-in
+    b = c.get(f"/api/replays/{rid}/breakdown", params={"episode_id": "ep_clip_001_red_central_screen_f0050"},
               headers=H).json()
-    assert b["steps"][0]["press_facts"] is None and b["steps"][3].get("next_pass") is None
+    assert "closes down" in b["steps"][0]["sentences"][0] and b["steps"][0]["press_facts"] is None

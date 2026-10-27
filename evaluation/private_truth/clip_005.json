@@ -1,6 +1,6 @@
 {
   "clip_id": "clip_005",
-  "generator_version": "defense-0.5.0",
+  "generator_version": "defense-0.6.0",
   "seed": 7,
   "private_config": {
     "family": "B",
@@ -49,7 +49,7 @@
       52.284950213210244,
       43.646161787887834
     ],
-    "mid_u": 61.0
+    "mid_u": 53.0
   },
   "roles": {
     "between_lines": "A:LCM",
@@ -69,7 +69,7 @@
     "ten_ball_arrive_t": 3622.0,
     "release_3_t": 3625.0,
     "arrive_3_t": 3626.4,
-    "end_t": 3631.4
+    "end_t": 3630.0
   },
   "attacking_team_id": "blue",
   "defending_team_id": "red"

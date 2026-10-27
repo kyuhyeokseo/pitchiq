@@ -1,6 +1,6 @@
 {
   "clip_id": "clip_002",
-  "generator_version": "defense-0.5.0",
+  "generator_version": "defense-0.6.0",
   "seed": 7,
   "private_config": {
     "family": "B",
@@ -69,7 +69,7 @@
     "ten_ball_arrive_t": 2966.0,
     "release_3_t": 2969.0,
     "arrive_3_t": 2970.4,
-    "end_t": 2975.4
+    "end_t": 2974.0
   },
   "attacking_team_id": "blue",
   "defending_team_id": "red"

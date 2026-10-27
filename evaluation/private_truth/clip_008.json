@@ -1,6 +1,6 @@
 {
   "clip_id": "clip_008",
-  "generator_version": "defense-0.5.0",
+  "generator_version": "defense-0.6.0",
   "seed": 7,
   "private_config": {
     "family": "D",
@@ -27,7 +27,7 @@
     ],
     "window_clip_s": [
       3.6,
-      11.4
+      11.0
     ],
     "executed": true
   },
@@ -62,15 +62,15 @@
     "gk_back_release_t": 2192.8,
     "arrive_1_t": 2194.4,
     "gk_back_arrive_t": 2194.4,
-    "release_2_t": 2195.8,
-    "rcb_ball_release_t": 2195.8,
-    "arrive_2_t": 2196.4,
-    "rcb_ball_arrive_t": 2196.4,
-    "release_3_t": 2198.6,
-    "out_ball_release_t": 2198.6,
-    "arrive_3_t": 2199.4,
-    "out_ball_arrive_t": 2199.4,
-    "end_t": 2204.4
+    "release_2_t": 2195.4,
+    "rcb_ball_release_t": 2195.4,
+    "arrive_2_t": 2196.0,
+    "rcb_ball_arrive_t": 2196.0,
+    "release_3_t": 2198.2,
+    "out_ball_release_t": 2198.2,
+    "arrive_3_t": 2199.0,
+    "out_ball_arrive_t": 2199.0,
+    "end_t": 2202.6
   },
   "attacking_team_id": "blue",
   "defending_team_id": "red"

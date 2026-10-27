@@ -64,7 +64,8 @@ def test_a_pass_waits_for_its_receiver_to_be_onside():
     sim.pos[11:, 0] = 60.0  # the defending line at u = 60
     sim.pos[r] = (70.0, 30.0)  # the receiver 10 m beyond it, ball far behind
     sim.owner, sim.ball = key_index("A:RCB"), np.array([30.0, 34.0])
-    cfg = {"kind": "pass", "from": "A:RCB", "to": "A:ST"}
+    # a named (story) pass: only the offside wait applies, not the wait for a clear lane
+    cfg = {"kind": "pass", "name": "long_ball", "from": "A:RCB", "to": "A:ST"}
     assert sim._offside(r)
     assert not sim._trigger_ok(cfg)  # held while he is offside
     sim.k += int(round(OFFSIDE_WAIT_S / 0.2))

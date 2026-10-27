@@ -185,6 +185,7 @@ export function App() {
   const [packet, setPacket] = useState<EvidencePacket | null>(null);
   const [selEl, setSelEl] = useState<OverlayElement | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [showFree, setShowFree] = useState(true);  // ring the attacking team's unmarked players
   const [userPicked, setUserPicked] = useState(false);
   const [scrub, setScrub] = useState<number | null>(null);  // where the viewer holds the seek bar, until the seek is answered
   const lastSnap = useRef<[number, number]>([0, -1]);  // (epoch, seq) of the newest snapshot applied
@@ -689,6 +690,7 @@ export function App() {
             {teams.map((tm: any) => <span key={tm.team_id} className={`kit${ep?.defending_team_id === tm.team_id ? " def" : ""}`}
               style={{ "--kit": teamColor(tm.team_id) } as CSSProperties}>{tm.display_name}{tm.attack_direction ? (tm.attack_direction === 1 ? " →" : " ←") : ""}{ep?.defending_team_id === tm.team_id ? " · defending" : ""}</span>)}
             <span className="lg r" /> what the defence takes away <span className="lg x" /> what it leaves open
+            {showFree && <><span className="lg free" /> unmarked (no defender within 5 m)</>}
 </p>
           <div className={`pitch-wrap${bdCur ? ` bd-on bd-${bdCur.key}` : ""}`} data-focus={focus}>
             {bdCur ? <div className="badge bd-badge">{bdStep + 1} / {BD_STEPS.length} · {BD_STEPS[bdStep].title[L]}
@@ -726,7 +728,7 @@ export function App() {
                   selected={surface === "inspector_preview" ? selEl?.element_id : undefined}
                   onSelect={surface === "inspector_preview" ? setSelEl : undefined}
                   highlight={surface === "inspector_preview" ? highlight : undefined} teamColor={teamColor} jersey={jersey} followed={followed}
-                  quietLabels={audience === "fan" ? FAN_QUIET : undefined}
+                  quietLabels={audience === "fan" ? FAN_QUIET : undefined} showFree={showFree}
                   onPlayer={surface === "inspector_preview" ? (pid) => setFollowed(followed === pid ? null : pid) : undefined} />}
           </div>
           {/* the caption is the approved revision's own, chosen by the server; a newer revision waits for its approval */}
@@ -740,6 +742,7 @@ export function App() {
             onSelect={(id) => { setUserPicked(true); setSelEp(id); setSelRev(null); setSelEl(null); }}
             onRevision={(id, r) => { setUserPicked(true); setSelEp(id); setSelRev(r); setView("replay"); setSurface("inspector_preview"); }} />}
           {surface === "inspector_preview" && !bd && <div className="layers">
+            <label className="lt-free"><input type="checkbox" checked={showFree} onChange={() => setShowFree(!showFree)} /> Unmarked players</label>
             {layersPresent.map((l) => (
               <label key={l} className={`lt-${l}`}><input type="checkbox" checked={!hidden.has(l)} onChange={() => {
                 const n = new Set(hidden); n.has(l) ? n.delete(l) : n.add(l); setHidden(n);

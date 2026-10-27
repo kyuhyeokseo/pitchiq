@@ -21,6 +21,7 @@ from app.agents.recap import (  # noqa: E402
     RecapItemChoice,
     RecapLimits,
     RecapProfile,
+    _fallback_options,
     as_choice,
     check_profile,
     fallback_choice,
@@ -153,7 +154,7 @@ def test_an_invalid_choice_shows_the_fallback_with_the_code_and_no_repair(view, 
         "unknown_option": lambda: recap_of(item(complete, ["s99"])),
         "one_sided": lambda: recap_of(item(complete, ids(view, complete, ["exposed", "outcome"]))),
         "duplicate_moment": lambda: recap_of(good, good),
-        "item_count": lambda: recap_of(*[item(p, ids(view, p, ["restricted"])) for p in others[:4]]),
+        "item_count": lambda: recap_of(*[item(p, ids(view, p, ["restricted"])) for p in latest(view)[:4]]),
         "sentence_count": lambda: recap_of(item(complete, ids(view, complete, ["restricted", "exposed", "change",
                                                                                "outcome"]))),
         "duplicate_option": lambda: recap_of(item(complete, ids(view, complete, ["restricted", "restricted"]))),
@@ -231,7 +232,8 @@ def test_my_club_role_and_involves_followed_are_computed_by_code(view):
         assert prompt["my_club"]["team_id"] == club and prompt["follow_player"]["player_id"] == player
         assert prompt["followed_player_involved"] is True
         tagged = {m["episode_id"]: m["my_club_role"] for m in prompt["moments"]}
-        assert set(tagged.values()) == {"defending", "attacking"}  # clip_001 has both sides defending
+        # a clip ends once the defence wins the ball, so in clip_001 Red defends every moment
+        assert set(tagged.values()) == ({"defending"} if club == "red" else {"attacking"})
     plain = render_recap(view, FAN, [(packets[0], sentence_options(packets[0], view.clip.meta, "fan")[:1])])
     assert plain["items"][0]["my_club_role"] is None and plain["items"][0]["involves_followed"] is False
     with pytest.raises(ValueError, match="my_club"):
@@ -250,7 +252,12 @@ def test_the_fallback_prefers_the_followed_players_moments(view):
     profile = RecapProfile(follow_player=player)
     out = fallback_recap(view, profile)
     shown = [it["episode_id"] for it in out["items"]]
-    assert followed <= set(shown) and len(shown) == 3
+    # every followed moment is shown, unless it would open with a sentence one already shown opens with
+    leads = {it["sentences"]["en"][0] for it in out["items"]}
+    for e in followed - set(shown):
+        p = view.packet(e)
+        assert _fallback_options(p, sentence_options(p, view.clip.meta, "fan"))[0].text["en"] in leads
+    assert followed & set(shown) and len(shown) == 3
     assert all(it["involves_followed"] == (it["episode_id"] in followed) for it in out["items"])
     times = [it["detected_at_s"] for it in out["items"]]
     assert times == sorted(times)
@@ -280,8 +287,14 @@ def test_validate_recap_codes_directly(view, complete):
     assert e.value.code == "item_count"
 
 
-def test_two_moments_that_open_with_the_same_sentence_are_refused(view, complete, partial):
-    a, b = ids(view, complete, ["restricted", "exposed"]), ids(view, partial, ["restricted"])
+def test_two_moments_that_open_with_the_same_sentence_are_refused(view, complete):
+    a = ids(view, complete, ["restricted", "exposed"])
+    lead_of = lambda p: next(o.text["en"] for o in sentence_options(p, view.clip.meta, "fan")  # noqa: E731
+                             if o.option_id == ids(view, p, ["restricted"])[0])
+    # a partial moment of the same clip whose press reads exactly like the complete one's
+    partial = next(p for p in latest(view) if p.episode.analysis_status == "partial"
+                   and ids(view, p, ["restricted"]) and lead_of(p) == lead_of(complete))
+    b = ids(view, partial, ["restricted"])
     lead = lambda p, i: next(o.text["en"] for o in sentence_options(p, view.clip.meta, "fan") if o.option_id == i)
     assert lead(complete, a[0]) == lead(partial, b[0])  # the same press, read the same way
     with pytest.raises(PlanError) as e:

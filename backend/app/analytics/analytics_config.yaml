@@ -45,6 +45,7 @@ lanes:
   screened_margin_s: 0.1
   open_margin_s: 0.4
   offside_tolerance_m: 0.3
+  max_backward_m: 6.0       # a pass more than this far back (toward the carrier's own goal: the keeper, a deep centre-back) is not a short option
   central_half_width_m: 12.0
   release_radius_m: 2.5     # defenders this close to the ball count as release pressure, not lane screens ...
   shadow_angle_deg: 25.0    # ... except for lanes within this angle of their position (pressing while cutting)

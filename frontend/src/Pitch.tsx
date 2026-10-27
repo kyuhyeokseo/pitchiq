@@ -15,12 +15,20 @@ type Props = {
   teamColor: (teamId: string) => string;
   jersey: (playerId: string) => string;
   followed?: string | null;  // the player the viewer follows: ring and current speed
+  showFree?: boolean;  // ring the team on the ball's free players (FREE_M)
   onPlayer?: (playerId: string) => void;
   quietLabels?: Set<string>;  // label layers not drawn for this audience (their lines and areas stay)
   ballPath?: number[][];  // where the ball went (world metres), drawn as a white arrow
   tags?: Record<string, { text: string; role: string }>;  // a tag over the players a step is about (presser, runner...)
   marks?: string[][];  // [defender, attacker]: who follows whom, drawn as a white tether
 };
+// An unmarked player: an outfield player of the team on the ball, within passing reach of it, with no opponent within
+// FREE_M (the distance the analysis gates marking with). Measured on the frame drawn; the keeper and the man on the
+// ball are left out, and only the FREE_MAX nearest the ball are ringed. Whether a pass to him is on is the analysis'
+// call (lanes), not this ring's.
+const FREE_M = 5.0;
+const FREE_REACH_M = 40.0;
+const FREE_MAX = 3;
 // tags of the player who acts go first, so they get the spot above the player
 const TAG_ORDER = ["presser", "runner", "passer", "shooter", "carrier", "cover", "receiver", "interceptor", "saver", "blocker"];
 const GETS_BALL = new Set(["receiver", "interceptor", "saver", "blocker"]);  // tagged where the ball's path ends
@@ -144,7 +152,7 @@ function Element({ el, pos, label, place, selected, onSelect }: {
 }
 
 export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onSelect, highlight, teamColor, jersey, followed, onPlayer,
-  quietLabels, ballPath, tags, marks }: Props) {
+  quietLabels, ballPath, tags, marks, showFree }: Props) {
   const pos: Record<string, XY> = {};
   for (const p of frame.players) pos[p.player_id] = p.position;
   const els = (overlay?.elements ?? []).filter((e) => !hiddenLayers.has(e.layer));
@@ -157,6 +165,12 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
   const d2 = (p: XY) => (p.x_m - ball.x_m) ** 2 + (p.y_m - ball.y_m) ** 2;
   const onBall = frame.players.reduce((a, b) => (d2(b.position) < d2(a.position) ? b : a), frame.players[0]);
   const rank = (id: string) => (id === onBall?.player_id ? 2 : highlight?.has(id) || id === followed ? 1 : 0);
+  const attacking = frame.possession_team_id;
+  const dist = (a: XY, b: XY) => Math.hypot(a.x_m - b.x_m, a.y_m - b.y_m);
+  const free = new Set(!showFree || !attacking ? [] : frame.players.filter((p) => p.team_id === attacking
+    && !p.is_goalkeeper && p.player_id !== frame.ball.owner_id && dist(p.position, ball) <= FREE_REACH_M
+    && frame.players.every((q) => q.team_id === attacking || dist(q.position, p.position) >= FREE_M))
+    .sort((a, b) => dist(a.position, ball) - dist(b.position, ball)).slice(0, FREE_MAX).map((p) => p.player_id));
   const players = [...frame.players].sort((a, b) => rank(a.player_id) - rank(b.player_id));
   // player tags first: above the player, else below, else further out, so two tags never sit on each other; the
   // overlay labels then keep clear of them
@@ -229,8 +243,10 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
             className={`pl${highlight?.has(p.player_id) ? " hl" : ""}${isFollowed ? " followed" : ""}${onPlayer ? " clickable" : ""}`}
             onClick={onPlayer ? (ev) => { ev.stopPropagation(); onPlayer(p.player_id); } : undefined}>
             {isFollowed && <circle r={2.2} className="follow-ring" />}
+            {free.has(p.player_id) && <circle r={2.3} className="free-ring" />}
             <circle r={1.25} fill={teamColor(p.team_id)} className="pl-body" />
             <text textAnchor="middle" dominantBaseline="central" className="pl-tx">{jersey(p.player_id)}</text>
+            {free.has(p.player_id) && !isFollowed && <text y={3.6} textAnchor="middle" className="free-tx">unmarked</text>}
             {isFollowed && <text y={-3.1} textAnchor="middle" className={`follow-tx${speed >= SPRINT_MPS ? " sprint" : ""}`}>
               {speed >= SPRINT_MPS ? `sprint ${speed.toFixed(1)} m/s` : `${speed.toFixed(1)} m/s`}</text>}
           </g>

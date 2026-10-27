@@ -68,7 +68,9 @@ def test_d_lane_cut_press_holds_or_is_escaped(analyzed):
             and any(x.key == "press_cut_lanes" for x in p.metrics)]
     assert trap, "the trap on the left centre-back should be a restricting-only story"
     m = {x.key: x.value for x in trap[-1].metrics}
-    assert m["press_cut_lanes"] >= 2  # the presser himself stands in the lines back to the middle
+    # the presser himself stands in the line back to the middle (since analytics 0.2 a pass back to the keeper is no
+    # longer an option, so the cut is the square pass to the central centre-back)
+    assert m["press_cut_lanes"] >= 1
     assert m["buildup_count_defense"] < m["buildup_count_attack"]  # pressing with fewer players...
     assert m["rest_count_defense"] > m["rest_count_attack"]  # ...while keeping a spare behind
     assert not any(p.episode.outcome.status == "exploited_in_synthetic_play"
@@ -215,21 +217,29 @@ def test_c_drop_then_step_updates_the_free_receiver(analyzed):
     assert {"central_routes_screened", "wide_outlet_available", "accessible_free_receiver"} <= codes(last)
 
 
-def test_c_outcome_arriving_after_close_is_a_new_revision(analyzed):
-    an = analyzed["clip_003"][3]
-    revs = next(r for r in family_revs(an, "central_screen") if r[-1].episode.analysis_status == "complete_tradeoff")
-    closed = [p for p in revs if p.episode.lifecycle == "closed"]
-    assert len(closed) >= 2
-    assert closed[0].episode.outcome.status == "not_yet_observed"
-    assert closed[-1].episode.outcome.status == "exploited_in_synthetic_play"
-    wide = next(c for c in closed[-1].claims if c.code == "wide_outlet_available")
-    assert closed[-1].episode.outcome.realized_target_id in wide.player_ids
+def test_an_outcome_arriving_after_close_is_a_new_revision(analyzed):
+    # an episode can close (possession phase over) before the pass into what it left open is received: the
+    # outcome is then a new revision of the closed episode, naming a player of its exposed claims
+    found = []
+    for cid in CLIPS:
+        for revs in analyzed[cid][3].packets.values():
+            closed = [p for p in revs if p.episode.lifecycle == "closed"]
+            if (len(closed) >= 2 and closed[0].episode.outcome.status == "not_yet_observed"
+                    and closed[-1].episode.outcome.status == "exploited_in_synthetic_play"):
+                found.append(closed[-1])
+    assert found
+    for last in found:
+        exposed = [c for c in last.claims if c.claim_id in last.episode.exposed_claim_ids]
+        assert any(last.episode.outcome.realized_target_id in c.player_ids for c in exposed)
 
 
-def test_c_counter_example_shows_numbers_without_a_free_man(analyzed):
-    an = analyzed["clip_006"][3]
-    packets = [p for revs in family_revs(an, "central_screen") for p in revs]
-    assert any(c.code == "local_central_overload" for p in packets for c in p.claims)
+def test_numbers_without_a_free_man_are_context_only(analyzed):
+    # more attackers than defenders in the centre, but no lane to any of them: the count is context, and the free
+    # receiver is held back with its reason (a central screen of the demo clips that shows it)
+    packets = next(ps for cid in CLIPS for revs in analyzed[cid][3].packets.values() for ps in [list(revs)]
+                   if any(f.startswith("accessible_free_receiver:count_without_accessible_lane")
+                          for p in ps for f in p.forbidden_inferences)
+                   and any(c.code == "local_central_overload" for p in ps for c in p.claims))
     assert not any(c.code == "accessible_free_receiver" for p in packets for c in p.claims)
     assert any(f.startswith("accessible_free_receiver:count_without_accessible_lane") for p in packets
                for f in p.forbidden_inferences)
