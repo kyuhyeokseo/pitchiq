@@ -98,6 +98,13 @@ const ROLE_TEXT: Record<string, Record<Lang, string>> = {
   interceptor: { en: "Intercepts", ko: "가로챔" }, shooter: { en: "Shot", ko: "슈팅" },
   saver: { en: "Saves", ko: "선방" }, blocker: { en: "Blocks", ko: "막아 냄" },
 };
+// The clips the desk offers and the moment each one's breakdown tells, by match clock: the producer's selection (the
+// other clips stay in the data and the API). A clip without a moment here opens on the best complete trade-off.
+const SHOWN_CLIPS = ["clip_001", "clip_002", "clip_003", "clip_004", "clip_005", "clip_006", "clip_008", "clip_009"];
+const FEATURED_AT: Record<string, string> = {
+  clip_001: "10:25", clip_002: "49:22", clip_003: "22:08", clip_004: "30:48", clip_005: "60:29", clip_008: "36:28",
+  clip_009: "50:23",
+};
 const BD_UI: Record<Lang, Record<string, string>> = {
   en: { intro: "What does this defence take away, and what does it leave open?", go: "Break down the defence",
         sub: "One moment in four steps, then on air. Every line and number on the pitch is measured from the tracking data.",
@@ -107,7 +114,7 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         back: "Back", next: "Next", exit: "Exit", stop: "Exit the breakdown", busy: "Analysing the clip…", ball: "White arrow: where the ball actually went",
         approve: "Approve and put on air", explore: "Explore the desk", onair: "On air", none: "Nothing more to show here.",
         waiting: "Preparing the text for approval…",
-        marks: "White band: a defender and the attacker he follows (sustained marking)",
+        marks: "White band: a defender and the attacker he is marking",
         moments: "Moments in this clip", defending: "{team} defending",
         next_pass: "Next on the ball, at {t}: {p} passes to {q}.",
         next_interception: "Next on the ball, at {t}: {q} intercepts {p}'s pass.",
@@ -116,7 +123,11 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         through_blocked: "That was one of the passes counted as blocked in step 2: the block is estimated from where players stand, and this one did not hold.",
         clip_ends: "The clip ends before anyone plays the ball on.",
         press_facts: "On the ball: {c}. Nearest defender: {d}, {m} m away.",
-        unmarked: "Also left unmarked: {p}.", unmarked_partial: "No short pass to them counts as open, but left unmarked: {p}.",
+        unmarked: "Also left unmarked: {p}.", unmarked_partial: "Left unmarked: {p}.",
+        block: "{d} blocks the pass to {r}", block_many: "{d} blocks the passes to {r}", reach: "{d} can still get to the pass to {r}",
+        block_pl: "{d} block the pass to {r}", block_pl_many: "{d} block the passes to {r}",
+        open_pass: "Not blocked: the pass to {r}.", open_passes: "Not blocked: the passes to {r}.", own_third: "In their own third they have {d} against {a}: the dangerous space is filled.",
+        forward: "{p}, furthest forward, has {n} defenders within 10 m.", and: " and ",
         other_run: "{r} is running in behind too: {c} goes with him.", other_run_late: "{r} is running in behind too, and nobody gets there in time." },
   ko: { intro: "이 수비는 무엇을 막고, 그 대가로 무엇을 내줄까?", go: "수비 전술 해부",
         sub: "한 장면을 4단계로 보고, 마지막에 방송까지 이어집니다. 경기장 위의 선과 숫자는 모두 추적 데이터로 계산한 것입니다.",
@@ -126,7 +137,7 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         back: "이전", next: "다음", exit: "끝내기", stop: "해부 끝내기", busy: "클립을 분석하는 중…", ball: "흰 화살표: 공이 실제로 간 길",
         approve: "승인하고 방송에 내보내기", explore: "직접 살펴보기", onair: "방송 중", none: "이 단계에서 더 보여 줄 것이 없어요.",
         waiting: "승인할 문장을 준비하는 중…",
-        marks: "흰 띠: 수비수와 그가 따라붙는 공격수 (지속된 마킹)",
+        marks: "흰 띠: 수비수와 그가 마크하는 공격수",
         moments: "이 클립의 장면", defending: "{team} 수비",
         next_pass: "{t} 다음 공 흐름: {p} → {q} 패스.",
         next_interception: "{t} 다음 공 흐름: {p}의 패스를 {q}가 가로챔.",
@@ -135,7 +146,11 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         through_blocked: "이 패스는 2단계에서 막힌 것으로 본 패스입니다. 막힘은 선수 위치로 추정한 값이라, 이번에는 통과했습니다.",
         clip_ends: "공이 다음으로 연결되기 전에 클립이 끝납니다.",
         press_facts: "공 소유: {c}. 가장 가까운 수비: {d}, {m} m.",
-        unmarked: "그 밖에 마크 없이 남은 선수: {p}.", unmarked_partial: "열린 짧은 패스로 볼 수는 없지만, 마크 없이 남은 선수: {p}.",
+        unmarked: "그 밖에 마크 없이 남은 선수: {p}.", unmarked_partial: "마크 없이 남은 선수: {p}.",
+        block: "{d}: {r}로 가는 패스를 막음", block_many: "{d}: {r}로 가는 패스를 막음", reach: "{d}: {r}로 가는 패스에 닿을 수 있음",
+        block_pl: "{d}: {r}로 가는 패스를 막음", block_pl_many: "{d}: {r}로 가는 패스를 막음",
+        open_pass: "막히지 않은 패스: {r}.", open_passes: "막히지 않은 패스: {r}.", own_third: "자기 진영 3분의 1 안에서 {d} 대 {a}: 위험한 공간이 채워져 있습니다.",
+        forward: "가장 앞선 {p} 주위 10 m 안에 수비 {n}명.", and: ", ",
         other_run: "{r} 선수도 뒷공간으로 뜁니다. {c} 선수가 따라갑니다.", other_run_late: "{r} 선수도 뒷공간으로 뛰고, 제때 따라가는 수비가 없습니다." },
 };
 const STATUS_TEXT: Record<string, string> = { complete_tradeoff: "complete trade-off", partial: "partial",
@@ -227,7 +242,8 @@ export function App() {
 
   useEffect(() => {
     api.health().then(setHealth).catch((e) => setError(String(e)));
-    api.clips().then((c) => { setClips(c); if (c.length) setClipId(c[0].clip_id); }).catch((e) => setError(String(e)));
+    api.clips().then((all) => { const c = all.filter((x: any) => SHOWN_CLIPS.includes(x.clip_id)); setClips(c);
+      if (c.length) setClipId(c[0].clip_id); }).catch((e) => setError(String(e)));
   }, []);
 
   const applySnapshot = useCallback((s: any) => {
@@ -477,7 +493,8 @@ export function App() {
       // a complete trade-off whose outcome the replay saw tells the whole story, so it opens first (a look-alike pair
       // then opens on the moment that tells it apart, not on their shared opening)
       const seen = (e: EpisodeSummary) => (e.outcome === "exploited_in_synthetic_play" ? 1 : 0);
-      const pick = (userPicked && eps.find((e) => e.episode_id === selEp))
+      const pick = eps.find((e) => FEATURED_AT[clipId] && matchClock(e.detected_at_s) === FEATURED_AT[clipId])
+        || (userPicked && eps.find((e) => e.episode_id === selEp))
         || (complete.length ? complete : eps).slice().sort((a, b) => seen(b) - seen(a)
           || b.story_priority - a.story_priority)[0];
       if (!pick) { setNotice("No moment in this clip to break down."); return; }
@@ -612,7 +629,7 @@ export function App() {
 
   const bdPanel = bd && <BreakdownPanel bd={bd} step={bdStep} lang={L} keys={bdKey} texts={texts} insight={insight}
     approvedRev={approvedRev} surface={surface} latestRev={ep?.revision ?? null} asOf={asOf} onStep={setBdStep}
-    moments={[...episodes].sort((a, b) => a.detected_at_s - b.detected_at_s)} busy={bdBusy} onPick={pickMoment}
+    moments={[]} busy={bdBusy} onPick={pickMoment}  // one moment per breakdown: the producer's pick
     teamName={(id) => teams.find((tm: any) => tm.team_id === id)?.display_name ?? id} teamColor={teamColor}
     onExit={() => { exitBreakdown(); setSurface("inspector_preview"); }}
     onApprove={async () => { if (await decide("approve")) setSurface("broadcast"); }} />;
@@ -853,6 +870,23 @@ function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, sur
     cur?.clip_ends && ui.clip_ends,
     ...(cur?.other_runs ?? []).map((o) => (o.in_time && o.cover_id ? ui.other_run : ui.other_run_late)
       .replace("{r}", playerName(o.runner_id)).replace("{c}", o.cover_id ? playerName(o.cover_id) : "")),
+    // step 2: who blocks which pass, grouped by defender, then the passes nobody blocks and the numbers at the back
+    ...(() => {
+      const by = new Map<string, { r: string[]; reach: boolean; two: boolean }>();
+      for (const b of cur?.blocks ?? []) {
+        const d = b.defender_ids.map(playerName).join(ui.and), k = `${d}|${b.status}`;
+        by.set(k, { r: [...(by.get(k)?.r ?? []), playerName(b.receiver_id)], reach: b.status === "reachable",
+                    two: b.defender_ids.length > 1 });
+      }
+      const parts = [...by].map(([k, v]) => (v.reach ? ui.reach : v.two ? (v.r.length > 1 ? ui.block_pl_many : ui.block_pl)
+        : v.r.length > 1 ? ui.block_many : ui.block).replace("{d}", k.split("|")[0]).replace("{r}", v.r.join(ui.and)));
+      return parts.length ? [parts.join(lang === "ko" ? ", " : "; ") + "."] : [];
+    })(),
+    (cur?.open_passes ?? []).length > 0 && (cur!.open_passes!.length > 1 ? ui.open_passes : ui.open_pass)
+      .replace("{r}", cur!.open_passes!.map(playerName).join(ui.and)),
+    cur?.own_third && ui.own_third.replace("{d}", String(cur.own_third.defenders)).replace("{a}", String(cur.own_third.attackers)),
+    cur?.own_third && cur.own_third.near_forward >= 2 && ui.forward.replace("{p}", playerName(cur.own_third.forward_id))
+      .replace("{n}", String(cur.own_third.near_forward)),
     ...(() => { const more = (cur?.unmarked ?? []).filter((p) => !cur?.player_ids.includes(p));
       return more.length ? [(cur?.layers.length ? ui.unmarked : ui.unmarked_partial).replace("{p}", more.map(playerName).join(", "))] : []; })(),
   ].filter((t): t is string => !!t);

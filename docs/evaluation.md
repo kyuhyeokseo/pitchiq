@@ -297,6 +297,7 @@ Robustness check, run as new versions with new seeds each time something changed
 | holdout-v2-0.12 (2026-10-27) | third fan review: generator 0.7 (A cover, B compact, C press cut, C support, G main and offside, E step), analytics 0.3 (no "space behind taken away" while the ball is behind the line) | 141/144 | 225/231 | 3/72 | 82/108 | 15/72 |
 | holdout-v2-0.13 (2026-10-27) | second AI analyst review: no "nobody closes him down" while a defender runs at the carrier; G main's midfield zonal, G offside's striker cuts the pass to the keeper, C support's holding midfielder holds his line | 139/144 | 219/225 | 3/72 | 78/108 | 20/72 |
 | holdout-v2-0.14 (2026-10-27) | project lead's review: pressers stand 3 m off the ball (generator 0.8), a press holds within 3.5 m and an open story keeps its family (analytics 0.4), E step's midfielder steps out on the carrier's outside | 140/144 | 229/238 | 4/72 | 82/106 | 8/71 |
+| holdout-v2-0.15 (2026-10-27) | fourth review: A cover's centre-backs keep their shape (generator 0.8.1); breakdown display only otherwise | 143/144 | 227/234 | 3/72 | 84/108 | 11/72 |
 
 A second screenshot review as football fans (three reviewers, all 12 clips) then found: the back line holding the box
 edge, keepers at home, no back passes counted, clips ending at the turnover, unmarked players ringed; and, still,
@@ -422,3 +423,39 @@ Feature sweep on this build (offline): 12 clips, 28 moments, every breakdown ste
 no page errors or failed actions. While playing, players move at most 0.36 m per animation frame, except one frame in
 clip 9 that jumped 1.98 m (the tracking moves at most 1.45 m per 0.2 s there; a rerun of that clip was not completed).
 `make test`: 278 passed, 4 expected failures (above). Browser walkthrough offline: 74 of 74.
+
+## Fourth review: one moment per clip, who blocks which pass, a zonal back line in clip 4 (2026-10-27)
+
+From the project lead's review of the live clips (sha-f9a4774):
+- **Clips:** the desk offers 8 of the 12 clips (1-6, 8, 9). Clip 7 repeated clip 8's set-up, and clips 10-12 were
+  dropped from the desk; they stay in the data, the tests and the API.
+- **One moment per breakdown:** each clip's breakdown tells the moment the producer picked (clip 1 10:25, clip 2 49:22,
+  clip 3 22:08, clip 4 30:48, clip 5 60:29, clip 8 36:28, clip 9 50:23; clip 6 its best complete trade-off). The
+  pick is an editorial list in the frontend, by match clock; it does not come from the generator's truth.
+- **Who is marking whom (step 1):** every marking pair of the analysis, sustained or not yet, plus each attacker
+  nobody has with the nearest free outfield defender goal-side of him within 8 m. Before, only sustained pairs were
+  drawn, so at the start of a clip, or with an attacker standing still, a fan saw tight pairs without a band. The
+  analysis itself (and every claim) still uses only sustained pairs.
+- **Who blocks which pass (step 2):** each pass from the man on the ball with the defenders standing in it (up to
+  two), the ones a defender can still reach, and the ones nobody blocks.
+- **Numbers at the back (step 2):** when the defence has at least two more outfield players than the attack in its
+  own third, the numbers are given ("the dangerous space is filled"), with the forward's nearby defenders when two or
+  more are within 10 m.
+- **Unmarked:** up to six players (was three). On clip 5, Blue's back line and midfield are all left free, which is
+  what that shape concedes.
+- **Generator 0.8.1, A cover (clip 4):** the left centre-back holds his zone at the line's height instead of marking
+  the striker, and the spare leans toward him less; both used to go to the striker. They now stand 9-12 m from him
+  until the long ball.
+
+Not done: clip 3's space in front of RED #8, between Blue's midfield and back line. The lane model counts the pass to
+him as blocked (BLU #6 and BLU #10 can reach it), and the nearest defender goal-side of him is 7.4 m away, so the
+analysis has no claim for it.
+
+Robustness check (row 0.15, seeds 20000-20011, not re-run after the results): 143 of 144 matched, precision 227/234,
+wrong emphasis 3 of 72 (all in C support), exposed recall 84/108, abstention 11 of 72. A cover had no wrong emphasis
+(1 of 12 in 0.14).
+
+Checks on this build (offline): `make test` 278 passed, 4 expected failures; browser walkthrough 62 of 62 (the
+checks of clips 7, 10, 11 and 12 and of switching moments in the breakdown were removed with them); feature sweep of
+the 8 clips, one breakdown moment each, no page errors or failed actions, players move at most 0.14 m per animation
+frame.

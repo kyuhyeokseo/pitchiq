@@ -1,9 +1,12 @@
 # Holdout evaluation for the v2 defensive families (spec 16 and 17.2).
 # Fixed before the first run. If anything here or in analytics_config.yaml changes after results were seen,
 # report it as a new version with new seeds instead of overwriting the old report.
-version: holdout-v2-0.14
-seeds: [19000, 19011]        # inclusive; new seeds: 5000-5011 (0.1), 7000-7011 (0.2), 8000-8011 (0.3), 9000-9011 (0.4), 10000-10011 (0.5), 11000-11011 (0.6), 12000-12011 (0.7), 13000-13011 (0.8), 14000-14011 (0.9), 15000-15011 (0.10), 16000-16011 (0.11), 17000-17011 (0.12), 18000-18011 (0.13) used; 6000-6011 validation
-changes_from_previous:       # what changed after holdout-v2-0.13 was seen (from the project lead's review of the demo clips, not from holdout results)
+version: holdout-v2-0.15
+seeds: [20000, 20011]        # inclusive; new seeds: 5000-5011 (0.1), 7000-7011 (0.2), 8000-8011 (0.3), 9000-9011 (0.4), 10000-10011 (0.5), 11000-11011 (0.6), 12000-12011 (0.7), 13000-13011 (0.8), 14000-14011 (0.9), 15000-15011 (0.10), 16000-16011 (0.11), 17000-17011 (0.12), 18000-18011 (0.13), 19000-19011 (0.14) used; 6000-6011 validation
+changes_from_previous:       # what changed after holdout-v2-0.14 was seen (from the project lead's fourth review of the clips, not from holdout results)
+  - "generator 0.8.1: A cover's centre-backs keep their shape: the left one holds his zone at the line's height instead of marking the striker, and the spare leans toward the striker less (k 0.5, was 0.85)"
+  - "display (not scored): the breakdown's step 1 draws every marking pair plus loose goal-side pairs within 8 m; step 2 names who blocks which pass; up to six unmarked players"
+changes_in_0_14:             # what changed after holdout-v2-0.13 was seen (from the project lead's review of the demo clips, not from holdout results)
   - "generator 0.8: a presser stands 3 m off the man on the ball (was 1.0-1.8 m, the two players drawn on top of each other), on the line of the pass he cuts; a plan's longer stand-off keeps its extra distance; a defender engaging a free carrier near goal stands 3 m goal-side of him (was 1.3 m)"
   - "analyzer 0.4: pressure.contact_distance_m 3.5 (was 2.0), so a press holds while the presser stands off the carrier; a story already open on the carrier, even before its claims are supported, keeps its family when a defender steps onto him (a marker 3 m off now counts as a presser a moment earlier)"
   - "generator 0.8: E step's midfielder steps out in front of the carrier on his outside, away from the pass to the man behind him (3 m off, straight in front, he still reached that pass)"

@@ -39,7 +39,11 @@ OBSERVED = ("exploited_in_synthetic_play", "not_exploited_in_window")
 ALIGN_S = 1.0  # the press is told on the moment of the cost when that comes more than this much later
 # unmarked players (the same rule as the pitch's rings): no opponent within UNMARKED_M, not followed by a marker, within
 # UNMARKED_REACH_M of the ball (a switch to the far side counts); the UNMARKED_MAX with the most room
-UNMARKED_M, UNMARKED_REACH_M, UNMARKED_MAX = 10.0, 60.0, 3
+UNMARKED_M, UNMARKED_REACH_M, UNMARKED_MAX = 10.0, 60.0, 6
+# who is marking whom in step 1: the analysis's marking pairs (sustained or not yet), then a defender goal-side of an
+# attacker nobody has, within LOOSE_MARK_M (a zonal player standing with his man)
+LOOSE_MARK_M = 8.0
+OWN_THIRD_M = 35.0  # the defending team's own third, for the numbers in step 2
 
 
 def _sentences(pk: EvidencePacket, language: str, clip: Clip, audience: str = "fan") -> list[tuple[str, str | None, str]]:
@@ -196,6 +200,66 @@ def _unmarked(clip: Clip, pk: EvidencePacket, first: tuple[str, ...] = ()) -> li
     return [pid for *_, pid in sorted(out)[:UNMARKED_MAX]]
 
 
+def _frame_of(clip: Clip, pk: EvidencePacket):
+    return clip.frames[min(key_state(pk).frame_ref.frame_index, len(clip.frames) - 1)]
+
+
+def _marks(clip: Clip, pk: EvidencePacket) -> list[list[str]]:
+    """Who is marking whom on the step's frame (defender, attacker), for the bands in step 1: every marking pair of the
+    analysis, sustained or not yet, then each attacker nobody has with the nearest free outfield defender goal-side of
+    him within LOOSE_MARK_M. From positions; no claim reads it."""
+    state = key_state(pk)
+    frame = _frame_of(clip, pk)
+    defending = pk.episode.defending_team_id
+    out = [[mk.defender_id, mk.attacker_id] for mk in state.markings]
+    skip = {frame.ball.owner_id} | {pr.presser_id for pr in state.pressures[:1]}
+    used_d, used_a = {d for d, _ in out} | skip, {a for _, a in out} | skip
+    attacking = next((p.team_id for p in frame.players if p.team_id != defending), None)
+    a = clip.meta.attack_direction(attacking) if attacking else 1
+    fwd = lambda x: x if a == 1 else 105.0 - x  # noqa: E731  (towards the defending goal)
+    pairs = sorted((((d.position.x_m - t.position.x_m) ** 2 + (d.position.y_m - t.position.y_m) ** 2) ** 0.5,
+                    d.player_id, t.player_id)
+                   for d in frame.players if d.team_id == defending and not d.is_goalkeeper and d.player_id not in used_d
+                   for t in frame.players if t.team_id != defending and not t.is_goalkeeper and t.player_id not in used_a
+                   and fwd(d.position.x_m) >= fwd(t.position.x_m) - 1.0)
+    for dist, d, t in pairs:
+        if dist <= LOOSE_MARK_M and d not in used_d and t not in used_a:
+            out.append([d, t])
+            used_d.add(d)
+            used_a.add(t)
+    return out
+
+
+def _blocks(pk: EvidencePacket) -> dict:
+    """Step 2's passes from the man on the ball: who stands in each one (up to two screeners), who can still get to one
+    the lane model leaves uncertain, and the ones nobody blocks."""
+    state = key_state(pk)
+    blocks = [{"defender_ids": list(ln.screening_player_ids[:2]), "receiver_id": ln.receiver_id,
+               "status": "screened" if ln.availability == "screened" else "reachable"}
+              for ln in state.lanes if ln.availability in ("screened", "uncertain") and ln.screening_player_ids]
+    return {"blocks": blocks, "open_passes": [ln.receiver_id for ln in state.lanes if ln.availability == "open"]}
+
+
+def _own_third(clip: Clip, pk: EvidencePacket) -> dict | None:
+    """Numbers in the defending team's own third (outfield players), and the attacker furthest forward with the
+    defenders within 10 m of him, when the defence fills that third (at least two more)."""
+    frame = _frame_of(clip, pk)
+    defending = pk.episode.defending_team_id
+    attacking = next((p.team_id for p in frame.players if p.team_id != defending), None)
+    if attacking is None:
+        return None
+    a = clip.meta.attack_direction(attacking)
+    depth = lambda p: 105.0 - p.position.x_m if a == 1 else p.position.x_m  # noqa: E731  (to the defending goal)
+    d = [p for p in frame.players if p.team_id == defending and not p.is_goalkeeper and depth(p) <= OWN_THIRD_M]
+    t = [p for p in frame.players if p.team_id == attacking and not p.is_goalkeeper and depth(p) <= OWN_THIRD_M]
+    if len(d) < len(t) + 2:
+        return None
+    top = min((p for p in frame.players if p.team_id == attacking and not p.is_goalkeeper), key=depth)
+    near = sum(1 for p in frame.players if p.team_id == defending and not p.is_goalkeeper
+               and ((p.position.x_m - top.position.x_m) ** 2 + (p.position.y_m - top.position.y_m) ** 2) ** 0.5 <= 10.0)
+    return {"defenders": len(d), "attackers": len(t), "forward_id": top.player_id, "near_forward": near}
+
+
 def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: float | None = None,
               next_window_s: float = 0.0) -> dict:
     """now_s: the replay clock (events the replay has seen); next_window_s: how long after the analysis of the moment
@@ -236,8 +300,8 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: floa
     facts = _press_facts(clip, r_press)
     if facts and not roles:  # nobody presses: the player on the ball is still the one to look at
         roles = {facts["carrier_id"]: "carrier"}
-    # who follows whom: the sustained marking relations on the same frozen state (defender, attacker)
-    marks = [[mk.defender_id, mk.attacker_id] for mk in state.markings if mk.status == "ok"]
+    # who is marking whom on the same frozen state (defender, attacker)
+    marks = _marks(clip, r_press)
     # the nearest defender is named by the facts and by "nobody closes him down (nearest defender ...)"
     steps.append(_step("press", r_press, ("pressure",), [facts["defender_id"]] if facts else (), press_lines, roles,
                        marks=marks, press_facts=None if press_lines else facts))
@@ -249,7 +313,8 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: floa
     steps.append(_step("takes_away", r_press, _layers(c.code for c in restricted),
                        [p for c in restricted for p in c.player_ids],
                        [t for k, cid, t in sents if cid in r_press.episode.restricted_claim_ids
-                        and not any(m in k for m in PRESS_TEMPLATES)]))
+                        and not any(m in k for m in PRESS_TEMPLATES)], **_blocks(r_press),
+                       own_third=_own_third(clip, r_press)))
 
     # 3. what it leaves open (or that nothing open is supported yet)
     if r_open is not None:

@@ -358,23 +358,6 @@ def main() -> int:
                   "partial" in card and "Accessible free receiver" not in card, card[:200].replace("\n", " | "))
             page.screenshot(path=str(args.out / "13_c_negative.png"))
 
-            play_clip("clip_007")
-            card = open_episode("ep_clip_007_red_central_screen_f0027")
-            check("D: trap on the left centre-back is a restricting-only story",
-                  "partial" in card and "Central routes screened" in card, card[:220].replace("\n", " | "))
-            # the presser stands in the square pass back to the central centre-back (a pass to the keeper is not an
-            # option since analytics 0.2)
-            check("D: the presser stands in the passing line (press-cut lane drawn)",
-                  page.locator("svg.pitch line.press_cut_lane").count() >= 1)
-            pitch_text = " | ".join(page.locator("svg.pitch text.label-tx").all_text_contents())  # SVG: no inner_text
-            check("D: press-cut and numbers labels on the pitch",
-                  "press cuts 1 lane" in pitch_text and "ball zone 4 v 5" in pitch_text, pitch_text[:160].replace("\n", " | "))
-            narration_check("D: narration names the lane-cutting press and the numbers",
-                  "standing in the passing line" in card and "4 defenders against 5 attackers" in card)
-            labels_clear(page, "D trap")
-            page.screenshot(path=str(args.out / "14_d_trap.png"))
-            page.get_by_role("button", name="Live", exact=True).click()
-
             play_clip("clip_008")
             card = open_episode("ep_clip_008_red_press_vs_depth_f0032")
             check("D escape: screened options + free centre-back form a complete trade-off",
@@ -408,34 +391,7 @@ def main() -> int:
             page.screenshot(path=str(args.out / "17_e_before.png"))
             page.get_by_role("button", name="Live", exact=True).click()
 
-            card = play_clip("clip_010")
-            check("E hold: the screen holds, nobody comes free",
-                  "partial" in card and "Accessible free receiver" not in card and "defender step" not in card,
-                  card[:220].replace("\n", " | "))
-            page.screenshot(path=str(args.out / "18_e_hold.png"))
-            page.get_by_role("button", name="Live", exact=True).click()
-
-            play_clip("clip_011")
-            card = open_episode("ep_clip_011_red_press_vs_depth_f0016")
-            check("G: press on the back pass + line steps up + space behind, used",
-                  "complete trade-off" in card and "Short options screened" in card and "Space behind the line" in card
-                  and "block shift" in card and "Exploited" in card, card[:220].replace("\n", " | "))
-            narration_check("G: narration says the back line stepped up together", "stepped up" in card and "together" in card)
-            check("G: replay draws the back line's movement", page.locator("svg.pitch polyline.ghost_path").count() >= 3)
-            labels_clear(page, "G main")
-            page.screenshot(path=str(args.out / "19_g_main.png"))
-            page.get_by_role("button", name="Live", exact=True).click()
-
-            play_clip("clip_012")
-            card = open_episode("ep_clip_012_red_press_vs_depth_f0016")
-            evid = page.locator(".insp").inner_text()
-            check("G offside: same step-up, runner beyond the line is not claimed as space behind",
-                  "partial" in card and "block shift" in card and "Not claimed: behind space exposed — offside geometry"
-                  in evid, evid[:200].replace("\n", " | "))
-            labels_clear(page, "G offside")
-            page.screenshot(path=str(args.out / "20_g_offside.png"))
-
-            # Studio view and personalisation (on the G offside clip that is loaded now)
+            # Studio view and personalisation (on the E clip that is loaded now)
             card = page.locator(".rail .card").first.inner_text()
             check("Studio: technical ids stay behind Details", "ep_clip_" not in card and "priority" not in card,
                   card[:140].replace("\n", " | "))
@@ -516,22 +472,8 @@ def main() -> int:
                   "BROADCAST" in page.locator(".badge").first.inner_text()
                   and len(page.locator(".caption").inner_text()) > 20, page.locator(".caption").inner_text()[:160])
             page.screenshot(path=str(args.out / "27_bd_5_on_air.png"))
-            # another moment of the clip, picked in the panel: its own breakdown from step 1; with no outcome recorded,
-            # step 4 shows the next pass the replay saw (here the goalkeeper's pass to BLU #4)
-            chips = page.locator(".bd-moments button")
-            n_chips = chips.count()
-            chips.first.click()
-            page.wait_for_function("document.querySelector('.bd-badge')?.textContent.startsWith('1 / ')"
-                                   " && document.querySelector('.bd-moments button.on') ===" 
-                                   " document.querySelector('.bd-moments button')", timeout=15000)
-            badge = page.locator(".bd-badge").inner_text()
-            txt = bd_step(3, "svg.pitch polyline.ball-path")
-            tags = page.evaluate(tags_js)
-            check("Breakdown: another moment of the clip from the panel, and the next pass it saw in step 4",
-                  n_chips >= 2 and "10:14" in badge and "BLU #1 passes to BLU #4" in txt
-                  and tags == ["Pass", "Receives here"], f"{n_chips} moments | {badge} | tags {tags} | "
-                  + txt[:160].replace("\n", " | "))
-            page.screenshot(path=str(args.out / "27b_bd_other_moment.png"))
+            # one moment per breakdown (the producer's pick): no other moments are offered in the panel
+            check("Breakdown: one moment, no other moments listed", page.locator(".bd-moments").count() == 0)
             page.locator(".bd-go").click()
             check("Breakdown: exit returns to the desk", page.locator(".bd").count() == 0)
             page.get_by_role("button", name="Inspector").click()

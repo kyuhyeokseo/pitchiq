@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:35943",
+  "base": "http://127.0.0.1:55365",
   "checks": [
     {
       "check": "health endpoint",
@@ -114,7 +114,7 @@
     {
       "check": "negative clip: suppression reason shown",
       "ok": true,
-      "detail": "Evidence |  | Click a line, area or label on the pitch. |  | 2 claims \u00b7 12 measurements \u00b7 analysed up to 31:02 |  | Not claimed: behind space exposed \u2014 secondary cover in time |  | Not claimed: isolated 1v1 \u2014 seconda"
+      "detail": "Evidence |  | Click a line, area or label on the pitch. |  | 2 claims \u00b7 12 measurements \u00b7 analysed up to 31:02 |  | Not claimed: behind space exposed \u2014 secondary cover in time"
     },
     {
       "check": "C: press cut + screen + wide outlet form a complete trade-off",
@@ -155,31 +155,6 @@
       "check": "C negative: with the wingers supporting the screen nobody comes free, the story stays partial",
       "ok": true,
       "detail": "Moment at 40:06 | partial |  | 3 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | Inconclusive | Before (rev 1)"
-    },
-    {
-      "check": "D: trap on the left centre-back is a restricting-only story",
-      "ok": true,
-      "detail": "Moment at 7:01 | partial |  | 2 updates so far \u00b7 finished |  | What is restricted | Central routes screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | Inconclusive | Before (rev 1) | After (rev 2) | Narra"
-    },
-    {
-      "check": "D: the presser stands in the passing line (press-cut lane drawn)",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "check": "D: press-cut and numbers labels on the pitch",
-      "ok": true,
-      "detail": "ball zone 4 v 5 \u00b7 behind 6 v 5 | 2/2 central routes screened | press cuts 1 lane"
-    },
-    {
-      "check": "D: narration names the lane-cutting press and the numbers",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "check": "D trap: pitch labels do not overlap or leave the pitch",
-      "ok": true,
-      "detail": "{\"n\": 3, \"overlaps\": 0, \"outside\": 0}"
     },
     {
       "check": "D escape: screened options + free centre-back form a complete trade-off",
@@ -227,44 +202,9 @@
       "detail": "{\"n\": 3, \"overlaps\": 0, \"outside\": 0}"
     },
     {
-      "check": "E hold: the screen holds, nobody comes free",
-      "ok": true,
-      "detail": "Moment at 56:27 | partial |  | 4 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open is supported yet | Observed so far | line retreat | Inconclusive | Before (rev 1) | After "
-    },
-    {
-      "check": "G: press on the back pass + line steps up + space behind, used",
-      "ok": true,
-      "detail": "Moment at 20:14 | complete trade-off |  | 6 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Space behind the line heuristic | Observed so far | block shift | line retreat | Exploited in s"
-    },
-    {
-      "check": "G: narration says the back line stepped up together",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "check": "G: replay draws the back line's movement",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "check": "G main: pitch labels do not overlap or leave the pitch",
-      "ok": true,
-      "detail": "{\"n\": 5, \"overlaps\": 0, \"outside\": 0}"
-    },
-    {
-      "check": "G offside: same step-up, runner beyond the line is not claimed as space behind",
-      "ok": true,
-      "detail": "Evidence |  | Click a line, area or label on the pitch. |  | 1 claim \u00b7 9 measurements \u00b7 analysed up to 45:39 |  | Not claimed: behind space exposed \u2014 offside geometry"
-    },
-    {
-      "check": "G offside: pitch labels do not overlap or leave the pitch",
-      "ok": true,
-      "detail": "{\"n\": 3, \"overlaps\": 0, \"outside\": 0}"
-    },
-    {
       "check": "Studio: technical ids stay behind Details",
       "ok": true,
-      "detail": "Moment at 45:34 | partial |  | 3 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Nothing left open "
+      "detail": "Moment at 50:23 | complete trade-off |  | 6 updates so far \u00b7 finished |  | What is restricted | Short options screened heuristic | What is exposed | Accessi"
     },
     {
       "check": "Details shows the episode id and priority",
@@ -274,12 +214,12 @@
     {
       "check": "My club: the card says whether your club defends or attacks here",
       "ok": true,
-      "detail": "Your club is defending here"
+      "detail": "Your club is attacking here"
     },
     {
       "check": "Follow player: a ring and the measured speed on the followed player",
       "ok": true,
-      "detail": "0.7 m/s"
+      "detail": "2.5 m/s"
     },
     {
       "check": "Follow player: the timeline can show only that player's moments",
@@ -294,17 +234,17 @@
     {
       "check": "Breakdown 1, the press: presser and ball carrier tagged, who-follows-whom tethers drawn",
       "ok": true,
-      "detail": "tags ['On the ball', 'Presser'], 6 tethers | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
+      "detail": "tags ['On the ball', 'Presser'], 9 tethers | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | The press |  | Who goes to the ball, and who follows whom? |  | RED #9 closes down the p"
     },
     {
       "check": "Breakdown 2, what it takes away: the blocked passes, and nothing of the exposed side",
       "ok": true,
-      "detail": "Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
+      "detail": "1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What it takes away |  | Which passes does the defence shut? |  | Red United are screenin"
     },
     {
       "check": "Breakdown 3, what it leaves open: the space behind and the runner, no blocked passes",
       "ok": true,
-      "detail": "tags ['Cover', 'Runner'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
+      "detail": "tags ['Cover', 'Runner'] | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What it leaves open |  | What is the price of it? |  | The cost: the back line is pushed"
     },
     {
       "check": "Breakdown 3: pitch labels do not overlap or leave the pitch",
@@ -314,7 +254,7 @@
     {
       "check": "Breakdown 4, what happened: the ball's path from the passer to the receiver",
       "ok": true,
-      "detail": "tags ['Pass', 'Receives here'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
+      "detail": "tags ['Pass', 'Receives here'] | 1 The press | 2 What it takes away | 3 What it leaves open | 4 What happened | 5 On air | What happened |  | Did the attack use it? |  | Observed next: the back line had to turn "
     },
     {
       "check": "Breakdown 5, on air: approving puts the moment's caption on the broadcast view",
@@ -322,9 +262,9 @@
       "detail": "Restricted: 3/3 eligible ground-pass options from BLU #5 are screened (a defender reaches the lane or the receiver within 0.1 s of the ball).\n\nExposed: back lin"
     },
     {
-      "check": "Breakdown: another moment of the clip from the panel, and the next pass it saw in step 4",
+      "check": "Breakdown: one moment, no other moments listed",
       "ok": true,
-      "detail": "4 moments | 1 / 5 \u00b7 The press \u00b7 10:14.2 \u00b7 rev 1 | tags ['Pass', 'Receives here'] | Moments in this clip | 10:14 \u00b7 Red United defending | 10:16 \u00b7 Red United defending | 10:22 \u00b7 Red United defending | 10:25 \u00b7 Red United defending | 1 The press | 2 What it t"
+      "detail": ""
     },
     {
       "check": "Breakdown: exit returns to the desk",
@@ -373,9 +313,9 @@
     }
   ],
   "console_errors": [],
-  "passed": 74,
+  "passed": 62,
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-27T21:25:11Z"
+  "time_utc": "2026-10-27T22:30:27Z"
 }

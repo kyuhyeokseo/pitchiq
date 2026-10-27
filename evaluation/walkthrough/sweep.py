@@ -19,7 +19,7 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parents[2]
 OUT = Path(sys.argv[1])
 BASE = sys.argv[2].rstrip("/") if len(sys.argv) > 2 else None
-CLIPS = sys.argv[3].split(",") if len(sys.argv) > 3 else [f"clip_{i:03d}" for i in range(1, 13)]
+CLIPS = sys.argv[3].split(",") if len(sys.argv) > 3 else [f"clip_{i:03d}" for i in (1, 2, 3, 4, 5, 6, 8, 9)]  # the clips the desk offers
 OUT.mkdir(parents=True, exist_ok=True)
 
 STATE_JS = """() => ({

@@ -33,7 +33,7 @@ type Props = {
 const FREE_M = 10.0;
 const FREE_KEEP_M = 8.5;
 const FREE_REACH_M = 60.0;
-const FREE_MAX = 3;
+const FREE_MAX = 6;
 // tags of the player who acts go first, so they get the spot above the player
 const TAG_ORDER = ["presser", "runner", "passer", "shooter", "carrier", "cover", "receiver", "interceptor", "saver", "blocker"];
 const GETS_BALL = new Set(["receiver", "interceptor", "saver", "blocker"]);  // tagged where the ball's path ends

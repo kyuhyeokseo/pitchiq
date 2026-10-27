@@ -20,7 +20,7 @@ from .engine import DefenseSimulation
 from .publish import PRIVATE_TRUTH_DIR, PUBLIC_DIR, ClipSpec, build_public, write_clip
 from .scenarios import family_a, family_b, family_c, family_d, family_e, family_g
 
-GENERATOR_VERSION = "defense-0.8.0"  # 0.2: the whole game shifts after a long ball; 0.3: off-ball slots follow the
+GENERATOR_VERSION = "defense-0.8.1"  # 0.2: the whole game shifts after a long ball; 0.3: off-ball slots follow the
 # ball by slopes measured on real play, wander instead of orbiting, keep their spacing and do not stop dead;
 # 0.4: A's markers drop off men far from the ball (loose marking), C and E hold the players their stories rely on;
 # 0.4.1: D's double pivot holds its height (its markers stay in the build-up zone);
@@ -36,6 +36,7 @@ GENERATOR_VERSION = "defense-0.8.0"  # 0.2: the whole game shifts after a long b
 # C's striker cuts the pass to the other centre-back as he presses and "support" marks the pivot man to man, G "main"
 # sends the right winger in behind too and G "offside" goes three on three in midfield and finds the free centre-back
 # 0.8: a presser stands 3 m off the man on the ball (PRESS_STOP_M in engine.py), on the line of the pass he cuts
+# 0.8.1: A cover's centre-backs keep their shape (the left one holds his zone; both went to the striker)
 BUILDERS = {"A": family_a, "B": family_b, "C": family_c, "D": family_d, "E": family_e, "G": family_g}
 
 # Demo fixtures. Opaque public ids; the family/variant mapping is private.

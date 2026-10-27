@@ -69,7 +69,9 @@ def test_extra_cover_suppresses_isolation_but_keeps_the_restriction(cover):
     assert not any(c.code in ("isolated_1v1", "behind_space_exposed") for p in packets for c in p.claims)
     assert any(c.code == "short_options_screened" for p in packets for c in p.claims)
     forbidden = {f for p in packets for f in p.forbidden_inferences}
-    assert any(f.startswith("isolated_1v1:") and "cover_in_time" in f for f in forbidden)
+    # why the striker's run is not claimed: a cover arrives in time (as an isolation from his marker, or, with the
+    # centre-backs holding their zones since generator 0.8.1, as space behind the line)
+    assert any(f.startswith(("isolated_1v1:", "behind_space_exposed:")) and "cover_in_time" in f for f in forbidden)
     # same high line: the back line depth is still measured high in the negative case
     depths = [g.own_goal_depth_m for p in packets for s in p.states for g in s.line_groups if g.group == "back"]
     assert depths and max(depths) >= 40.0

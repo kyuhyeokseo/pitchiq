@@ -523,10 +523,14 @@ def test_the_breakdown_tells_the_moment_in_four_steps_from_the_evidence(client):
     press, takes, opens, happened = b["steps"]
     assert press["roles"] == {"red_09": "presser", "blue_05": "carrier"} and "closes down" in press["sentences"][0]
     assert press["press_facts"] is None  # the narration says the press, so no measured stand-in
-    # who follows whom: every sustained marking pair of the revision's own state, defender first
+    # who is marking whom: every marking pair of the revision's own state (defender first), then loose goal-side pairs
     state = key_state(next(p for p in STORE.sessions[rid].analyzer.packets[ep] if p.episode.revision == press["revision"]))
-    assert press["marks"] == [[m.defender_id, m.attacker_id] for m in state.markings if m.status == "ok"]
-    assert press["marks"] and all(d.startswith("red") for d, _ in press["marks"])
+    assert press["marks"][:len(state.markings)] == [[m.defender_id, m.attacker_id] for m in state.markings]
+    assert press["marks"] and all(d.startswith("red") and a.startswith("blue") for d, a in press["marks"])
+    assert len({d for d, _ in press["marks"]}) == len(press["marks"]) == len({a for _, a in press["marks"]})
+    # step 2 names who blocks which pass: the presser stands in the pass to the full back
+    assert any(b["receiver_id"] == "blue_02" and b["defender_ids"][0] == "red_09" and b["status"] == "screened"
+               for b in takes["blocks"])
     assert "short passes" in takes["sentences"][0] and "screened_lanes" in takes["layers"]
     assert "exposure" in opens["layers"] and "BLU #9" in opens["sentences"][0] and opens["roles"]["blue_09"] == "runner"
     assert happened["revision"] > opens["revision"] and "received by BLU #9" in happened["sentences"][-1]

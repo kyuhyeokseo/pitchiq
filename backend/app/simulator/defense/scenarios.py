@@ -51,11 +51,14 @@ def family_a(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
     gs_cb = float(dr.uniform(4.0, 5.0))  # the centre-back's goal-side cushion on the striker
     mark_lag = float(dr.uniform(0.3, 0.5))
     spare_at = _j(dr, (58.5, 31.0), 1.0)  # shaded toward the channel behind the marking centre-back
+    # cover (0.8, the project lead's review): the centre-backs keep their shape instead of both going to the striker;
+    # the left one holds his zone at the line's height, inside the channel the striker would run into
+    lcb_zone = _j(dr, (52.0, 25.5), 0.8) if variant == "cover" else None  # (main draws as before)
     init_d = {
         "D:GK": (92.0, 34.0), "D:ST": _j(dr, (26.0, 30.0)), "D:LW": _j(dr, (27.0, 9.0)), "D:RW": _j(dr, (25.0, 49.0)),
         "D:DM": _j(dr, (28.0, 35.0)), "D:LCM": _j(dr, (38.0, 24.0)), "D:RCM": _j(dr, (39.0, 43.0)),
         "D:RB": _j(dr, (39.0, 59.0)) if variant == "main" else _j(dr, (53.5, 49.0)), "D:LB": _j(dr, (53.0, 9.0)),
-        "D:LCB": (st_start[0] + gs_cb, st_start[1] - 0.5),
+        "D:LCB": (st_start[0] + gs_cb, st_start[1] - 0.5) if variant == "main" else lcb_zone,
         "D:RCB": _j(dr, (54.0, 46.0)) if variant == "main" else spare_at,
     }
 
@@ -104,8 +107,11 @@ def family_a(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         segs["D:RCB"] = [Seg(0.0, "mark", {"who": "A:LW", "gs": 2.0, "lag": mark_lag, "speed": 7.0}),
                          Seg(long, "recover", {"du": 16.0, "who": "A:ST", "speed": 7.4})]
     else:
-        # the spare reads the striker's run early (short lag) and stays goal-side of it
-        segs["D:RCB"] = [Seg(0.0, "cover", {"at": spare_at, "track": "A:ST", "depth": 4.5, "k": 0.85, "lag": 0.2,
+        segs["D:LCB"] = [Seg(0.0, "hold", {"at": lcb_zone, "shift": (0.3, 0.2)}),
+                         Seg(long, "chase", {"who": "A:ST", "speed": 8.2})]
+        # the spare reads the striker's run early (short lag) and stays goal-side of it, holding his side of the pair
+        # (k 0.5: he leans toward the striker without leaving his zone)
+        segs["D:RCB"] = [Seg(0.0, "cover", {"at": spare_at, "track": "A:ST", "depth": 4.5, "k": 0.5, "lag": 0.2,
                                             "speed": 7.2}),
                          Seg(long, "attack_ball", {"speed": 8.4})]
 
