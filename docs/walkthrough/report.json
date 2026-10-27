@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:52547",
+  "base": "http://127.0.0.1:54865",
   "checks": [
     {
       "check": "health endpoint",
@@ -29,12 +29,12 @@
     {
       "check": "live overlay elements drawn from backend",
       "ok": true,
-      "detail": "20 elements"
+      "detail": "1 elements"
     },
     {
       "check": "A live: the player on the ball is drawn on top",
       "ok": true,
-      "detail": "{\"nearest\": \"var(--red) #9\", \"last\": \"var(--red) #9\"}"
+      "detail": "{\"nearest\": \"var(--blue) #8\", \"last\": \"var(--blue) #8\"}"
     },
     {
       "check": "outcome revision shows exploitation after the long ball",
@@ -42,9 +42,9 @@
       "detail": ""
     },
     {
-      "check": "A live after the episode closed: the clip ended, the moment is shown as a replay",
+      "check": "A live after the episode closed: its old claims are not drawn on the new frame",
       "ok": true,
-      "detail": "PREVIEW \u00b7 REPLAY \u00b7 10:25"
+      "detail": "PREVIEW \u00b7 LIVE \u00b7 nothing current \u00b7 last moment 10:30"
     },
     {
       "check": "ended: the pitch shows the followed moment, not an empty pitch",
@@ -64,7 +64,7 @@
     {
       "check": "A exposed: pitch labels do not overlap or leave the pitch",
       "ok": true,
-      "detail": "{\"n\": 3, \"overlaps\": 0, \"outside\": 0}"
+      "detail": "{\"n\": 5, \"overlaps\": 0, \"outside\": 0}"
     },
     {
       "check": "inspector shows the metrics behind the clicked area",
@@ -354,7 +354,7 @@
     {
       "check": "live overlay is drawn over a slow link (400 ms per request)",
       "ok": true,
-      "detail": "19 elements"
+      "detail": "2 elements | PREVIEW \u00b7 LIVE \u00b7 10:17"
     },
     {
       "check": "Play right after a clip switch over a slow link starts the new clip",
@@ -377,5 +377,5 @@
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-27T07:37:06Z"
+  "time_utc": "2026-10-27T16:36:34Z"
 }

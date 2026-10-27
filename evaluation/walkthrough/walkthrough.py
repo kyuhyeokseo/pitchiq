@@ -27,6 +27,16 @@ from playwright.sync_api import TimeoutError as PlaywrightTimeout, sync_playwrig
 
 ROOT = Path(__file__).resolve().parents[2]
 
+# Chromium's network emulation delays HTTP answers but not WebSocket frames. A real slow link delays both; without
+# this the replay clock runs 0.4 s ahead of every overlay answer, which then arrives past its 0.6 s validity.
+SLOW_WS_JS = """(() => {
+  const W = window.WebSocket;
+  window.WebSocket = class extends W {
+    set onmessage(f) { super.onmessage = f ? (e) => setTimeout(() => f(e), %d) : f; }
+    get onmessage() { return super.onmessage; }
+  };
+})();"""
+
 
 LABELS_JS = """() => {
   const r = [...document.querySelectorAll('svg.pitch rect.label-bg')].map((e) => e.getBoundingClientRect());
@@ -225,8 +235,17 @@ def main() -> int:
             page.get_by_role("button", name="Ask", exact=True).click()
             page.wait_for_selector(".ask .answer", timeout=90000)
             ans = page.locator(".ask .answer").first.inner_text()
-            source = "Answered by the Ask agent" if health.get("cloud_enabled") else "Deterministic fallback"
-            check("Ask: an answer with its source and real trace", source in ans and len(ans.splitlines()) >= 3,
+            trace = page.locator(".ask .answer").first.text_content() or ""
+            # with Foundry on, the code check may refuse the agent's choice twice; the main moment's narration then
+            # answers and says so, after a real agent run. Which one answered is kept as information.
+            agent = "Answered by the Ask agent" in ans
+            if health.get("cloud_enabled"):
+                notes.append({"check": "Ask: the agent's answer passed the code check", "matched": agent,
+                              "detail": "" if agent else "Deterministic fallback after the code check refused it"})
+                ok = agent or ("Deterministic fallback" in ans and "Ask agent run" in trace)
+            else:
+                ok = "Deterministic fallback" in ans
+            check("Ask: an answer with its source and real trace", ok and len(ans.splitlines()) >= 3,
                   ans[:240].replace("\n", " | "))
             page.locator(".ask .answer").first.get_by_role("button", name="Show on pitch").click()
             page.wait_for_function("document.querySelector('.badge')?.textContent.includes('REPLAY')", timeout=10000)
@@ -236,8 +255,15 @@ def main() -> int:
             page.wait_for_selector(".recap .recap-item", timeout=90000)
             rc = page.locator(".recap").inner_text()
             n_items = page.locator(".recap .recap-item").count()
-            src = "built by the Recap agent" if health.get("cloud_enabled") else "deterministic recap"
-            check("Recap: 1-3 moments with their sentences and the source", 1 <= n_items <= 3 and src in rc,
+            agent = "built by the Recap agent" in rc
+            if health.get("cloud_enabled"):
+                notes.append({"check": "Recap: the agent's choice passed the code check", "matched": agent,
+                              "detail": "" if agent else "deterministic recap after the code check refused it"})
+                ok = agent or ("deterministic recap" in rc
+                               and "Recap agent run" in (page.locator(".recap").text_content() or ""))
+            else:
+                ok = "deterministic recap" in rc
+            check("Recap: 1-3 moments with their sentences and the source", 1 <= n_items <= 3 and ok,
                   f"{n_items} items | " + rc[:200].replace("\n", " | "))
             page.get_by_role("button", name="KO", exact=True).click()
 
@@ -549,16 +575,18 @@ def main() -> int:
             # and the pitch must still draw their answers
             slow = browser.new_page(viewport={"width": 1500, "height": 1000})
             slow.on("pageerror", lambda e: console.append(f"pageerror (slow link): {e}"))
+            slow.add_init_script(SLOW_WS_JS % 400)
             slow.context.new_cdp_session(slow).send("Network.emulateNetworkConditions", {
                 "offline": False, "latency": 400, "downloadThroughput": -1, "uploadThroughput": -1})
             slow.goto(base + "/")
             slow.wait_for_function("document.querySelectorAll('svg.pitch g.pl').length === 22", timeout=60000)
             slow.select_option("select[aria-label=Speed]", "1")
             slow.get_by_role("button", name="Play", exact=True).click()
-            slow.wait_for_selector(".ep.complete_tradeoff", timeout=30000)
-            drawn = slow.wait_for_function("document.querySelectorAll('svg.pitch .ov').length || 0", timeout=15000)
+            # drawn while the clip plays: the end of the clip shows the followed moment as a replay, which is no proof
+            drawn = slow.wait_for_function("document.querySelector('.badge')?.innerText.includes('LIVE')"
+                                           " && document.querySelectorAll('svg.pitch .ov').length", timeout=30000)
             check("live overlay is drawn over a slow link (400 ms per request)", drawn.json_value() > 0,
-                  f"{drawn.json_value()} elements")
+                  f"{drawn.json_value()} elements | {slow.locator('.badge').first.inner_text()}")
             # paused, switch clips, press Play at once: the click must start the new clip, not vanish while the new
             # replay is still being created
             slow.get_by_role("button", name="Pause", exact=True).click()

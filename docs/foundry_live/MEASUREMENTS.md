@@ -175,6 +175,22 @@ The same check on image `sha-9afb2c2` (the fan-caption fix), 2026-10-25 about 16
   did not run on the public URL; the offline run of the same build passed all 74. An earlier public run the same
   morning stopped at the approval step (5 s wait) while a Foundry revision arrived. `/api/health` after the runs:
   59 of the 300 daily runs used today, last call succeeded.
+- Image `sha-82cbd01` (the press-cut legend shows the faint lane with an X; otherwise as `sha-e90fdd1`), deployed
+  10-27 about 11:00. A first-run rehearsal of the video path: the first step 4.2 s after the click with 6 tethers, the
+  new legend in step 2, the Foundry text on air 22.9 s after the breakdown click, Ask 6.3 s, no page errors. Public
+  walkthrough at 11:30: 67 passed, 1 failed, at the same slow-link step as above. The explanation above was only half
+  right: Chromium's network emulation delays HTTP answers but not WebSocket frames, so the replay clock ran 0.4 s
+  ahead of every overlay answer, which then arrived at or past its 0.6 s validity; on a real slow link both are late
+  and the answer arrives on time. The check then passed on the end-of-clip replay picture, not on a live overlay, and
+  the Pause click found the clip over. The walkthrough now holds WebSocket frames back by the same 400 ms and requires
+  a live overlay drawn while the clip plays. Public walkthrough at 12:42 with that change: 70 passed, 0 failed, no
+  console errors; the Ask and Recap agents' choices passed the code check (kept as information; a run at 12:12 had
+  both refused twice and fell back to the deterministic answer and recap, which the earlier checks counted as
+  failures). Eight Asks and three Recaps sent to clip 1 by script at 12:30 were all answered by the agents (three Asks
+  after one repair). Known limits over the slow link: after clip 1's complete trade-off appears, the last 4 s of the
+  clip show no live overlay (a fast link draws one element there; not investigated), and Play right after a clip
+  switch leaves the old replay's overlay requests answering 404 for about 2 s (not shown on the page). `/api/health`
+  at 12:12: 80 of the 300 daily runs used today.
 
 ## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
 
