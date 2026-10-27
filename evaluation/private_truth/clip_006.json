@@ -1,6 +1,6 @@
 {
   "clip_id": "clip_006",
-  "generator_version": "defense-0.6.0",
+  "generator_version": "defense-0.7.0",
   "seed": 7,
   "private_config": {
     "family": "C",
@@ -48,14 +48,14 @@
   "params": {
     "t_drop": 4.719,
     "drop_to": [
-      21.963712659907685,
-      43.10962134091588
+      24.463712659907685,
+      37.60962134091588
     ],
     "step_lag": 2.792
   },
   "roles": {
     "dropper": "A:LCM",
-    "stepper": "D:RCM",
+    "stepper": "D:RW",
     "carrier": "A:RCB",
     "wide_outlet": "A:RB"
   },

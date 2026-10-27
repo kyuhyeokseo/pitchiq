@@ -144,7 +144,8 @@ g.ov.sel .label-bg { stroke: #fff; stroke-width: 0.15; }
 .lane_screened { stroke: var(--restricted); stroke-width: 0.5; stroke-linecap: round; stroke-dasharray: 0.9 1; }
 .lane-bar { stroke: var(--pink); stroke-width: 0.5; stroke-linecap: round; fill: none; }
 .screen_marker { stroke: var(--restricted); stroke-width: 0.32; }
-.press_cut_lane { stroke: var(--restricted); stroke-width: 0.6; stroke-linecap: round; stroke-dasharray: 0.01 1; }
+.press_cut_lane { stroke: var(--restricted); stroke-width: 0.5; opacity: 0.55; stroke-linecap: round; stroke-dasharray: 0.9 1; }
+.lane-x { stroke: var(--restricted); stroke-width: 0.55; stroke-linecap: round; fill: none; pointer-events: none; }
 .mark_supported { stroke: rgba(250, 249, 250, 0.7); stroke-width: 0.22; }
 .mark_weak { stroke: rgba(250, 249, 250, 0.45); stroke-width: 0.2; stroke-dasharray: 0.5 0.5; }
 .line_back { stroke: #fff; stroke-width: 0.36; stroke-dasharray: 1.4 0.8; }

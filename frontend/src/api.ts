@@ -104,6 +104,8 @@ export type BreakdownStep = {
   through_blocked?: boolean;  // the pass in this step went along a lane step 2 drew as blocked
   // the press, when the narration has no sentence about it: who has the ball and the nearest defender (measured)
   press_facts?: { carrier_id: string; defender_id: string; distance_m: number } | null;
+  unmarked?: string[];  // what it leaves open: the attacking team's unmarked players on the step's frame (measured)
+  other_runs?: { runner_id: string; cover_id: string | null; in_time: boolean }[];  // other runs in behind (cover timed)
 };
 export type Breakdown = { episode_id: string; analysis_status: string; outcome: string; language: string; steps: BreakdownStep[] };
 

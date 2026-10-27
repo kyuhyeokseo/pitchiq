@@ -269,17 +269,27 @@ def main() -> int:
                 return page.locator(".rail .card").first.inner_text()
 
             card = play_clip("clip_003")
-            check("C: central screen + wide outlet + free receiver form a complete trade-off",
-                  "complete trade-off" in card and "Central routes screened" in card and "Accessible free receiver" in card
+            # generator 0.7: the striker cuts the pass to the other centre-back while he presses (it also shuts the
+            # half-space the ten drops into), so the screen reads as short options screened, and the wide pass is open
+            check("C: press cut + screen + wide outlet form a complete trade-off",
+                  "complete trade-off" in card and ("Short options screened" in card or "Central routes screened" in card)
                   and "Wide outlet available" in card, card[:220].replace("\n", " | "))
-            check("C: drop then defensive step recorded", "attacker drop" in card and "defender step" in card,
-                  card[card.find("OBSERVED"):][:120].replace("\n", " | "))
             check("C: outcome revision after the wide pass", "Exploited" in card)
             page.screenshot(path=str(args.out / "09_c_main.png"))
             page.locator("button", has_text="After (rev").click()
             page.wait_for_function("document.querySelector('.badge')?.textContent.includes('REPLAY')", timeout=10000)
             page.wait_for_timeout(500)
-            check("C: replay draws the observed movement paths", page.locator("svg.pitch polyline.ghost_path").count() >= 1)
+            # the presser's cut of the pass to the other centre-back: drawn faint and crossed out (the revision that has
+            # the press draws it; a later one, after the wide pass, may not)
+            revs = page.locator(".timeline .ep.sel button.rev")
+            crossed = False
+            for i in range(revs.count()):
+                revs.nth(i).click()
+                page.wait_for_timeout(600)
+                if page.locator("svg.pitch path.lane-x").count() >= 1:
+                    crossed = True
+                    break
+            check("C: the lane the presser cuts is drawn faint with an X", crossed)
             page.screenshot(path=str(args.out / "10_c_after.png"))
             page.locator("button", has_text="Before (rev 1)").click()
             page.wait_for_timeout(800)

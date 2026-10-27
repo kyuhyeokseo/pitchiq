@@ -54,7 +54,8 @@ def family_a(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
     init_d = {
         "D:GK": (92.0, 34.0), "D:ST": _j(dr, (26.0, 30.0)), "D:LW": _j(dr, (27.0, 9.0)), "D:RW": _j(dr, (25.0, 49.0)),
         "D:DM": _j(dr, (28.0, 35.0)), "D:LCM": _j(dr, (38.0, 24.0)), "D:RCM": _j(dr, (39.0, 43.0)),
-        "D:RB": _j(dr, (39.0, 59.0)), "D:LB": _j(dr, (53.0, 9.0)), "D:LCB": (st_start[0] + gs_cb, st_start[1] - 0.5),
+        "D:RB": _j(dr, (39.0, 59.0)) if variant == "main" else _j(dr, (53.5, 49.0)), "D:LB": _j(dr, (53.0, 9.0)),
+        "D:LCB": (st_start[0] + gs_cb, st_start[1] - 0.5),
         "D:RCB": _j(dr, (54.0, 46.0)) if variant == "main" else spare_at,
     }
 
@@ -88,9 +89,11 @@ def family_a(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         "D:DM": [Seg(0.0, "mark", {"who": "A:DM", "gs": 1.7, "lag": mark_lag, "loose": True, "speed": 7.0})],
         "D:LCM": [Seg(0.0, "mark", {"who": "A:RCM", "gs": 1.7, "lag": mark_lag, "loose": True, "speed": 7.0})],
         "D:RCM": [Seg(0.0, "mark", {"who": "A:LCM", "gs": 1.7, "lag": mark_lag, "loose": True, "speed": 7.0})],
-        # the full backs hold the high line: the far one tucks in off his winger at the line's height
+        # the full backs hold the high line: the far one tucks in off his winger at the line's height (cover: with the
+        # second centre-back kept spare, he takes the left winger instead and leaves the far full back, deep and wide)
         "D:RB": [Seg(0.0, "mark", {"who": "A:LB", "gs": 2.0, "lag": mark_lag, "loose": True, "loose_gs": 0.0,
-                                   "speed": 7.0}),
+                                   "speed": 7.0}) if variant == "main" else
+                 Seg(0.0, "mark", {"who": "A:LW", "gs": 2.2, "lag": mark_lag, "speed": 7.0}),
                  Seg(long, "recover", {"du": 18.0, "speed": 6.5})],
         "D:LB": [Seg(0.0, "mark", {"who": "A:RW", "gs": 2.5, "lag": mark_lag, "speed": 7.0}),
                  Seg(long, "recover", {"du": 16.0, "speed": 7.0})],
@@ -212,14 +215,23 @@ def family_b(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
                  Seg(t_drop, "run", {"to": (back_u - 1.0, 56.0), "speed": 4.5})],
     }
     if compact:
+        # the front three drop to a line around halfway and screen without pressing: the back line on the ball is left
+        # alone (what this block gives); behind them each midfielder keeps his place in the 4-3-3 and takes the man
+        # in his zone - the two eights the opposing eights from in front of the back four, the holding midfielder the
+        # centre-forward, who is caged between him and the centre-backs
         for k, v in (("D:ST", 31.0), ("D:LW", 16.0), ("D:RW", 50.0)):
             segs[k] = [Seg(0.0, "hold", {"at": (init_d[k][0], v), "shift": (0.2, 0.25)}),
                        Seg(t_drop, "run", {"to": (48.0, v), "speed": 3.5})]
-        for k, v in (("D:LCM", 25.0), ("D:DM", 34.0), ("D:RCM", 44.0)):
-            segs[k] = [Seg(0.0, "hold", {"at": init_d[k], "shift": (0.2, 0.3)}),
-                       Seg(t_drop, "run", {"to": (63.0 if k != "D:DM" else 65.0, v), "speed": 3.5}),
-                       Seg(t_move + 0.6, "screen", {"who": "A:LCM", "frac": 0.75, "speed": 6.0}) if k == "D:DM"
-                       else Seg(t_drop + 0.2, "run", {"to": (63.0, v), "speed": 3.5})]
+        segs["D:LCM"] = [Seg(0.0, "hold", {"at": init_d["D:LCM"], "shift": (0.2, 0.3)}),
+                         Seg(t_drop, "cover", {"at": (61.0, 25.0), "track": "A:RCM", "depth": 6.0, "k": 0.6,
+                                               "speed": 5.0})]
+        segs["D:RCM"] = [Seg(0.0, "hold", {"at": init_d["D:RCM"], "shift": (0.2, 0.3)}),
+                         Seg(t_drop, "cover", {"at": (61.0, 44.0), "track": "A:LCM", "depth": 4.0, "k": 0.8,
+                                               "speed": 5.5})]
+        segs["D:DM"] = [Seg(0.0, "hold", {"at": init_d["D:DM"], "shift": (0.2, 0.3)}),
+                        Seg(t_drop, "mark", {"who": "A:ST", "gs": -3.2, "lag": 0.4, "speed": 5.5})]
+        # nothing is on through the block, so the ten keeps moving in front of it, looking for a gap
+        segs["A:LCM"] = segs["A:LCM"][:2] + [Seg(t_move + 3.0, "check", {"at": gap_spot, "amp": 2.6})]
     else:
         # the striker presses the centre-back from outside, forcing the ball inside to the pivot; the wide forward
         # takes the full back
@@ -241,10 +253,23 @@ def family_b(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         {"kind": "pass", "from": "A:GK", "to": "A:RCB", "at": float(ar.uniform(1.8, 2.2)), "speed": 15.0},
         {"kind": "pass", "name": "dm_ball", "from": "A:RCB", "to": "A:DM", "after_receive_s": float(ar.uniform(1.4, 1.8)),
          "speed": 14.0},
-        {"kind": "pass", "name": "ten_ball", "from": "A:DM", "to": "A:LCM", "speed": 15.0, "lead": 0.4,
-         "at": t_move + float(ar.uniform(2.4, 2.8))},
-        {"kind": "pass", "from": "A:LCM", "to": "A:ST", "after_receive_s": float(ar.uniform(2.6, 3.2)), "speed": 15.0},
     ]
+    if compact:
+        # nothing on through the block: the ball goes round the back, unpressed
+        ball_steps += [
+            {"kind": "pass", "from": "A:DM", "to": "A:LCB", "after_receive_s": float(ar.uniform(2.0, 2.6)), "speed": 14.0},
+            {"kind": "pass", "from": "A:LCB", "to": "A:LB", "after_receive_s": float(ar.uniform(1.8, 2.4)), "speed": 14.0},
+            {"kind": "pass", "from": "A:LB", "to": "A:LCB", "after_receive_s": float(ar.uniform(2.0, 2.6)), "speed": 14.0},
+            {"kind": "pass", "name": "round_ball", "from": "A:LCB", "to": "A:RCB",
+             "after_receive_s": float(ar.uniform(1.6, 2.2)), "speed": 15.0},
+        ]
+    else:
+        ball_steps += [
+            {"kind": "pass", "name": "ten_ball", "from": "A:DM", "to": "A:LCM", "speed": 15.0, "lead": 0.4,
+             "at": t_move + float(ar.uniform(2.4, 2.8))},
+            {"kind": "pass", "from": "A:LCM", "to": "A:ST", "after_receive_s": float(ar.uniform(2.6, 3.2)),
+             "speed": 15.0},
+        ]
     plan = Plan(duration_s=26.0, init={**init_a, **init_d}, segs=segs, ball_steps=ball_steps, first_owner="A:GK",
                 sigma={"A:LCM": 0.2, "D:DM": 0.2}, lag_s=0.4)
     truth = {
@@ -286,11 +311,11 @@ def family_c(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         raise ValueError(variant)
     ar, dr = attack_rng, defense_rng
     t_drop = float(ar.uniform(4.4, 4.8))
-    drop_to = _j(ar, (22.5, 43.0), 0.6)
+    drop_to = _j(ar, (25.0, 37.5), 0.6)  # into the half-space between the far centre-back and the pivot, apart from both
     step_lag = float(dr.uniform(2.6, 3.0))
     support = variant == "support"
     init_a = {
-        "A:GK": (5.5, 34.0), "A:RCB": _j(ar, (17.0, 21.0)), "A:LCB": _j(ar, (17.0, 47.0)),
+        "A:GK": (5.5, 34.0), "A:RCB": _j(ar, (17.0, 21.0)), "A:LCB": _j(ar, (19.0, 42.5)),
         "A:RB": _j(ar, (24.0, 5.0)), "A:LB": _j(ar, (26.0, 63.0)), "A:DM": _j(ar, (30.0, 33.0)),
         "A:RCM": _j(ar, (37.0, 25.0)), "A:LCM": _j(ar, (39.0, 41.5)), "A:RW": _j(ar, (48.0, 8.0)),
         "A:LW": _j(ar, (48.0, 60.0)), "A:ST": _j(ar, (51.0, 34.0)),
@@ -299,7 +324,7 @@ def family_c(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         "D:GK": (94.0, 34.0), "D:ST": _j(dr, (26.0, 27.0)), "D:LCM": _j(dr, (33.0, 27.5)),
         "D:RCM": _j(dr, (35.0, 38.0)), "D:DM": _j(dr, (44.0, 34.0)),
         "D:LW": _j(dr, (36.0, 12.0)) if not support else _j(dr, (31.0, 18.0)),
-        "D:RW": _j(dr, (36.0, 56.0)) if not support else _j(dr, (34.0, 47.0)),
+        "D:RW": _j(dr, (36.0, 56.0)) if not support else _j(dr, (29.5, 44.0)),
         # the back line follows the press up (about 20-25 m behind the midfield screen, not 30)
         "D:LB": _j(dr, (52.0, 10.0)), "D:LCB": _j(dr, (55.0, 28.0)), "D:RCB": _j(dr, (55.0, 40.0)),
         "D:RB": _j(dr, (52.0, 58.0)),
@@ -330,8 +355,9 @@ def family_c(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         "A:LW": [Seg(0.0, "check", {"at": init_a["A:LW"], "amp": 1.5})],
         "A:ST": [Seg(0.0, "check", {"at": init_a["A:ST"], "amp": 1.5})],
         "D:GK": [Seg(0.0, "gk", {"at": (94.0, 34.0)})],
-        # lane-oriented: curve onto the carrier from inside, stand in the central passing lines
-        "D:ST": [Seg(0.0, "press_mark", {"who": "A:RCB", "cut": "A:DM", "gs": 1.0, "stop": 1.5, "speed": 6.5})],
+        # lane-oriented: curve onto the carrier from inside, cutting the pass across to the other centre-back while he
+        # presses (the midfield screens the central passing lines)
+        "D:ST": [Seg(0.0, "press_mark", {"who": "A:RCB", "cut": "A:LCB", "gs": 1.0, "stop": 1.5, "speed": 6.5})],
         # the screens are set on the centre-back the goalkeeper is about to find, before he has the ball
         # once the ball goes wide the screen is over: the midfield slides across toward it from its spots
         # the three screens stand apart (each nearer its receiver than the carrier); once the ball goes wide the
@@ -355,11 +381,23 @@ def family_c(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         segs["A:ST"] = [Seg(0.0, "check", {"at": init_a["A:ST"], "amp": 1.5}),
                         Seg(2.0, "run", {"to": _j(ar, (43.5, 35.0), 0.6), "speed": 4.0, "shift": (0.0, 0.0)})]
         segs["D:LW"] = [Seg(0.0, "mark", {"who": "A:RB", "gs": 1.4, "lag": 0.3, "speed": 7.0})]
-        # the far winger steps up into the lane to the far centre-back: left open, that square ball would be the
-        # free man the support is meant to take away (the midfield screens the dropping midfielder behind him)
-        segs["D:RW"] = [Seg(0.0, "screen", {"who": "A:LCB", "from": "A:RCB", "frac": 0.55, "speed": 6.5})]
-        segs["D:RCM"] = [Seg(0.0, "screen", {"who": "A:LCM", "from": "A:RCB", "frac": 0.6, "speed": 6.0}),
-                         Seg(t_drop + 0.6, "mark", {"who": "A:LCM", "gs": 1.2, "lag": 0.3, "speed": 7.0})]
+        # the back pass to the keeper is the trigger: the striker follows it, curving to cut the return pass to the
+        # centre-back he was pressing, and the tucked-in winger jumps into the pass to the far centre-back
+        segs["D:ST"].append(Seg(("back_ball_release", 0.2), "press_mark", {"who": "A:GK", "cut": "A:RCB", "gs": 1.0,
+                                                                             "stop": 2.5, "speed": 7.0}))
+        # the far winger tucks into the middle beside the midfield (four central midfielders against the build-up):
+        # the far full back is left alone on the other side - what the support gives
+        segs["D:RW"] = [Seg(0.0, "hold", {"at": init_d["D:RW"], "shift": (0.15, 0.1)}),
+                        Seg(t_drop + 0.6, "mark", {"who": "A:LCM", "gs": 1.4, "lag": 0.3, "speed": 7.0}),
+                        Seg(("back_ball_release", 0.0), "screen", {"who": "A:LCB", "from": "A:GK", "frac": 0.8,
+                                                                    "speed": 7.6})]
+        # the man-oriented midfield, one man each: the right eight on the pivot, the tucked-in winger on the ten when
+        # he drops (above), the left eight on the other eight; the holding midfielder is the spare in front of the back
+        # line, goal-side of the striker waiting there
+        segs["D:RCM"] = [Seg(0.0, "mark", {"who": "A:DM", "gs": 1.5, "lag": 0.3, "speed": 6.5})]
+        segs["D:DM"] = [Seg(0.0, "hold", {"at": (43.0, 34.0), "shift": (0.1, 0.1)}),
+                        Seg(4.0, "cover", {"at": (43.0, 34.0), "track": "A:ST", "depth": 4.0, "k": 0.6, "lag": 0.3,
+                                           "speed": 6.0})]
     else:
         segs["D:LW"] = [Seg(0.0, "hold", {"at": init_d["D:LW"], "shift": (0.15, 0.1)})]
         segs["D:RW"] = [Seg(0.0, "hold", {"at": init_d["D:RW"], "shift": (0.15, 0.1)})]
@@ -396,7 +434,8 @@ def family_c(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
             "attacking_response": "central_midfielder_drop", "defensive_adjustment": "defender_step",
         },
         "params": {"t_drop": round(t_drop, 3), "drop_to": drop_to, "step_lag": round(step_lag, 3)},
-        "roles": {"dropper": "A:LCM", "stepper": "D:RCM", "carrier": "A:RCB", "wide_outlet": "A:RB"},
+        "roles": {"dropper": "A:LCM", "stepper": "D:RCM" if not support else "D:RW", "carrier": "A:RCB",
+                  "wide_outlet": "A:RB"},
     }
     plan.steady = _story_keys(truth)
     return plan, truth
@@ -612,6 +651,8 @@ def family_e(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         # the attacking midfielder moves into the space the stepping midfielder left
         segs["A:RCM"].append(Seg(("rcb_ball_arrive", t_out + 0.3), "run", {"to": _j(ar, (37.5, 33.0), 0.5),
                                                                           "speed": 5.0}))
+        # once he has it he turns and runs at the back four
+        segs["A:RCM"].append(Seg(("free_ball_arrive", 0.3), "carry", {"to": _j(ar, (52.0, 31.0), 1.0), "speed": 4.6}))
         ball_steps.append({"kind": "pass", "name": "free_ball", "from": "A:RCB", "to": "A:RCM", "speed": 15.0,
                            "after_receive_s": t_out + float(ar.uniform(2.5, 2.8))})
     else:
@@ -648,10 +689,12 @@ def family_g(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
     centre-back the whole team steps up - the strikers press him, the midfield picks up its men and the back line
     moves up about ten metres together.
 
-    main    - the striker drops with the line and stays onside, then turns and runs in behind; the centre-back
-              plays over the top before the back line can turn.
-    offside - the striker stays where he was, so the step-up leaves him in an offside position; his later run starts
-              from there and the centre-back plays back to the goalkeeper instead.
+    main    - the midfield screens the passes into its men (zonal); the striker drops with the line and stays onside,
+              then turns and runs in behind (the right winger goes in behind on his side too); the centre-back plays
+              over the top before the back line can turn.
+    offside - the midfield goes man to man in the middle (three on three, tight), and the striker stays where he
+              was, so the step-up leaves him in an offside position; his later run starts from there and the
+              centre-back finds the other centre-back, the man the press leaves free, instead.
     """
     if variant not in FAMILY_G_VARIANTS:
         raise ValueError(variant)
@@ -675,6 +718,9 @@ def family_g(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         "D:DM": _j(dr, (49.0, 11.0)), "D:LW": _j(dr, (49.0, 57.0)),
         "D:LB": (line_u - 0.5, 12.0), "D:LCB": (line_u, 28.5), "D:RCB": (line_u, 40.0), "D:RB": (line_u - 0.5, 56.0),
     }
+    if not main:  # the middle three start on their men (man to man in the middle from the first frame)
+        for d, a in (("D:LCM", "A:RCM"), ("D:RCM", "A:LCM"), ("D:RW", "A:DM")):
+            init_d[d] = _j(dr, (init_a[a][0] + 1.5, init_a[a][1] + (0.6 if init_a[a][1] < 34.0 else -0.6)), 0.3)
     go = ("bp_release", react)
     lag = float(dr.uniform(0.3, 0.45))
     segs: dict[str, list[Seg]] = {
@@ -722,7 +768,25 @@ def family_g(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
     ball_steps: list[dict] = [
         {"kind": "pass", "name": "bp", "from": "A:RCM", "to": "A:RCB", "at": t_bp, "speed": 15.0},
     ]
+    if not main:
+        # three on three in the middle, tight from the start: each central midfielder on his man, close and quick to
+        # react (the centre is packed); on the trigger the striker presses, cutting the pass back to the keeper (the
+        # full back already has his marker), so the far centre-back is the free man
+        segs["D:LCM"] = [Seg(0.0, "mark", {"who": "A:RCM", "gs": 1.0, "lag": 0.25, "speed": 7.4})]
+        segs["D:RCM"] = [Seg(0.0, "mark", {"who": "A:LCM", "gs": 1.0, "lag": 0.25, "speed": 7.4})]
+        segs["D:RW"] = [Seg(0.0, "mark", {"who": "A:DM", "gs": 1.0, "lag": 0.25, "speed": 7.4})]
+        segs["D:ST"][1] = Seg(go, "press_mark", {"who": "A:RCB", "cut": "A:GK", "gs": -2.5, "stop": 1.3, "speed": 7.6})
+        # ... and once the ball goes across he shifts onto the free centre-back, cutting the pass back to the keeper
+        segs["D:ST"].append(Seg(("free_cb_release", 0.2), "press_mark", {"who": "A:LCB", "cut": "A:GK", "gs": -2.0,
+                                                                          "stop": 1.6, "speed": 7.4}))
     if main:
+        # main: on the trigger the central midfielders screen the passes into their men instead of marking them (a
+        # zonal step-up; the man-to-man middle is the other variant's)
+        segs["D:LCM"][1] = Seg(go, "screen", {"who": "A:RCM", "from": "A:RCB", "frac": 0.65, "speed": 7.0})
+        segs["D:RCM"][1] = Seg(go, "screen", {"who": "A:LCM", "from": "A:RCB", "frac": 0.65, "speed": 7.0})
+        # the right winger goes in behind on his side as well, and the left back turns with him
+        segs["A:RW"] += [Seg(("bp_arrive", t_go + 0.2), "run", {"to": _j(ar, (84.0, 14.0), 1.0), "speed": 7.6})]
+        segs["D:LB"].append(Seg(("long_ball_release", 0.0), "recover", {"du": 22.0, "who": "A:RW", "speed": 7.4}))
         # drops with the line to stay onside, then turns and runs in behind
         segs["A:ST"] += [Seg(("bp_release", 0.5), "run", {"to": (step_u - 5.5, 47.5), "speed": 5.0}),
                          Seg(("bp_arrive", t_go), "run", {"to": run_to, "speed": 8.2}),
@@ -737,8 +801,8 @@ def family_g(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         # stays where he was; the step-up leaves him offside, and he runs from there, then walks back onside once
         # the ball has gone back
         segs["A:ST"] += [Seg(("bp_arrive", t_go), "run", {"to": run_to, "speed": 7.5}),
-                         Seg(("back_to_gk_release", 0.8), "run", {"to": (step_u - 4.0, 46.0), "speed": 3.5})]
-        ball_steps.append({"kind": "pass", "name": "back_to_gk", "from": "A:RCB", "to": "A:GK", "speed": 15.0,
+                         Seg(("free_cb_release", 0.8), "run", {"to": (step_u - 4.0, 46.0), "speed": 3.5})]
+        ball_steps.append({"kind": "pass", "name": "free_cb", "from": "A:RCB", "to": "A:LCB", "speed": 16.0,
                            "after_receive_s": t_go + float(ar.uniform(0.8, 1.1))})
     plan = Plan(duration_s=20.0, init={**init_a, **init_d}, segs=segs, ball_steps=ball_steps, first_owner="A:RCM",
                 sigma={"A:ST": 0.15, "D:ST": 0.15}, lag_s=lag)
@@ -746,7 +810,7 @@ def family_g(attack_rng: np.random.Generator, defense_rng: np.random.Generator, 
         "family": "G", "variant": variant,
         "story": {"start": "bp_arrive", "families": ["press_vs_depth"], "used": main,
                   "optional": ["accessible_free_receiver"]},
-        "generator_intent": "back_pass_trigger_step_up" + ("" if main else "_striker_left_offside"),
+        "generator_intent": "back_pass_trigger_step_up" + ("" if main else "_man_to_man_middle_striker_offside"),
         "expected": {
             "restricted": ["short_options_screened"],
             "exposed": ["behind_space_exposed"] if main else [],

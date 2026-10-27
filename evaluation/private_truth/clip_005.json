@@ -1,6 +1,6 @@
 {
   "clip_id": "clip_005",
-  "generator_version": "defense-0.6.0",
+  "generator_version": "defense-0.7.0",
   "seed": 7,
   "private_config": {
     "family": "B",
@@ -24,7 +24,7 @@
     ],
     "window_clip_s": [
       6.4,
-      11.0
+      20.8
     ],
     "executed": true
   },
@@ -63,13 +63,17 @@
     "dm_ball_release_t": 3616.2,
     "arrive_1_t": 3617.4,
     "dm_ball_arrive_t": 3617.4,
-    "release_2_t": 3620.6,
-    "ten_ball_release_t": 3620.6,
-    "arrive_2_t": 3622.0,
-    "ten_ball_arrive_t": 3622.0,
-    "release_3_t": 3625.0,
-    "arrive_3_t": 3626.4,
-    "end_t": 3630.0
+    "release_2_t": 3620.0,
+    "arrive_2_t": 3621.2,
+    "release_3_t": 3623.4,
+    "arrive_3_t": 3624.8,
+    "release_4_t": 3627.2,
+    "arrive_4_t": 3628.6,
+    "release_5_t": 3630.4,
+    "round_ball_release_t": 3630.4,
+    "arrive_5_t": 3631.8,
+    "round_ball_arrive_t": 3631.8,
+    "end_t": 3635.4
   },
   "attacking_team_id": "blue",
   "defending_team_id": "red"

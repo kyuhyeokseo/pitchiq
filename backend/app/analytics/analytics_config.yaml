@@ -2,7 +2,7 @@
 # These are development heuristics for synthetic play, not validated football
 # thresholds. Freeze before holdout evaluation; if changed after looking at
 # test results, report on a new split. Change log at the bottom.
-version: "analytics-0.1.0"
+version: "analytics-0.3.0"
 
 window:
   state_s: 3.0            # trailing window for lines / marking
@@ -34,6 +34,8 @@ pressure:
   gate_closing_mps: 1.0
   gate_duration_s: 0.6
   contact_distance_m: 2.0
+  closing_run_mps: 4.0      # "nobody closes him down" only if no defender runs at the carrier this fast ...
+  closing_run_from_m: 16.0  # ... from within this distance
 lanes:
   min_length_m: 5.0
   max_length_m: 25.0
@@ -72,6 +74,7 @@ claims:
   central_min_candidates: 2
   central_min_screened: 2
   depth_reduced_min_m: 8.0        # behind_depth_reduced: same back line, this much closer to goal
+  recovery_margin_m: 3.0          # ... and the ball at least this far in front of it (a line chasing a ball in behind is recovering)
   depth_change_window_s: 6.0
   span_disconnected_m: 35.0       # press_block_disconnected: front-back span
   gap_disconnected_m: 20.0        # ... or mid-back gap
@@ -111,3 +114,7 @@ overlay:
 
 # change log
 # 0.1.0 (2026-10-21): initial values from spec v2 sections 7-10 and 16.3.
+# 0.2.0 (2026-10-26): lanes.max_backward_m (a pass far back toward the carrier's own goal is not a short option).
+# 0.3.0 (2026-10-27): claims.recovery_margin_m (no "space behind taken away" while the ball is behind the line);
+#   carrier_closing_mps with pressure.closing_run_from_m (the narration does not say "nobody closes him down" while a
+#   defender runs at him at closing_run_mps or more).

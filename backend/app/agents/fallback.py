@@ -54,7 +54,7 @@ EXTRA = {
 }
 # by change code, or by the change's metric where one code covers two movements (block_shift: midfield drop in B,
 # back line stepping up in G)
-CHANGE_TEMPLATE = {"line_retreat": "analyst.change.line_retreat", "back_line_step_m": "change.line_step_up"}
+CHANGE_TEMPLATE = {"line_retreat": "change.line_retreat", "back_line_step_m": "change.line_step_up"}
 
 
 def _sentences(packet: EvidencePacket, plan: AnalystPlan, audience: str) -> list[SentencePlan]:
@@ -85,6 +85,8 @@ def _sentences(packet: EvidencePacket, plan: AnalystPlan, audience: str) -> list
     for ch in packet.changes[: (2 if audience == "fan" else 4)]:
         mkey = packet.metric(ch.metric_ids[0]).key if ch.metric_ids else None
         key = CHANGE_TEMPLATE.get(mkey) or CHANGE_TEMPLATE.get(ch.code, f"change.{ch.code}")
+        if audience == "analyst" and f"analyst.{key}" in TEMPLATES:  # the analyst wording keeps the distance
+            key = f"analyst.{key}"
         if key in TEMPLATES and audience in TEMPLATES[key].audience:
             changes.append(SentencePlan(template_key=key, claim_id=None, change_id=ch.change_id,
                                         metric_ids=list(ch.metric_ids), event_ids=[]))

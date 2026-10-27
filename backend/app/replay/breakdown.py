@@ -1,6 +1,7 @@
 """The guided breakdown of one defensive moment, in four steps a fan can follow: the press (who closes down the player
 on the ball, who follows whom), what it takes away, what it leaves open, and what happened next. Each step points at
-the revision where the analysis first had it, so the pitch shows the moment as it was known then.
+the revision where the analysis first had it, so the pitch shows the moment as it was known then; what the press takes
+away and what it leaves open share one moment (the first that has the cost) when the restriction still holds there.
 
 Everything comes from the evidence the replay has so far: the sentences are the deterministic fan sentences rendered
 by code (every number from the packet), the players, marking pairs and drawing layers come from the claims and
@@ -35,12 +36,32 @@ CLAIM_LAYERS = {
 }
 PRESS_TEMPLATES = ("press_cut", "passive_screen", "press_numbers")
 OBSERVED = ("exploited_in_synthetic_play", "not_exploited_in_window")
+ALIGN_S = 1.0  # the press is told on the moment of the cost when that comes more than this much later
+# unmarked players (the same rule as the pitch's rings): no opponent within UNMARKED_M, not followed by a marker, within
+# UNMARKED_REACH_M of the ball (a switch to the far side counts); the UNMARKED_MAX with the most room
+UNMARKED_M, UNMARKED_REACH_M, UNMARKED_MAX = 8.0, 60.0, 3
 
 
 def _sentences(pk: EvidencePacket, language: str, clip: Clip, audience: str = "fan") -> list[tuple[str, str | None, str]]:
     """(template key, claim id, rendered text) of the deterministic fan (or analyst) plan for this revision."""
     plan = producer_plan(pk, analyst_plan(pk)).variant(audience, language)
     return [(s.template_key, s.claim_id, render_sentence(s, pk, language, clip.meta)) for s in plan.sentences]
+
+
+def _holds_restriction(pk: EvidencePacket) -> bool:
+    """A restricted claim of this revision is still supported at its analysis cutoff (not only earlier on)."""
+    until = key_state(pk).analyzed_until_s
+    return any(c.window.end_s >= until - 0.25 for c in pk.claims if c.claim_id in pk.episode.restricted_claim_ids)
+
+
+def _press_step_out(pk: EvidencePacket, language: str, clip: Clip, presser: str | None) -> list[str]:
+    """The fan sentence of an observed step by the presser himself (a defender who left the screen to close the ball
+    down): that step is the press, so the press step tells it."""
+    acts = {c.change_id for c in pk.changes if c.code == "defender_step" and presser and c.actor_player_ids[:1] == [presser]}
+    if not acts:
+        return []
+    plan = producer_plan(pk, analyst_plan(pk)).variant("fan", language)
+    return [render_sentence(s, pk, language, clip.meta) for s in plan.sentences if s.change_id in acts]
 
 
 def _layers(codes) -> list[str]:
@@ -59,6 +80,18 @@ def _step(key: str, pk: EvidencePacket, layers, players, sentences, roles=None, 
     return {"key": key, "revision": pk.episode.revision, "match_time_s": key_state(pk).analyzed_until_s,
             "layers": list(layers), "player_ids": sorted(set(players) | set(roles)), "roles": roles,
             "sentences": sentences, **extra}
+
+
+def _other_runs(pk: EvidencePacket, roles: dict[str, str]) -> list[dict]:
+    """Other runs in behind on the same frame (the cover relations the analysis timed), beside the claim's runner:
+    the runner, the defender going with him, and whether that cover is in time."""
+    out = []
+    for cv in key_state(pk).covers:
+        if cv.relation_id.split("_")[-2] != "out" or roles.get(cv.attacker_id) == "runner":
+            continue
+        if all(o["runner_id"] != cv.attacker_id for o in out):
+            out.append({"runner_id": cv.attacker_id, "cover_id": cv.cover_player_id, "in_time": cv.status == "ok"})
+    return out
 
 
 def _runner_and_cover(pk: EvidencePacket, exposed) -> dict[str, str]:
@@ -138,6 +171,31 @@ def _press_facts(clip: Clip, pk: EvidencePacket) -> dict | None:
     return {"carrier_id": carrier, "defender_id": near[1], "distance_m": round(near[0], 1)}
 
 
+def _unmarked(clip: Clip, pk: EvidencePacket, first: tuple[str, ...] = ()) -> list[str]:
+    """The attacking team's unmarked outfield players on the step's frame: what a shape leaves free whether or not a
+    pass to them is on (an observation from positions; the claims say what is reachable). A player in an offside
+    position is not counted; players in ``first`` (the free receivers the claims name) come first when unmarked."""
+    state = key_state(pk)
+    frame = clip.frames[min(state.frame_ref.frame_index, len(clip.frames) - 1)]
+    defending = pk.episode.defending_team_id
+    followed = {mk.attacker_id for mk in state.markings if mk.status == "ok"}
+    b = frame.ball.position
+    dist = lambda p, q: ((p.x_m - q.x_m) ** 2 + (p.y_m - q.y_m) ** 2) ** 0.5  # noqa: E731
+    opp = [p.position for p in frame.players if p.team_id == defending]
+    room = lambda p: min(dist(p.position, q) for q in opp)  # noqa: E731
+    attacking = next((p.team_id for p in frame.players if p.team_id != defending), None)
+    a = clip.meta.attack_direction(attacking) if attacking else 1
+    fwd = lambda x: x if a == 1 else 105.0 - x  # noqa: E731
+    # the offside line: the second-last defender (keeper included), or the ball if it is further forward
+    line = max(sorted((fwd(p.position.x_m) for p in frame.players if p.team_id == defending), reverse=True)[1:2]
+               + [fwd(b.x_m)])
+    out = [(p.player_id not in first, -room(p), p.player_id) for p in frame.players
+           if p.team_id != defending and not p.is_goalkeeper and p.player_id != frame.ball.owner_id
+           and p.player_id not in followed and dist(p.position, b) <= UNMARKED_REACH_M and room(p) >= UNMARKED_M
+           and fwd(p.position.x_m) <= line + 0.5]
+    return [pid for *_, pid in sorted(out)[:UNMARKED_MAX]]
+
+
 def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: float | None = None,
               next_window_s: float = 0.0) -> dict:
     """now_s: the replay clock (events the replay has seen); next_window_s: how long after the analysis of the moment
@@ -156,13 +214,25 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: floa
                               if c.claim_id in p.episode.exposed_claim_ids and target in c.player_ids]
     r_open = (next((p for p in revs if target and about_target(p)), None)
               or next((p for p in revs if p.episode.exposed_claim_ids), None))
+    # what it takes away and what it leaves open are one picture: when the cost appears later than the press was
+    # first told, and the analysis still has the restriction at that moment, steps 1-3 all show that moment
+    if r_open is not None and _holds_restriction(r_open) and (
+            key_state(r_open).analyzed_until_s - key_state(r_press).analyzed_until_s > ALIGN_S):
+        r_press = r_open
+    # nothing open, but a reason held back (a run covered in time, a runner offside): that is the moment it is about
+    held = [dict(zip(("code", "reason", "player_id"), f.split(":")[:3]))
+            for f in latest.forbidden_inferences if f.count(":") >= 2]
+    if r_open is None and held and _holds_restriction(latest) and (
+            key_state(latest).analyzed_until_s - key_state(r_press).analyzed_until_s > ALIGN_S):
+        r_press = latest
     steps = []
 
     # 1. the press: who closes down the player on the ball, and who follows whom
     sents = _sentences(r_press, language, clip)
     state = key_state(r_press)
     roles = {k: v for pr in state.pressures[:1] for k, v in ((pr.presser_id, "presser"), (pr.carrier_id, "carrier"))}
-    press_lines = [t for k, _, t in sents if any(m in k for m in PRESS_TEMPLATES)]
+    press_lines = (_press_step_out(r_press, language, clip, state.pressures[0].presser_id if state.pressures else None)
+                   + [t for k, _, t in sents if any(m in k for m in PRESS_TEMPLATES)])
     facts = _press_facts(clip, r_press)
     if facts and not roles:  # nobody presses: the player on the ball is still the one to look at
         roles = {facts["carrier_id"]: "carrier"}
@@ -189,16 +259,22 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: floa
         # the fan plan keeps a few sentences; when none is about these claims, the analyst plan says it
         texts = ([t for _, cid, t in _sentences(r_open, language, clip) if cid in ids]
                  or [t for _, cid, t in _sentences(r_open, language, clip, "analyst") if cid in ids])
-        steps.append(_step("leaves_open", r_open, _layers(c.code for c in exposed),
-                           [p for c in exposed for p in c.player_ids], texts, _runner_and_cover(r_open, exposed)))
+        roles = _runner_and_cover(r_open, exposed)
+        others = _other_runs(r_open, roles) if "runner" in roles.values() else []
+        named = {p for c in exposed for p in c.player_ids}
+        free = tuple(p for c in exposed if c.code in ("accessible_free_receiver", "between_lines_receiver",
+                                                       "wide_outlet_available") for p in c.player_ids)
+        steps.append(_step("leaves_open", r_open, _layers(c.code for c in exposed), sorted(named), texts,
+                           {**{o["runner_id"]: "runner" for o in others}, **roles},
+                           unmarked=_unmarked(clip, r_open, free), other_runs=others))
     else:
         # nothing open is supported: say so, and why a claim was held back when the analysis recorded a reason
         # (code:reason:player, such as a run from an offside position)
-        held = [dict(zip(("code", "reason", "player_id"), f.split(":")[:3]))
-                for f in latest.forbidden_inferences if f.count(":") >= 2]
-        steps.append(_step("leaves_open", latest, (), [h["player_id"] for h in held if "_" in h["player_id"]],
-                           [t for k, _, t in _sentences(latest, language, clip) if k.startswith("partial.")],
-                           held_back=held))
+        # the moment itself (a reason held back later, about a run, is still listed)
+        at = r_press
+        steps.append(_step("leaves_open", at, (), [h["player_id"] for h in held if "_" in h["player_id"]],
+                           [t for k, _, t in _sentences(at, language, clip) if k.startswith("partial.")],
+                           held_back=held, unmarked=_unmarked(clip, at)))
 
     # 4. what happened next, once the replay has seen it
     if r_out is not None:
@@ -206,7 +282,7 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: floa
         exposed_codes = [c.code for c in r_out.claims if c.claim_id in r_out.episode.exposed_claim_ids]
         steps.append(_step("what_happened", r_out, _layers(exposed_codes) + ["changes"], _movers(r_out),
                            [t for k, _, t in _sentences(r_out, language, clip)
-                            if k.startswith(("change.", "outcome."))],
+                            if k.startswith(("change.", "outcome.")) and t not in press_lines],
                            dict(zip(movers, ("passer", "receiver"))), ball_path=path,
                            through_blocked=tuple(movers) in blocked))
     else:
@@ -222,7 +298,7 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: floa
         # first also stands in for "nothing was used"
         drop = ({"outcome.pending"} if nxt else set()) | ({"outcome.pending", "outcome.inconclusive"} if clip_ends else set())
         sents = [t for k, _, t in _sentences(latest, language, clip)
-                 if k.startswith(("change.", "outcome.")) and k not in drop]
+                 if k.startswith(("change.", "outcome.")) and k not in drop and t not in press_lines]
         shot = nxt is not None and nxt["kind"] in ("save", "block")
         roles = {} if nxt is None else {nxt["from_id"]: "shooter" if shot else "passer",
                                         nxt["to_id"]: {"pass": "receiver", "interception": "interceptor",

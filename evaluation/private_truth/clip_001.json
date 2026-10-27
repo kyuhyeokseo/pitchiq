@@ -1,6 +1,6 @@
 {
   "clip_id": "clip_001",
-  "generator_version": "defense-0.6.0",
+  "generator_version": "defense-0.7.0",
   "seed": 7,
   "private_config": {
     "family": "A",

@@ -16,18 +16,23 @@ type Props = {
   jersey: (playerId: string) => string;
   followed?: string | null;  // the player the viewer follows: ring and current speed
   showFree?: boolean;  // ring the team on the ball's free players (FREE_M)
+  freeIds?: string[];  // the unmarked players the server measured for this frame (a breakdown step), instead of FREE_M
+  attackDir?: (teamId: string) => number;  // +1 attacks toward x = 105 (a player in an offside position is not ringed)
   onPlayer?: (playerId: string) => void;
   quietLabels?: Set<string>;  // label layers not drawn for this audience (their lines and areas stay)
   ballPath?: number[][];  // where the ball went (world metres), drawn as a white arrow
   tags?: Record<string, { text: string; role: string }>;  // a tag over the players a step is about (presser, runner...)
   marks?: string[][];  // [defender, attacker]: who follows whom, drawn as a white tether
 };
-// An unmarked player: an outfield player of the team on the ball, within passing reach of it, with no opponent within
-// FREE_M (the distance the analysis gates marking with). Measured on the frame drawn; the keeper and the man on the
-// ball are left out, and only the FREE_MAX nearest the ball are ringed. Whether a pass to him is on is the analysis'
+// An unmarked player: an outfield player of the team on the ball with real room, no opponent within FREE_M, and no
+// defender following him (a marking pair the analysis drew). Measured on the frame drawn, with hysteresis: a player
+// already ringed keeps it until an opponent comes within FREE_KEEP_M, so a ring does not flicker on a defender at the
+// edge. The keeper, the man on the ball and anyone in an offside position are left out, and only FREE_MAX of them (within FREE_REACH_M of the ball:
+// a switch to the far side counts) are ringed, the most room first. Whether a pass to him is on is the analysis'
 // call (lanes), not this ring's.
-const FREE_M = 5.0;
-const FREE_REACH_M = 40.0;
+const FREE_M = 8.0;
+const FREE_KEEP_M = 6.5;
+const FREE_REACH_M = 60.0;
 const FREE_MAX = 3;
 // tags of the player who acts go first, so they get the spot above the player
 const TAG_ORDER = ["presser", "runner", "passer", "shooter", "carrier", "cover", "receiver", "interceptor", "saver", "blocker"];
@@ -120,11 +125,16 @@ function Element({ el, pos, label, place, selected, onSelect }: {
     if (!a || !b) return null;
     // a screened lane ends in a stop bar before the receiver: blocked, not "pass on"
     const marker = g.type === "arrow" ? `url(#arrow-${el.style_token})` : el.style_token === "lane_screened" ? "url(#bar)" : undefined;
+    // a lane the presser cuts while he presses: drawn faint, crossed out where his run shuts it
+    const cut = el.style_token === "press_cut_lane";
+    // the X sits past the middle of the lane, clear of the labels written next to the carrier
+    const cx = sx(a) + 0.6 * (sx(b) - sx(a)), cy = sy(a) + 0.6 * (sy(b) - sy(a));
     return (
       <g onClick={click}>
         <line className="hit" x1={sx(a)} y1={sy(a)} x2={sx(b)} y2={sy(b)} />
         <line className={cls + (g.type === "arrow" && g.meaning === "inferred" ? " inferred" : "")}
           x1={sx(a)} y1={sy(a)} x2={sx(b)} y2={sy(b)} markerEnd={marker} />
+        {cut && <path className="lane-x" d={`M${cx - 1.3} ${cy - 1.3}L${cx + 1.3} ${cy + 1.3}M${cx - 1.3} ${cy + 1.3}L${cx + 1.3} ${cy - 1.3}`} />}
       </g>
     );
   }
@@ -152,7 +162,7 @@ function Element({ el, pos, label, place, selected, onSelect }: {
 }
 
 export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onSelect, highlight, teamColor, jersey, followed, onPlayer,
-  quietLabels, ballPath, tags, marks, showFree }: Props) {
+  quietLabels, ballPath, tags, marks, showFree, freeIds, attackDir }: Props) {
   const pos: Record<string, XY> = {};
   for (const p of frame.players) pos[p.player_id] = p.position;
   const els = (overlay?.elements ?? []).filter((e) => !hiddenLayers.has(e.layer));
@@ -167,10 +177,23 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
   const rank = (id: string) => (id === onBall?.player_id ? 2 : highlight?.has(id) || id === followed ? 1 : 0);
   const attacking = frame.possession_team_id;
   const dist = (a: XY, b: XY) => Math.hypot(a.x_m - b.x_m, a.y_m - b.y_m);
-  const free = new Set(!showFree || !attacking ? [] : frame.players.filter((p) => p.team_id === attacking
+  // attackers a defender follows: the breakdown's tethers and the overlay's marking lines
+  const followedIds = new Set([...(marks ?? []).map(([, a]) => a), ...els.flatMap((e) =>
+    e.layer === "marking" && e.geometry.type === "connection" && e.geometry.to.kind === "player" ? [e.geometry.to.player_id] : [])]);
+  const prevFree = useRef<{ t: number; ids: Set<string> }>({ t: -1e9, ids: new Set() });
+  const recent = Math.abs(frame.match_time_s - prevFree.current.t) <= 0.6;
+  const fwd = (p: XY) => ((attacking && attackDir ? attackDir(attacking) : 1) === 1 ? p.x_m : 105 - p.x_m);
+  // the offside line: the second-last defender (keeper included), or the ball if it is further forward
+  const offLine = Math.max(fwd(ball), [...frame.players.filter((q) => q.team_id !== attacking).map((q) => fwd(q.position))]
+    .sort((a, b) => b - a)[1] ?? -Infinity);
+  const room = (p: ObservationFrame["players"][number]) =>
+    Math.min(...frame.players.filter((q) => q.team_id !== attacking).map((q) => dist(q.position, p.position)));
+  const free = new Set(!showFree || !attacking ? [] : freeIds ? freeIds : frame.players.filter((p) => p.team_id === attacking
     && !p.is_goalkeeper && p.player_id !== frame.ball.owner_id && dist(p.position, ball) <= FREE_REACH_M
-    && frame.players.every((q) => q.team_id === attacking || dist(q.position, p.position) >= FREE_M))
-    .sort((a, b) => dist(a.position, ball) - dist(b.position, ball)).slice(0, FREE_MAX).map((p) => p.player_id));
+    && !followedIds.has(p.player_id) && fwd(p.position) <= offLine + 0.5
+    && room(p) >= (recent && prevFree.current.ids.has(p.player_id) ? FREE_KEEP_M : FREE_M))
+    .sort((a, b) => room(b) - room(a)).slice(0, FREE_MAX).map((p) => p.player_id));
+  prevFree.current = { t: frame.match_time_s, ids: free };
   const players = [...frame.players].sort((a, b) => rank(a.player_id) - rank(b.player_id));
   // player tags first: above the player, else below, else further out, so two tags never sit on each other; the
   // overlay labels then keep clear of them

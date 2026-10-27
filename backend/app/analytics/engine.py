@@ -55,7 +55,9 @@ from .tradeoffs import (
     to_claim,
 )
 
-ANALYTICS_VERSION = "analytics-0.2.0"  # 0.2: backward passes (lanes.max_backward_m) are not short options
+ANALYTICS_VERSION = "analytics-0.3.0"  # 0.2: backward passes (lanes.max_backward_m) are not short options; 0.3: no
+# "space behind taken away" while the ball is behind the back line (claims.recovery_margin_m); the closing speed of
+# the defender running hardest at an unpressed carrier (carrier_closing_mps, pressure.closing_run_from_m)
 JOINABLE = frozenset({"accessible_free_receiver", "wide_outlet_available", "local_central_overload"})
 JOIN_TARGETS = frozenset({"press_vs_depth", "central_screen"})
 SUSTAIN_KEY = {"restricted": "sustain_s", "exposed": "exposure_sustain_s", "context": "sustain_s"}
@@ -367,6 +369,17 @@ class TacticalAnalyzer:
             dist, d = min((float(np.linalg.norm(buf.pos[k][d] - buf.pos[k][c_])), d) for d in buf.members(D))
             out.append(metric(f"m_carrier_space_f{f:04d}", "carrier_nearest_defender_m", dist, "m", (t, t),
                               [self.pid(c_), self.pid(d)], fr, method="pressure"))
+            # how fast the defender running hardest at him (from within closing_run_from_m) closes: "nobody closes him
+            # down" is only said below closing_run_mps (a screen shuffling with the ball is not running at him)
+            def closing(j: int) -> float:
+                rel = buf.pos[k][j] - buf.pos[k][c_]
+                n = float(np.linalg.norm(rel))
+                if n > cfg.pressure.closing_run_from_m or n < 1e-6:
+                    return 0.0
+                return max(-float((buf.vel[k][j] - buf.vel[k][c_]) @ rel) / n, 0.0)
+            v, j = max((closing(j), j) for j in buf.members(D))
+            out.append(metric(f"m_carrier_closing_f{f:04d}", "carrier_closing_mps", v, "mps", (t, t),
+                              [self.pid(c_), self.pid(j)], fr, method="pressure"))
         if r.presses:
             p = r.presses[0]
             cut = [lane for lane in r.lanes if lane.availability == "screened" and p.presser in lane.screeners
@@ -401,7 +414,9 @@ class TacticalAnalyzer:
         win_k = int(round(cfg.claims.depth_change_window_s * self.hz))
         earlier = [(kk, idx, d) for kk, idx, d in self.back_hist
                    if k - win_k <= kk < k - 2 and len(set(idx) & set(back.idx)) >= 3]
-        if earlier:
+        # a line chasing a ball already played in behind it is recovering, not choosing to take the space away
+        in_front = float(buf.ball_uv(k, A)[0]) < 105.0 - back.depth_m - cfg.claims.recovery_margin_m
+        if earlier and in_front:
             kk, _, d0 = max(earlier, key=lambda x: x[2])
             drop = back.depth_m - d0
             if drop <= -cfg.claims.depth_reduced_min_m:

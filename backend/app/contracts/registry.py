@@ -38,6 +38,7 @@ METRIC_UNITS: dict[str, str] = {
     "lane_arrival_margin_s": "s",
     "press_cut_lanes": "count",
     "carrier_nearest_defender_m": "m",
+    "carrier_closing_mps": "mps",
     "back_line_step_m": "m",
     "buildup_count_attack": "count",
     "buildup_count_defense": "count",

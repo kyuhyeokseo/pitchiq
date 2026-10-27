@@ -44,7 +44,7 @@ def test_expected_claims_per_clip(analyzed, cid):
     """Offline check against the generator's private intent (evaluation-style; never fed back to analytics)."""
     an = analyzed[cid][3]
     exp = truth(cid)["expected"]
-    families = {"A": ("press_vs_depth",), "B": ("line_separation",), "C": ("central_screen",),
+    families = {"A": ("press_vs_depth",), "B": ("line_separation",), "C": ("central_screen", "press_vs_depth"),
                 "D": ("press_vs_depth", "central_screen"), "E": ("press_vs_depth",),
                 "G": ("press_vs_depth",)}[truth(cid)["family"]]
     # the designed story's defending team only: after a turnover the other team defends, which is another story
@@ -52,7 +52,9 @@ def test_expected_claims_per_clip(analyzed, cid):
     packets = [p for fam in families for revs in family_revs(an, fam) for p in revs
                if p.episode.defending_team_id == team]
     seen = set().union(*(codes(p) for p in packets)) if packets else set()
-    assert set(exp["restricted"]) <= seen, (cid, seen)
+    # a story that accepts either restriction label (C, D) needs one of them, the others every restricted claim
+    any_ = truth(cid)["story"].get("restricted_any")
+    assert (seen & set(any_)) if any_ else set(exp["restricted"]) <= seen, (cid, seen)
     assert set(exp["exposed"]) <= seen, (cid, seen)
     assert not set(exp.get("suppressed", [])) & seen, (cid, seen)
     complete = any(p.episode.analysis_status == "complete_tradeoff" for p in packets)
@@ -146,7 +148,7 @@ def test_g_back_pass_trigger_steps_the_line_up(analyzed):
     assert last.episode.outcome.status == "exploited_in_synthetic_play"
     assert last.episode.outcome.realized_target_id in behind.player_ids
     keys = [s.template_key for s in producer_plan(last, analyst_plan(last)).variants[2].sentences]
-    assert "change.line_step_up" in keys and "change.block_shift" not in keys
+    assert "analyst.change.line_step_up" in keys and "analyst.change.block_shift" not in keys
     # the replay draws every stepping defender's path and the step-up label within the analyst caps
     meta, frames = analyzed["clip_011"][:2]
     pos_at = lambda f: {p.player_id: (p.position.x_m, p.position.y_m) for p in frames[f].players}  # noqa: E731
@@ -200,21 +202,30 @@ def _supported_timeline(meta, frames, events):
 def test_c_drop_then_step_updates_the_free_receiver(analyzed):
     meta, frames, events, _ = analyzed["clip_003"]
     an, live = _supported_timeline(meta, frames, events)
-    revs = next(r for r in family_revs(an, "central_screen") if r[-1].episode.analysis_status == "complete_tradeoff")
+    revs = next(r for fam in ("central_screen", "press_vs_depth") for r in family_revs(an, fam)
+                if r[-1].episode.analysis_status == "complete_tradeoff")
     last = revs[-1]
     changes = {c.code: c for c in last.changes}
-    assert list(changes) == ["attacker_drop", "defender_step"]
-    t_drop, t_step = changes["attacker_drop"].observed_at_s, changes["defender_step"].observed_at_s
-    dropper = changes["attacker_drop"].actor_player_ids[0]
+    # the step is always observed; the drop itself only when it falls inside the episode (generator 0.7: the episode
+    # starts on the press, which can come after the drop)
+    assert "defender_step" in changes and list(changes)[0] in ("attacker_drop", "defender_step")
+    t_step = changes["defender_step"].observed_at_s
+    dropper = changes["attacker_drop"].actor_player_ids[0] if "attacker_drop" in changes else "red_10"
     # the man who dropped is the free receiver the drop opens (another player, e.g. the far centre-back for a moment
     # as the ball arrives, is a separate observation)
     free_times = [t for t, s in live if dropper in s.get("accessible_free_receiver", set())]
     assert free_times, "the drop should open an accessible free receiver"
-    assert min(free_times) >= t_drop - 1e-6  # appears only after the drop was observed
+    if "attacker_drop" in changes:
+        assert min(free_times) >= changes["attacker_drop"].observed_at_s - 1e-6  # only after the drop was observed
     assert all(t < t_step + 0.6 for t in free_times)  # and is gone shortly after the step
     # the step was made by a defender close to the player who dropped
     assert changes["defender_step"].actor_team_id == last.episode.defending_team_id
-    assert {"central_routes_screened", "wide_outlet_available", "accessible_free_receiver"} <= codes(last)
+    assert {"wide_outlet_available", "accessible_free_receiver"} <= codes(last)
+    assert codes(last) & {"central_routes_screened", "short_options_screened"}
+    # generator 0.7: the striker presses the centre-back while cutting the pass across to the other centre-back
+    cut = [p for p in revs for ln in key_state(p).lanes if ln.receiver_id == "red_04" and ln.availability == "screened"
+           and key_state(p).pressures and key_state(p).pressures[0].presser_id in ln.screening_player_ids]
+    assert cut, "the presser should stand in the pass to the other centre-back"
 
 
 def test_an_outcome_arriving_after_close_is_a_new_revision(analyzed):

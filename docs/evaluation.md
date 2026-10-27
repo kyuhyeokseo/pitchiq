@@ -32,8 +32,8 @@ In D, the variant named `main` is the trap, which is the counter-example.
 - Narration plans: 1510/1510 valid. The holdout runs deterministic narration only, with no model calls.
 
 **Tests and browser walkthrough** (2026-10-25):
-- `make test`: 282 passed on 2026-10-26 (226 before the MCP endpoint, the Recap workflow and personalisation; then the clip-end snapshot and replay clock tests; then the approved-revision broadcast, agent-changes, repeated-recap-lead, fan-caption, prompt-injection and telemetry tests; then the guided breakdown and seek-to-the-end tests; then the seek-lock and snapshot-order tests; then a breakdown test for one story across steps 3 and 4, a test that a socket opened after a seek gets the insights so far, and two tests that a moment without a recorded outcome shows the next pass or shot the replay saw, or that the clip ends first, and that a press step without a press sentence gives the measured carrier and nearest defender).
-- Headless-browser walkthrough in offline mode (2026-10-26): 75 passed, 0 failed, no browser console errors (62 before the guided breakdown, the Play-from-the-end, Pause and seek-bar checks; 74 before the check of switching to another moment in the breakdown). Against the public URL (Foundry on, image `sha-54c0581`, 2026-10-26): 71 passed, 0 failed, no console errors, with the 4 checks of particular template sentences kept as information (58 of 58 on `sha-6c98218` before the breakdown). It includes Ask PitchIQ and Recap checks, the five steps of the guided breakdown, Studio details, My club and Follow a player, and 25 clip switches that leave at most 2 replays open. The offline run's `report.json` and screenshots are in `docs/walkthrough/`; the public-URL run is logged in `docs/foundry_live/MEASUREMENTS.md` (its report was not committed).
+- `make test`: 282 passed on 2026-10-27 and on 2026-10-26 (226 before the MCP endpoint, the Recap workflow and personalisation; then the clip-end snapshot and replay clock tests; then the approved-revision broadcast, agent-changes, repeated-recap-lead, fan-caption, prompt-injection and telemetry tests; then the guided breakdown and seek-to-the-end tests; then the seek-lock and snapshot-order tests; then a breakdown test for one story across steps 3 and 4, a test that a socket opened after a seek gets the insights so far, and two tests that a moment without a recorded outcome shows the next pass or shot the replay saw, or that the clip ends first, and that a press step without a press sentence gives the measured carrier and nearest defender).
+- Headless-browser walkthrough in offline mode (2026-10-27): 74 passed, 0 failed, no browser console errors (75 on 2026-10-26: the check that clip 3 records the drop and the step became a check that the presser's cut lane is drawn crossed out; 62 before the guided breakdown, the Play-from-the-end, Pause and seek-bar checks; 74 before the check of switching to another moment in the breakdown). Against the public URL (Foundry on, image `sha-54c0581`, 2026-10-26): 71 passed, 0 failed, no console errors, with the 4 checks of particular template sentences kept as information (58 of 58 on `sha-6c98218` before the breakdown). It includes Ask PitchIQ and Recap checks, the five steps of the guided breakdown, Studio details, My club and Follow a player, and 25 clip switches that leave at most 2 replays open. The offline run's `report.json` and screenshots are in `docs/walkthrough/`; the public-URL run is logged in `docs/foundry_live/MEASUREMENTS.md` (its report was not committed).
 
 **Live Foundry agents** (2026-10-24) were measured separately, with the smoke runner (`python -m app.agents.smoke`) and in the real UI. The full log is in [`docs/foundry_live/MEASUREMENTS.md`](foundry_live/MEASUREMENTS.md). Costs are estimates from the reported tokens at $0.25 per 1M input and $2.00 per 1M output tokens, not billing records.
 - Analyst → Producer, `gpt-5-mini` with reasoning effort `minimal`: 8/8 validated (1 after a repair) over 7 clips. 4.6–7.7 s end to end, 2.3k–4.4k input and 0.2k–0.3k output tokens, about 0.1–0.2 US cent per run.
@@ -294,6 +294,8 @@ Robustness check, run as new versions with new seeds each time something changed
 | holdout-v2-0.9 | the keeper rule only for the defending keeper; D's centre-back start and escape timing (validation seeds) | 140/144 | 228/236 | 1/72 | 84/108 | 14/72 |
 | holdout-v2-0.10 | A's striker cuts the pass to the full back; marking leash 18 m (found on the demo clip, seed 7) | 137/144 | 221/234 | 3/72 | 82/108 | 15/72 |
 | holdout-v2-0.11 | second fan review: recovery runs (10 m), engage from 32 m, markers 3 m off, no press cut onto a marked man, B compact's midfield ahead of its line, G's far centre-back recovers to his box; backward limit 6 m | 139/144 | 224/230 | 1/72 | 85/108 | 11/72 |
+| holdout-v2-0.12 (2026-10-27) | third fan review: generator 0.7 (A cover, B compact, C press cut, C support, G main and offside, E step), analytics 0.3 (no "space behind taken away" while the ball is behind the line) | 141/144 | 225/231 | 3/72 | 82/108 | 15/72 |
+| holdout-v2-0.13 (2026-10-27) | second AI analyst review: no "nobody closes him down" while a defender runs at the carrier; G main's midfield zonal, G offside's striker cuts the pass to the keeper, C support's holding midfielder holds his line | 139/144 | 219/225 | 3/72 | 78/108 | 20/72 |
 
 A second screenshot review as football fans (three reviewers, all 12 clips) then found: the back line holding the box
 edge, keepers at home, no back passes counted, clips ending at the turnover, unmarked players ringed; and, still,
@@ -308,3 +310,74 @@ same start), and keepers stay near their line behind a high line, as the project
 The weakest set-up in 0.11 is the free centre-back in the four-player press (D escape: exposure found in 7 of 12).
 More realistic defending makes the staged mistakes smaller, so the analyzer finds them less often; the numbers also
 move with the seed set.
+
+## Generator 0.7, analytics 0.3: a third fan review and an AI analyst review (2026-10-27)
+
+The project lead reviewed the public build (`sha-54c0581`) as a football fan, clip by clip. They found:
+- "Unmarked" rings were too frequent, and one sat on a player the analysis drew as marked (clip 6, Red #8).
+- Broadcast lines quoted distances ("dropped 5.2 m"), which commentators do not do.
+- Steps 2 and 3 of a breakdown could show two different moments (clip 9).
+- In clip 4, Blue #11 was left alone while both centre-backs went to the striker.
+- In clip 5, Red #6 broke the 4-3-3 to jump at Blue #10.
+- In clip 3, the cut of the pass from Red #5 to Red #4 by Blue #9's press was not shown.
+- Clip 6 missed a marking pair and Red #3's free far side.
+- The look-alike pairs (9/10, 11/12) were hard to tell apart. In 11, Blue #7's run and Blue #4 were left free. In 12, the man-to-man midfield and Blue #4 were left free.
+
+After those fixes, three AI reviewers were briefed as football analysts with the lead's comments as the standard. Each read the snapshot grids (all 22 players every 2 s) and the breakdown text of four clips. They found the following, and the severe points were fixed:
+- "Space behind taken away" was claimed while a striker was through on goal (clips 1 and 11).
+- Steps were still on different moments (clips 10 and 12).
+- A press step said "nobody closes him down" while the striker was 1.3 m away (clip 12).
+- Midfielders doubled up on one man (clip 6).
+- A free man stood still after receiving (clip 9).
+- An offside striker was ringed "unmarked".
+
+Changes:
+- **Generator 0.7:**
+  - A cover's far full back marks the left winger; the far full back is left free and deep.
+  - B compact keeps its 4-3-3 (the holding midfielder cages the striker between the centre-backs) while the ball goes round the back.
+  - C's striker cuts the pass to the other centre-back as he presses (drawn faint with an X).
+  - C support has one man each in midfield and presses the keeper on the back pass.
+  - G main sends Blue #7 in behind as well.
+  - G offside goes three on three in central midfield from the start, and the ball goes to the free centre-back, whom the striker then presses.
+  - E step's free man turns and runs at the back four.
+- **Analytics 0.3:** no `behind_depth_reduced` while the ball is behind the back line (`claims.recovery_margin_m`, 3 m).
+- **Narration (templates-0.4.0):** fan and broadcast sentences name players and movements without distances; the analyst sentences and the pitch labels keep the numbers.
+- **Breakdown:**
+  - Steps 1-3 share one moment: the first one with the cost, or the one a reason was held back on, when the restriction still holds there.
+  - A presser who stepped out of the screen is told in step 1.
+  - Step 3 lists the unmarked players and the other runs in behind (with the defender going with each).
+- **Unmarked:**
+  - No defender within 8 m (kept until one comes within 6.5 m) and nobody following him.
+  - Not in an offside position.
+  - The three with the most room within 60 m of the ball; the free receivers the claims name come first.
+
+A second round, with the same three briefs, checked these fixes and found:
+- "Nobody closes him down" said while a striker was sprinting at the carrier (clips 6, 8 and 12).
+- A presser cutting the pass to a full back his team-mate already marked (clip 12).
+- A holding midfielder dropping into his own back line (clip 6).
+- A three-on-three in midfield that clip 11 had as well, so it did not tell clip 12 apart.
+- A look-alike pair that opened on the same moment (clips 7 and 8).
+
+Fixed:
+- **Analytics 0.3:** "nobody closes him down" is not said while a defender runs at the carrier at 4 m/s or more from within 16 m (`carrier_closing_mps`, `pressure.closing_run_from_m`).
+- **Clip 11:** G main's midfield screens zonally on the trigger.
+- **Clip 12:** G offside's striker cuts the pass back to the keeper.
+- **Clip 6:** C support's holding midfielder holds in front of his back line.
+- **Opening moment:** the breakdown opens on a complete trade-off whose outcome the replay saw.
+- **After 0.13 ran (not re-run):** the 1 s horizon also caught a screen shuffling with the ball and emptied the live overlay, so the carrier's room is reported again. A new metric, the closing speed of the defender running hardest at the carrier from within 16 m, keeps "nobody closes him down" out of the narration at 4 m/s or more. No claim reads either metric.
+
+Not changed, and still visible:
+- Some marking pairs a fan sees are not drawn. The analysis needs a sustained, following relation.
+- In clips 3 and 6, Red #5 keeps the ball about 6 s under a press. A quicker release removed the wide-outlet story of clip 3.
+- The shirt numbers of E and G's defending 4-4-2 do not match their positions (for example, #6 on a wing).
+- The default moments of other look-alike pairs share their opening.
+
+Robustness check after these changes (rows 0.12 and 0.13 in the table above, new seeds each time):
+- All three wrong emphases are in C support. In 3 of 12 clips, a free receiver is claimed where the support was meant to take him away. In 0.11 there was one such clip.
+- Exposed recall moved from 0.76 (0.12) to 0.72 (0.13). In 0.13, E step found its free man in 7 of 12 clips, against 11 of 12 in 0.12.
+  - The analysis change between the two runs only gates a narration metric, and E's only generator change comes after the pass. The swing is most likely the seed set, but that was not checked on the 0.12 seeds.
+- The weakest set-up is still D escape: exposure found in 6 of 12 clips.
+
+Feature sweep on the final build of this round (`evaluation/walkthrough/sweep.py`, offline): 12 clips, 27 moments,
+every breakdown step, On air and the desk features, no page errors or failed actions; while playing, players move at
+most 0.16 m per animation frame. `make test`: 282 passed. Browser walkthrough: see the measured results in the README.

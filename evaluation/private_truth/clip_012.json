@@ -1,6 +1,6 @@
 {
   "clip_id": "clip_012",
-  "generator_version": "defense-0.6.0",
+  "generator_version": "defense-0.7.0",
   "seed": 7,
   "private_config": {
     "family": "G",
@@ -23,11 +23,11 @@
     ],
     "window_clip_s": [
       3.2,
-      8.8
+      9.2
     ],
     "executed": true
   },
-  "generator_intent": "back_pass_trigger_step_up_striker_left_offside",
+  "generator_intent": "back_pass_trigger_step_up_man_to_man_middle_striker_offside",
   "expected": {
     "restricted": [
       "short_options_screened"
@@ -49,7 +49,7 @@
       86.18270223485979,
       51.73765028670047
     ],
-    "lag_s": 0.336
+    "lag_s": 0.306
   },
   "roles": {
     "carrier": "A:RCB",
@@ -68,10 +68,10 @@
     "arrive_0_t": 2733.2,
     "bp_arrive_t": 2733.2,
     "release_1_t": 2737.4,
-    "back_to_gk_release_t": 2737.4,
-    "arrive_1_t": 2738.8,
-    "back_to_gk_arrive_t": 2738.8,
-    "end_t": 2742.4
+    "free_cb_release_t": 2737.4,
+    "arrive_1_t": 2739.2,
+    "free_cb_arrive_t": 2739.2,
+    "end_t": 2742.8
   },
   "attacking_team_id": "blue",
   "defending_team_id": "red"

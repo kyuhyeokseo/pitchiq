@@ -20,7 +20,7 @@ from .engine import DefenseSimulation
 from .publish import PRIVATE_TRUTH_DIR, PUBLIC_DIR, ClipSpec, build_public, write_clip
 from .scenarios import family_a, family_b, family_c, family_d, family_e, family_g
 
-GENERATOR_VERSION = "defense-0.6.0"  # 0.2: the whole game shifts after a long ball; 0.3: off-ball slots follow the
+GENERATOR_VERSION = "defense-0.7.0"  # 0.2: the whole game shifts after a long ball; 0.3: off-ball slots follow the
 # ball by slopes measured on real play, wander instead of orbiting, keep their spacing and do not stop dead;
 # 0.4: A's markers drop off men far from the ball (loose marking), C and E hold the players their stories rely on;
 # 0.4.1: D's double pivot holds its height (its markers stay in the build-up zone);
@@ -31,6 +31,10 @@ GENERATOR_VERSION = "defense-0.6.0"  # 0.2: the whole game shifts after a long b
 # nearest man engages a free carrier in a dangerous spot (goal-distance danger), screens skip a man a team-mate has,
 # ground passes wait for a clear lane; B's holding midfielder is drawn onto the pivot, C's screens stand apart and
 # pick up their men once the ball goes wide, E's switch goes over the screen, G's near centre-back chases the run
+# 0.7: a second fan review - A "cover" keeps the left winger marked (the far full back tucks in), B "compact" keeps
+# its 4-3-3 (no midfielder jumps out; the holding midfielder cages the striker) while the ball goes round the back,
+# C's striker cuts the pass to the other centre-back as he presses and "support" marks the pivot man to man, G "main"
+# sends the right winger in behind too and G "offside" goes three on three in midfield and finds the free centre-back
 BUILDERS = {"A": family_a, "B": family_b, "C": family_c, "D": family_d, "E": family_e, "G": family_g}
 
 # Demo fixtures. Opaque public ids; the family/variant mapping is private.

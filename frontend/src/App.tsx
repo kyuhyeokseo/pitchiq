@@ -115,7 +115,9 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         next_block: "Next on the ball, at {t}: {p} shoots, and {q} blocks it.",
         through_blocked: "That was one of the passes counted as blocked in step 2: the block is estimated from where players stand, and this one did not hold.",
         clip_ends: "The clip ends before anyone plays the ball on.",
-        press_facts: "On the ball: {c}. Nearest defender: {d}, {m} m away." },
+        press_facts: "On the ball: {c}. Nearest defender: {d}, {m} m away.",
+        unmarked: "Also left unmarked: {p}.", unmarked_partial: "No short pass to them counts as open, but left unmarked: {p}.",
+        other_run: "{r} is running in behind too: {c} goes with him.", other_run_late: "{r} is running in behind too, and nobody gets there in time." },
   ko: { intro: "이 수비는 무엇을 막고, 그 대가로 무엇을 내줄까?", go: "수비 전술 해부",
         sub: "한 장면을 4단계로 보고, 마지막에 방송까지 이어집니다. 경기장 위의 선과 숫자는 모두 추적 데이터로 계산한 것입니다.",
         live: "그냥 경기 보기", code: "코드가 모든 선과 숫자를 계산", person: "사람이 승인해야 방송",
@@ -132,7 +134,9 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         next_block: "{t} 다음 공 흐름: {p}의 슈팅을 {q}가 막아 냄.",
         through_blocked: "이 패스는 2단계에서 막힌 것으로 본 패스입니다. 막힘은 선수 위치로 추정한 값이라, 이번에는 통과했습니다.",
         clip_ends: "공이 다음으로 연결되기 전에 클립이 끝납니다.",
-        press_facts: "공 소유: {c}. 가장 가까운 수비: {d}, {m} m." },
+        press_facts: "공 소유: {c}. 가장 가까운 수비: {d}, {m} m.",
+        unmarked: "그 밖에 마크 없이 남은 선수: {p}.", unmarked_partial: "열린 짧은 패스로 볼 수는 없지만, 마크 없이 남은 선수: {p}.",
+        other_run: "{r} 선수도 뒷공간으로 뜁니다. {c} 선수가 따라갑니다.", other_run_late: "{r} 선수도 뒷공간으로 뛰고, 제때 따라가는 수비가 없습니다." },
 };
 const STATUS_TEXT: Record<string, string> = { complete_tradeoff: "complete trade-off", partial: "partial",
   insufficient_evidence: "insufficient evidence" };
@@ -470,8 +474,12 @@ export function App() {
         refreshInsights(session).catch(() => {});
       }
       const complete = eps.filter((e) => e.analysis_status === "complete_tradeoff");
+      // a complete trade-off whose outcome the replay saw tells the whole story, so it opens first (a look-alike pair
+      // then opens on the moment that tells it apart, not on their shared opening)
+      const seen = (e: EpisodeSummary) => (e.outcome === "exploited_in_synthetic_play" ? 1 : 0);
       const pick = (userPicked && eps.find((e) => e.episode_id === selEp))
-        || (complete.length ? complete : eps).slice().sort((a, b) => b.story_priority - a.story_priority)[0];
+        || (complete.length ? complete : eps).slice().sort((a, b) => seen(b) - seen(a)
+          || b.story_priority - a.story_priority)[0];
       if (!pick) { setNotice("No moment in this clip to break down."); return; }
       const b = await api.breakdown(session, pick.episode_id, language);
       setUserPicked(true); setSelEp(pick.episode_id); setSelEl(null); setFocus("both"); setAutoReplay(false);
@@ -690,7 +698,7 @@ export function App() {
             {teams.map((tm: any) => <span key={tm.team_id} className={`kit${ep?.defending_team_id === tm.team_id ? " def" : ""}`}
               style={{ "--kit": teamColor(tm.team_id) } as CSSProperties}>{tm.display_name}{tm.attack_direction ? (tm.attack_direction === 1 ? " →" : " ←") : ""}{ep?.defending_team_id === tm.team_id ? " · defending" : ""}</span>)}
             <span className="lg r" /> what the defence takes away <span className="lg x" /> what it leaves open
-            {showFree && <><span className="lg free" /> unmarked (no defender within 5 m)</>}
+            {showFree && <><span className="lg free" /> unmarked (no defender within 8 m)</>}
 </p>
           <div className={`pitch-wrap${bdCur ? ` bd-on bd-${bdCur.key}` : ""}`} data-focus={focus}>
             {bdCur ? <div className="badge bd-badge">{bdStep + 1} / {BD_STEPS.length} · {BD_STEPS[bdStep].title[L]}
@@ -725,6 +733,8 @@ export function App() {
               : shownFrame && <GlidingPitch glideMs={1000 / (5 * speed)} glide={playing && !replayMode && !bd}
                   frame={shownFrame} overlay={overlaySnap} labels={overlay?.label_text} hiddenLayers={shownHidden}
                   ballPath={bdCur?.key === "what_happened" ? bdCur.ball_path : undefined} tags={bdTags} marks={bdCur?.marks}
+                  freeIds={bdCur?.key === "leaves_open" ? bdCur.unmarked : undefined}
+                  attackDir={(id) => teams.find((tm: any) => tm.team_id === id)?.attack_direction ?? 1}
                   selected={surface === "inspector_preview" ? selEl?.element_id : undefined}
                   onSelect={surface === "inspector_preview" ? setSelEl : undefined}
                   highlight={surface === "inspector_preview" ? highlight : undefined} teamColor={teamColor} jersey={jersey} followed={followed}
@@ -841,6 +851,10 @@ function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, sur
       .replace("{t}", matchClock(np.release_s)).replace("{p}", playerName(np.from_id)).replace("{q}", playerName(np.to_id)),
     cur?.through_blocked && ui.through_blocked,
     cur?.clip_ends && ui.clip_ends,
+    ...(cur?.other_runs ?? []).map((o) => (o.in_time && o.cover_id ? ui.other_run : ui.other_run_late)
+      .replace("{r}", playerName(o.runner_id)).replace("{c}", o.cover_id ? playerName(o.cover_id) : "")),
+    ...(() => { const more = (cur?.unmarked ?? []).filter((p) => !cur?.player_ids.includes(p));
+      return more.length ? [(cur?.layers.length ? ui.unmarked : ui.unmarked_partial).replace("{p}", more.map(playerName).join(", "))] : []; })(),
   ].filter((t): t is string => !!t);
   return (
     <div className={`bd bd-${meta.key}`}>
@@ -927,7 +941,7 @@ const METRIC_TEXT: Record<string, string> = {
   attacker_arrival_s: "Attacker arrival", attacker_drop_m: "Attacker dropped deeper", attacker_move_m: "Attacker moved",
   back_line_depth_m: "Back line from its own goal", back_line_spread_m: "Back line width", back_line_step_m: "Back line step",
   behind_depth_change_m: "Change in the line's depth", buildup_count_attack: "Attackers around the ball",
-  buildup_count_defense: "Defenders around the ball", carrier_nearest_defender_m: "Nearest defender to the ball carrier",
+  buildup_count_defense: "Defenders around the ball", carrier_nearest_defender_m: "Nearest defender to the ball carrier", carrier_closing_mps: "Fastest defender running at the carrier",
   central_candidates: "Central passing routes", central_count_attack: "Attackers in the central zone",
   central_count_defense: "Defenders in the central zone", central_screened: "Central routes screened",
   cover_arrival_s: "Cover arrival", cover_margin_s: "Cover margin", defender_step_m: "Defender step",

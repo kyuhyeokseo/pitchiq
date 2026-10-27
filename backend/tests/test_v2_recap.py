@@ -60,8 +60,9 @@ def complete(view):
 
 @pytest.fixture(scope="module")
 def partial(view, complete):
-    return next(p for p in latest(view) if p.episode.analysis_status == "partial"
-                and p.episode.detected_at_s > complete.episode.detected_at_s)
+    # the latest partial moment (since analytics 0.3 clip_001 has none after its complete trade-off: the line chasing
+    # the ball in behind is no longer a moment of its own)
+    return [p for p in latest(view) if p.episode.analysis_status == "partial"][-1]
 
 
 def ids(view, packet, kinds, audience="fan"):
@@ -108,11 +109,12 @@ def steps(trace):
 
 # ------------------------------------------------------------------ the workflow run
 def test_a_valid_recap_shows_only_option_texts_in_replay_order(view, complete, partial):
-    later = item(partial, ids(view, partial, ["restricted", "outcome"]))
-    earlier = item(complete, ids(view, complete, ["exposed", "restricted", "outcome"]))
-    eids = [complete.episode.episode_id, partial.episode.episode_id]
+    first, second = sorted([(complete, item(complete, ids(view, complete, ["exposed", "restricted", "outcome"]))),
+                            (partial, item(partial, ids(view, partial, ["restricted"])))],
+                           key=lambda x: x[0].episode.detected_at_s)
+    eids = [first[0].episode.episode_id, second[0].episode.episode_id]
     gw = FakeRecap([("answer_options", eids[1]), ("answer_options", eids[0]), ("get_evidence", eids[0])],
-                   recap_of(later, earlier))  # the model lists the later moment first
+                   recap_of(second[1], first[1]))  # the model lists the later moment first
     out, trace = asyncio.run(run_recap(view, FAN, gw))
     assert trace.result == "foundry_live" and trace.reason is None and trace.runs == 1 and trace.tool_calls == 3
     assert steps(trace) == ["gather", "recap_agent", "tool", "tool", "tool", "check", "render"]
@@ -120,7 +122,7 @@ def test_a_valid_recap_shows_only_option_texts_in_replay_order(view, complete, p
     assert trace.usage == {"input_token_count": 1200, "output_token_count": 80}
     assert out["kind"] == "recap" and [i["episode_id"] for i in out["items"]] == eids  # replay order, by code
     assert out["note_sentences"] == {"en": [], "ko": []}
-    for it, (packet, chosen) in zip(out["items"], [(complete, earlier), (partial, later)]):
+    for it, (packet, chosen) in zip(out["items"], [first, second]):
         opts = {o.option_id: o for o in sentence_options(packet, view.clip.meta, "fan")}
         for lang in ("en", "ko"):  # exactly the chosen options, in the chosen order, rendered by code
             assert it["sentences"][lang] == [opts[i].text[lang] for i in chosen.option_ids]
@@ -129,7 +131,7 @@ def test_a_valid_recap_shows_only_option_texts_in_replay_order(view, complete, p
     assert out["analyzed_through_s"] == round(view.t - view.clip.start_s, 2)
     # the options the agent saw were in the viewer's language
     seen = gw.results[1]["options"]
-    opts = {o.option_id: o for o in sentence_options(complete, view.clip.meta, "fan")}
+    opts = {o.option_id: o for o in sentence_options(first[0], view.clip.meta, "fan")}
     assert {o["option_id"] for o in seen} == set(opts) and seen[0]["text"] == opts[seen[0]["option_id"]].text["en"]
 
 
@@ -154,7 +156,7 @@ def test_an_invalid_choice_shows_the_fallback_with_the_code_and_no_repair(view, 
         "unknown_option": lambda: recap_of(item(complete, ["s99"])),
         "one_sided": lambda: recap_of(item(complete, ids(view, complete, ["exposed", "outcome"]))),
         "duplicate_moment": lambda: recap_of(good, good),
-        "item_count": lambda: recap_of(*[item(p, ids(view, p, ["restricted"])) for p in latest(view)[:4]]),
+        "item_count": lambda: recap_of(),
         "sentence_count": lambda: recap_of(item(complete, ids(view, complete, ["restricted", "exposed", "change",
                                                                                "outcome"]))),
         "duplicate_option": lambda: recap_of(item(complete, ids(view, complete, ["restricted", "restricted"]))),
@@ -243,12 +245,13 @@ def test_my_club_role_and_involves_followed_are_computed_by_code(view):
     check_profile(RecapProfile(my_club="blue", follow_player=player), view)
 
 
-def test_the_fallback_prefers_the_followed_players_moments(view):
+def test_the_fallback_prefers_the_followed_players_moments():
+    view = tools.view_at("clip_008")  # four moments, so a followed player's moment can be one the plain recap leaves out
     base = {p.episode.episode_id for p, _ in fallback_choice(view, FAN)}
     roster = [r.player_id for r in view.clip.meta.roster]
     player, followed = next((pid, set(followed_moments(view, RecapProfile(follow_player=pid)))) for pid in roster
                             if 0 < len(followed_moments(view, RecapProfile(follow_player=pid))) <= 2
-                            and not set(followed_moments(view, RecapProfile(follow_player=pid))) & base)
+                            and set(followed_moments(view, RecapProfile(follow_player=pid))) - base)
     profile = RecapProfile(follow_player=player)
     out = fallback_recap(view, profile)
     shown = [it["episode_id"] for it in out["items"]]
