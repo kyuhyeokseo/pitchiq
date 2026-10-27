@@ -191,6 +191,16 @@ The same check on image `sha-9afb2c2` (the fan-caption fix), 2026-10-25 about 16
   clip show no live overlay (a fast link draws one element there; not investigated), and Play right after a clip
   switch leaves the old replay's overlay requests answering 404 for about 2 s (not shown on the page). `/api/health`
   at 12:12: 80 of the 300 daily runs used today.
+- Image `sha-f9a4774` (generator 0.8: pressers 3 m off the ball; analytics 0.4; unmarked 10 m), deployed 10-27 17:11.
+  A first-run rehearsal of the video path: the first step 3.0 s after the click with 6 bands, the same step 2-4 labels
+  and numbers, On air with the Foundry text, Ask 4.9 s, no page errors. Step 1's "Presser" tag sat on the man on the
+  ball; fixed in the next build.
+- Image `sha-0a66c42` (the fourth review: 8 clips, one moment per breakdown, marking pairs and pass blockers, generator
+  0.8.1), deployed 10-27 18:53 (revision 0000019). A first-run rehearsal at 18:54: the first step 4.5 s after the
+  click with 9 bands, step 2 naming who blocks which pass, On air with the Foundry text 22 s later (first run after
+  the restart), Ask 5.4 s, no page errors. Public walkthrough at 18:58: 60 passed, 0 failed, no console errors; the
+  Ask agent's answer passed the code check, the Recap agent's choice was refused and the deterministic recap shown
+  (kept as information). `/api/health` after the runs: 45 of the 300 daily runs used today, last call succeeded.
 
 ## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
 
