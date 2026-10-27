@@ -195,7 +195,9 @@ g.ov.sel .label-bg { stroke: #fff; stroke-width: 0.15; }
 .legend { flex-basis: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 3px 20px; font-size: 12px; color: var(--muted); }
 .sw { display: inline-block; width: 16px; height: 0; border-top: 3px solid var(--muted); vertical-align: middle; margin-right: 5px; }
 .sw.lane_screened, .sw.screen_marker { border-top: 3px dashed var(--restricted); }
-.sw.press_cut_lane { border-top: 4px dotted var(--restricted); }
+.sw.press_cut_lane { border-top: 3px dashed var(--restricted); opacity: 0.55; position: relative; }
+.sw.press_cut_lane::after { content: "×"; position: absolute; left: 50%; top: -0.8em; transform: translateX(-50%);
+  color: var(--restricted); font-weight: 700; font-style: normal; opacity: 1; }
 .sw.press_arrow, .sw.carrier_ring { border-color: var(--yellow); }
 .sw.exposure_hatched, .sw.runner_ring, .sw.cover_late, .sw.cover_link, .sw.free_receiver_ring { border-color: var(--exposed); }
 .sw.cover_in_time, .sw.lane_open, .sw.outlet_target { border-color: var(--ok); }

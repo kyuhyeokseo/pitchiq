@@ -165,6 +165,16 @@ The same check on image `sha-9afb2c2` (the fan-caption fix), 2026-10-25 about 16
   rehearsal of the video path after it (not a first run): the first step 3.2 s after the click, On air with the Foundry
   text at once, Ask 6.8 s, no page errors. `/api/health` after the runs: 66 of the 300 daily runs used since the
   deployment, last call succeeded.
+- Image `sha-e90fdd1` (generator 0.7, analytics 0.3, templates-0.4.0: the third fan review), deployed 10-27 09:03.
+  A rehearsal of the video path at 09:05: the first step 3.2 s after the click, On air with the Foundry text at once,
+  Ask 7.6 s in the browser (6.8 s agent time, 3 tool calls), no page errors. Public walkthrough at 09:07: 67 passed,
+  1 failed, 4 template-sentence checks kept as information (expected sentence in 2, other validated sentences in 2).
+  The failure is the slow-link step (400 ms per request): a live overlay is valid for 0.6 s and arrives after it,
+  and clip 1 no longer has a later moment (since analytics 0.3) whose new revision would refresh it, so the pitch
+  stays without an overlay until the clip ends and the step's Pause click finds the clip over. The checks after it
+  did not run on the public URL; the offline run of the same build passed all 74. An earlier public run the same
+  morning stopped at the approval step (5 s wait) while a Foundry revision arrived. `/api/health` after the runs:
+  59 of the 300 daily runs used today, last call succeeded.
 
 ## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
 

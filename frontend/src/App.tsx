@@ -76,7 +76,7 @@ const BD_KEY: Record<string, Record<Lang, string>> = {
   carrier_space_ring: { en: "Dashed ring: the room the ball carrier has (nobody presses)", ko: "점선 원: 아무도 압박하지 않는 공 주변 공간" },
   mark_supported: { en: "Thin white line: who follows whom", ko: "가는 흰 선: 누가 누구를 따라붙는지" },
   lane_screened: { en: "Pink dots ending in a bar: a pass the defence has blocked", ko: "막대로 끝나는 분홍 점선: 수비가 막은 패스 길" },
-  press_cut_lane: { en: "Pink dots: the pass the presser cuts on the way in", ko: "분홍 점: 압박 선수가 달려가며 끊는 패스 길" },
+  press_cut_lane: { en: "Faint pink line with an X: the pass the presser cuts on the way in", ko: "X 표시된 옅은 분홍 선: 압박 선수가 달려가며 끊는 패스 길" },
   screen_marker: { en: "Pink ring: the defender standing in that pass", ko: "분홍 원: 그 패스 길에 서 있는 수비수" },
   line_back: { en: "White dashes: the back line", ko: "흰 점선: 최종 수비 라인" },
   line_mid: { en: "Faint dashes: the midfield line", ko: "옅은 점선: 미드필드 라인" },
