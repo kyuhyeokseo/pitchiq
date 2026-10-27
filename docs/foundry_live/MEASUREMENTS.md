@@ -160,6 +160,11 @@ The same check on image `sha-9afb2c2` (the fan-caption fix), 2026-10-25 about 16
   animation frame. A rehearsal of the video path after that (not a first run: the walkthrough had already built the
   moment's narration): the first step 3.6 s after the click, On air with the Foundry text at once, Ask 7.3 s, no page
   errors. `/api/health` after the runs: 87 of the 300 daily runs used since the deployment, last call succeeded.
+- Image `sha-54c0581` (generator 0.6 team behaviour, analytics 0.2, unmarked players), deployed 10-26 23:23. Public
+  walkthrough at 23:25: 71 passed, 0 failed, no console errors, 4 template-sentence checks kept as information. A
+  rehearsal of the video path after it (not a first run): the first step 3.2 s after the click, On air with the Foundry
+  text at once, Ask 6.8 s, no page errors. `/api/health` after the runs: 66 of the 300 daily runs used since the
+  deployment, last call succeeded.
 
 ## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
 
