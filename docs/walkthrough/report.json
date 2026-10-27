@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:47381",
+  "base": "http://127.0.0.1:35943",
   "checks": [
     {
       "check": "health endpoint",
@@ -29,12 +29,12 @@
     {
       "check": "live overlay elements drawn from backend",
       "ok": true,
-      "detail": "1 elements"
+      "detail": "19 elements"
     },
     {
       "check": "A live: the player on the ball is drawn on top",
       "ok": true,
-      "detail": "{\"nearest\": \"var(--blue) #8\", \"last\": \"var(--blue) #8\"}"
+      "detail": "{\"nearest\": \"var(--blue) #5\", \"last\": \"var(--blue) #5\"}"
     },
     {
       "check": "outcome revision shows exploitation after the long ball",
@@ -64,7 +64,7 @@
     {
       "check": "A exposed: pitch labels do not overlap or leave the pitch",
       "ok": true,
-      "detail": "{\"n\": 3, \"overlaps\": 0, \"outside\": 0}"
+      "detail": "{\"n\": 5, \"overlaps\": 0, \"outside\": 0}"
     },
     {
       "check": "inspector shows the metrics behind the clicked area",
@@ -377,5 +377,5 @@
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-27T20:49:20Z"
+  "time_utc": "2026-10-27T21:25:11Z"
 }

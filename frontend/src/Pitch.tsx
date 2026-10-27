@@ -207,8 +207,12 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
       // he stands now
       const at = GETS_BALL.has(t.role) && receiveAt ? { x_m: receiveAt[0], y_m: receiveAt[1] } : p.position;
       const x = sx(at), y0 = sy(at);
-      const y = [-3.2, 3.2, -5.9, 5.9].map((dy) => y0 + dy).find((y) => !tagBoxes.some((o) =>
-        x - w / 2 < o[2] && o[0] < x + w / 2 && y - 1.25 < o[3] && o[1] < y + 1.25)) ?? y0 - 3.2;
+      // above or below its player, clear of the other tags and of the other players' discs (a presser 3 m off the man
+      // on the ball would otherwise have his tag on that man)
+      const clear = (y: number) => !tagBoxes.some((o) => x - w / 2 < o[2] && o[0] < x + w / 2 && y - 1.25 < o[3]
+        && o[1] < y + 1.25) && !frame.players.some((q) => q.player_id !== p.player_id
+        && Math.abs(sx(q.position) - x) < w / 2 + PLAYER_R && Math.abs(sy(q.position) - y) < 1.25 + PLAYER_R);
+      const y = [-3.2, 3.2, -5.9, 5.9].map((dy) => y0 + dy).find(clear) ?? y0 - 3.2;
       tagBoxes.push([x - w / 2, y - 1.25, x + w / 2, y + 1.25]);
       return { id: p.player_id, t, w, x, y, ax: x, ay: y0 };
     });
