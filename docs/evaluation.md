@@ -461,3 +461,16 @@ Checks on this build (offline): `make test` 278 passed, 4 expected failures; bro
 checks of clips 7, 10, 11 and 12 and of switching moments in the breakdown were removed with them); feature sweep of
 the 8 clips, one breakdown moment each, no page errors or failed actions, players move at most 0.14 m per animation
 frame.
+
+## A longer pass that is on, and a key for the timeline (2026-10-27)
+
+From the project lead's review of clip 1 at 10:25: BLU #5 can play the square pass to BLU #4. RED #7 stands 3 m off
+BLU #4 and only presses him as he takes it; he does not block the pass. The lane model's short options stop at 25 m,
+and the pass is 26.7 m, so the analysis never listed it. Step 2 of the breakdown now also draws, as a green arrow, a
+forward or square pass of 25-35 m to an onside team-mate that no defender gets to with the lane model's kinematics,
+leaving out a defender within 5 m of the receiver and level with him (he presses the receiver). At most two, with the
+defenders pressing the receiver named. Display only: no claim, metric or holdout number reads it. Over the 8 clips the
+desk offers, it adds clip 1's pass to BLU #4 (RED #7 presses him) and clip 2's pass to BLU #2 (RED #11).
+
+The timeline under the pitch now has a key: each bar is a moment the analysis found (pink: what the defence takes
+away; pink and cyan: what it also leaves open), and the numbers are the selected moment's revisions.

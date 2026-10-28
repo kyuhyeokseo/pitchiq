@@ -105,7 +105,8 @@ export type BreakdownStep = {
   // the press, when the narration has no sentence about it: who has the ball and the nearest defender (measured)
   press_facts?: { carrier_id: string; defender_id: string; distance_m: number } | null;
   unmarked?: string[]; blocks?: { defender_ids: string[]; receiver_id: string; status: "screened" | "reachable" }[];
-  open_passes?: string[]; own_third?: { defenders: number; attackers: number; forward_id: string; near_forward: number } | null;  // what it leaves open: the attacking team's unmarked players on the step's frame (measured)
+  open_passes?: string[]; long_passes?: { receiver_id: string; length_m: number; pressed_by: string[] }[];  // longer passes that are on, with the defenders pressing the receiver
+  own_third?: { defenders: number; attackers: number; forward_id: string; near_forward: number } | null;  // what it leaves open: the attacking team's unmarked players on the step's frame (measured)
   other_runs?: { runner_id: string; cover_id: string | null; in_time: boolean }[];  // other runs in behind (cover timed)
 };
 export type Breakdown = { episode_id: string; analysis_status: string; outcome: string; language: string; steps: BreakdownStep[] };

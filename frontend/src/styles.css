@@ -225,6 +225,10 @@ g.ov.sel .label-bg { stroke: #fff; stroke-width: 0.15; }
 .rev { height: 16px; min-width: 16px; padding: 0 4px; font-size: 10px; font-weight: 700; border: 0; border-radius: 999px;
   background: rgba(14, 0, 16, 0.45); color: rgba(255, 255, 255, 0.85); }
 .rev.on { background: #fff; color: var(--panel-2); }
+.tl-key { margin: 8px 0 4px; font-size: 12px; color: var(--muted); }
+.tl-sw { display: inline-block; width: 18px; height: 4px; border-radius: 2px; vertical-align: middle; margin: 0 5px 0 9px;
+  background: var(--pink); }
+.tl-sw.both { background: linear-gradient(90deg, var(--pink) 0 50%, var(--cyan) 50% 100%); }
 .now { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; }
 .now::before { content: ""; position: absolute; top: 0; left: -4px; border: 5px solid transparent; border-top-color: #fff; border-bottom: 0; }
 
@@ -356,6 +360,7 @@ button.primary { background: #fff; color: var(--panel-2); border: 0; font-weight
 .ball-path-start { fill: #fff; }
 .arrowhead.ball_path { fill: #fff; }
 .bd-mark { stroke: rgba(255, 255, 255, 0.38); stroke-width: 3.6; stroke-linecap: round; }  /* a band around each marking pair */
+.bd-pass { stroke-width: 0.5; }  /* a longer pass that is on (step 2) */
 .sw.bd_mark { border-top: 7px solid rgba(255, 255, 255, 0.5); border-radius: 4px; }
 
 /* the ball's receiver: where he takes it, and his run there */

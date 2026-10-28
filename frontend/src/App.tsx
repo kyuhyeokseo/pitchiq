@@ -126,7 +126,9 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         unmarked: "Also left unmarked: {p}.", unmarked_partial: "Left unmarked: {p}.",
         block: "{d} blocks the pass to {r}", block_many: "{d} blocks the passes to {r}", reach: "{d} can still get to the pass to {r}",
         block_pl: "{d} block the pass to {r}", block_pl_many: "{d} block the passes to {r}",
-        open_pass: "Not blocked: the pass to {r}.", open_passes: "Not blocked: the passes to {r}.", own_third: "In their own third they have {d} against {a}: the dangerous space is filled.",
+        open_pass: "Not blocked: the pass to {r}.", open_passes: "Not blocked: the passes to {r}.",
+        long_pass: "The longer pass to {r} is on: {d} can only press him as it arrives.", long_pass_free: "The longer pass to {r} is on.",
+        long_key: "Green arrow: a longer pass that is still on", own_third: "In their own third they have {d} against {a}: the dangerous space is filled.",
         forward: "{p}, furthest forward, has {n} defenders within 10 m.", and: " and ",
         other_run: "{r} is running in behind too: {c} goes with him.", other_run_late: "{r} is running in behind too, and nobody gets there in time." },
   ko: { intro: "이 수비는 무엇을 막고, 그 대가로 무엇을 내줄까?", go: "수비 전술 해부",
@@ -149,7 +151,9 @@ const BD_UI: Record<Lang, Record<string, string>> = {
         unmarked: "그 밖에 마크 없이 남은 선수: {p}.", unmarked_partial: "마크 없이 남은 선수: {p}.",
         block: "{d}: {r}로 가는 패스를 막음", block_many: "{d}: {r}로 가는 패스를 막음", reach: "{d}: {r}로 가는 패스에 닿을 수 있음",
         block_pl: "{d}: {r}로 가는 패스를 막음", block_pl_many: "{d}: {r}로 가는 패스를 막음",
-        open_pass: "막히지 않은 패스: {r}.", open_passes: "막히지 않은 패스: {r}.", own_third: "자기 진영 3분의 1 안에서 {d} 대 {a}: 위험한 공간이 채워져 있습니다.",
+        open_pass: "막히지 않은 패스: {r}.", open_passes: "막히지 않은 패스: {r}.",
+        long_pass: "{r}에게 가는 긴 패스는 열려 있습니다. 공이 도착하면 {d} 선수가 압박할 뿐입니다.", long_pass_free: "{r}에게 가는 긴 패스는 열려 있습니다.",
+        long_key: "초록 화살표: 아직 열려 있는 긴 패스", own_third: "자기 진영 3분의 1 안에서 {d} 대 {a}: 위험한 공간이 채워져 있습니다.",
         forward: "가장 앞선 {p} 주위 10 m 안에 수비 {n}명.", and: ", ",
         other_run: "{r} 선수도 뒷공간으로 뜁니다. {c} 선수가 따라갑니다.", other_run_late: "{r} 선수도 뒷공간으로 뛰고, 제때 따라가는 수비가 없습니다." },
 };
@@ -589,7 +593,11 @@ export function App() {
   const claimLabel = (c: string) => <>{CLAIM_TEXT[c]}{heuristicCodes.has(c) && <> <small>heuristic</small></>}</>;
   const highlight = useMemo(() => {
     const s = new Set<string>();
-    if (bdCur) { for (const p of [...bdCur.player_ids, ...(bdCur.marks ?? []).flat()]) s.add(p); return s; }
+    if (bdCur) {
+      for (const p of [...bdCur.player_ids, ...(bdCur.marks ?? []).flat(),
+        ...(bdCur.long_passes ?? []).flatMap((lp) => [lp.receiver_id, ...lp.pressed_by])]) s.add(p);
+      return s;
+    }
     if (selEl) for (const cid of selEl.claim_ids) for (const p of claimById[cid]?.player_ids ?? []) s.add(p);
     return s;
   }, [selEl, claimById, bdCur]);
@@ -750,6 +758,7 @@ export function App() {
               : shownFrame && <GlidingPitch glideMs={1000 / (5 * speed)} glide={playing && !replayMode && !bd}
                   frame={shownFrame} overlay={overlaySnap} labels={overlay?.label_text} hiddenLayers={shownHidden}
                   ballPath={bdCur?.key === "what_happened" ? bdCur.ball_path : undefined} tags={bdTags} marks={bdCur?.marks}
+                  passTo={bdCur?.key === "takes_away" ? bdCur.long_passes?.map((lp) => lp.receiver_id) : undefined}
                   freeIds={bdCur?.key === "leaves_open" ? bdCur.unmarked : undefined}
                   attackDir={(id) => teams.find((tm: any) => tm.team_id === id)?.attack_direction ?? 1}
                   selected={surface === "inspector_preview" ? selEl?.element_id : undefined}
@@ -763,6 +772,8 @@ export function App() {
             <div className="caption">{overlay.on_air.map((t, i) => <p key={i}>{t}</p>)}</div>}
           {surface === "broadcast" && approvedRev !== null && insight && insight.insight.revision !== approvedRev &&
             <p className="air-note">On air: approved revision {approvedRev}. Revision {insight.insight.revision} is newer and waits for approval in Inspector.</p>}
+          {!bd && <p className="tl-key">Moments the analysis found, along the clip:<i className="tl-sw" />what the defence
+            takes away<i className="tl-sw both" />and what it leaves open · numbers: the selected moment&apos;s revisions (click one)</p>}
           {!bd && <Timeline episodes={onlyFollowed && followed ? episodes.filter((e) => e.player_ids?.includes(followed)) : episodes}
             empty={onlyFollowed && followed ? `No moments involving #${jersey(followed)} yet` : "No moments yet"}
             myClub={myClub} t0={t0} t1={t1} clock={clock} selected={selEp} selRev={selRev}
@@ -884,6 +895,8 @@ function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, sur
     })(),
     (cur?.open_passes ?? []).length > 0 && (cur!.open_passes!.length > 1 ? ui.open_passes : ui.open_pass)
       .replace("{r}", cur!.open_passes!.map(playerName).join(ui.and)),
+    ...(cur?.long_passes ?? []).map((p) => (p.pressed_by.length ? ui.long_pass : ui.long_pass_free)
+      .replace("{r}", playerName(p.receiver_id)).replace("{d}", p.pressed_by.map(playerName).join(ui.and))),
     cur?.own_third && ui.own_third.replace("{d}", String(cur.own_third.defenders)).replace("{a}", String(cur.own_third.attackers)),
     cur?.own_third && cur.own_third.near_forward >= 2 && ui.forward.replace("{p}", playerName(cur.own_third.forward_id))
       .replace("{n}", String(cur.own_third.near_forward)),
@@ -913,9 +926,10 @@ function BreakdownPanel({ bd, step, lang, keys, texts, insight, approvedRev, sur
           h.player_id.includes("_") ? playerName(h.player_id) : "")}</p>)}
         {!cur && latestRev != null && asOf != null && <p className="meta">{ui.onairNote.replace("{rev}", String(latestRev))
           .replace("{t}", matchClockTenths(asOf))}</p>}
-        {(keys.length > 0 || (cur?.ball_path?.length ?? 0) > 1 || !!cur?.marks?.length) && <ul className="bd-key">
+        {(keys.length > 0 || (cur?.ball_path?.length ?? 0) > 1 || !!cur?.marks?.length || !!cur?.long_passes?.length) && <ul className="bd-key">
           {cur?.key === "what_happened" && (cur.ball_path?.length ?? 0) > 1 && <li><i className="sw ball_path" />{ui.ball}</li>}
           {!!cur?.marks?.length && <li><i className="sw bd_mark" />{ui.marks}</li>}
+          {!!cur?.long_passes?.length && <li><i className="sw lane_open" />{ui.long_key}</li>}
           {keys.map((k) => <li key={k}><i className={`sw ${k}`} />{BD_KEY[k][lang]}</li>)}
         </ul>}
         {!cur && !insight && <p className="meta">{ui.waiting}</p>}

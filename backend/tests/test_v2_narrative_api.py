@@ -532,6 +532,8 @@ def test_the_breakdown_tells_the_moment_in_four_steps_from_the_evidence(client):
     assert any(b["receiver_id"] == "blue_02" and b["defender_ids"][0] == "red_09" and b["status"] == "screened"
                for b in takes["blocks"])
     assert "short passes" in takes["sentences"][0] and "screened_lanes" in takes["layers"]
+    # a longer pass that is on (display only): the square pass to BLU #4, with RED #7 only pressing him as he takes it
+    assert [(p["receiver_id"], p["pressed_by"]) for p in takes["long_passes"]] == [("blue_04", ["red_07"])]
     assert "exposure" in opens["layers"] and "BLU #9" in opens["sentences"][0] and opens["roles"]["blue_09"] == "runner"
     assert happened["revision"] > opens["revision"] and "received by BLU #9" in happened["sentences"][-1]
     assert happened["roles"] == {"blue_05": "passer", "blue_09": "receiver"}

@@ -1,5 +1,5 @@
 {
-  "base": "http://127.0.0.1:55365",
+  "base": "http://127.0.0.1:46517",
   "checks": [
     {
       "check": "health endpoint",
@@ -317,5 +317,5 @@
   "failed": 0,
   "narration_notes": [],
   "host": "hpc-compute-node",
-  "time_utc": "2026-10-27T22:30:27Z"
+  "time_utc": "2026-10-28T01:04:03Z"
 }

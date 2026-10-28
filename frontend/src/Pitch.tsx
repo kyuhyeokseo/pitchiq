@@ -23,6 +23,7 @@ type Props = {
   ballPath?: number[][];  // where the ball went (world metres), drawn as a white arrow
   tags?: Record<string, { text: string; role: string }>;  // a tag over the players a step is about (presser, runner...)
   marks?: string[][];  // [defender, attacker]: who follows whom, drawn as a white tether
+  passTo?: string[];  // receivers of longer passes that are on (breakdown step 2), drawn from the ball as green arrows
 };
 // An unmarked player: an outfield player of the team on the ball with real room, no opponent within FREE_M, and no
 // defender following him (a marking pair the analysis drew). Measured on the frame drawn, with hysteresis: a player
@@ -162,7 +163,7 @@ function Element({ el, pos, label, place, selected, onSelect }: {
 }
 
 export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onSelect, highlight, teamColor, jersey, followed, onPlayer,
-  quietLabels, ballPath, tags, marks, showFree, freeIds, attackDir }: Props) {
+  quietLabels, ballPath, tags, marks, passTo, showFree, freeIds, attackDir }: Props) {
   const pos: Record<string, XY> = {};
   for (const p of frame.players) pos[p.player_id] = p.position;
   const els = (overlay?.elements ?? []).filter((e) => !hiddenLayers.has(e.layer));
@@ -249,6 +250,13 @@ export function Pitch({ frame, overlay, labels = {}, hiddenLayers, selected, onS
       {marks?.map(([d, a]) => {
         const p = pos[d], q = pos[a];
         return p && q ? <line key={`mk-${d}-${a}`} className="bd-mark" x1={sx(p)} y1={sy(p)} x2={sx(q)} y2={sy(q)} /> : null;
+      })}
+      {passTo?.map((r) => {  // the arrow stops at the receiver's disc
+        const q = pos[r];
+        if (!q) return null;
+        const dx = sx(q) - sx(ball), dy = sy(q) - sy(ball), k = Math.max(1 - (PLAYER_R + 0.4) / (Math.hypot(dx, dy) || 1), 0);
+        return <line key={`lp-${r}`} className="lane_open bd-pass" x1={sx(ball)} y1={sy(ball)} x2={sx(ball) + dx * k}
+          y2={sy(ball) + dy * k} markerEnd="url(#arrow-lane_open)" />;
       })}
       {receiver && receiveAt && <g className="receive-g">
         <line className="receiver-run" x1={sx(receiver.position)} y1={sy(receiver.position)} x2={receiveAt[0]} y2={68 - receiveAt[1]} />

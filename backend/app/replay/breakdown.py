@@ -15,7 +15,10 @@ model, and a step that the analysis has not reached yet says so instead of guess
 
 from __future__ import annotations
 
+import numpy as np
+
 from ..agents.fallback import analyst_plan, producer_plan
+from ..analytics.config import load_config
 from ..contracts import EvidencePacket
 from ..narrative.render import render_sentence
 from ..overlay.builder import key_state
@@ -44,6 +47,10 @@ UNMARKED_M, UNMARKED_REACH_M, UNMARKED_MAX = 10.0, 60.0, 6
 # attacker nobody has, within LOOSE_MARK_M (a zonal player standing with his man)
 LOOSE_MARK_M = 8.0
 OWN_THIRD_M = 35.0  # the defending team's own third, for the numbers in step 2
+# step 2's longer passes (the lane model's short options stop at lanes.max_length_m): a forward or square pass of up to
+# LONG_PASS_MAX_M is on when no defender gets to it; a defender within PRESSES_RECEIVER_M of the receiver and level with
+# him (at most LEVEL_M nearer the ball along the pass) presses him as he takes it, he does not block the pass
+LONG_PASS_MAX_M, PRESSES_RECEIVER_M, LEVEL_M = 35.0, 5.0, 2.5
 
 
 def _sentences(pk: EvidencePacket, language: str, clip: Clip, audience: str = "fan") -> list[tuple[str, str | None, str]]:
@@ -240,6 +247,46 @@ def _blocks(pk: EvidencePacket) -> dict:
     return {"blocks": blocks, "open_passes": [ln.receiver_id for ln in state.lanes if ln.availability == "open"]}
 
 
+def _long_passes(clip: Clip, pk: EvidencePacket) -> list[dict]:
+    """Step 2's longer passes from the man on the ball that are on (at most two, shortest first), each with the
+    defenders pressing its receiver. The lane model's kinematics (ball and defender speed, reaction, open margin) for
+    every other defender, on the step's frame, onside receivers only. From positions; no claim reads it."""
+    c = load_config().lanes
+    frame = _frame_of(clip, pk)
+    defending = pk.episode.defending_team_id
+    carrier = next((p for p in frame.players if p.player_id == frame.ball.owner_id), None)
+    if carrier is None or carrier.team_id == defending:
+        return []
+    a = clip.meta.attack_direction(carrier.team_id)
+    fwd = lambda p: p.position.x_m if a == 1 else 105.0 - p.position.x_m  # noqa: E731
+    xy = lambda p: np.array([p.position.x_m, p.position.y_m])  # noqa: E731
+    defs = [p for p in frame.players if p.team_id == defending]
+    d_xy = np.array([xy(p) for p in defs])
+    offside = sorted((fwd(p) for p in defs), reverse=True)[1] if len(defs) > 1 else 105.0
+    short = {ln.receiver_id for ln in key_state(pk).lanes}
+    ball = np.array([frame.ball.position.x_m, frame.ball.position.y_m])
+    out = []
+    for r in frame.players:
+        if (r.team_id != carrier.team_id or r.is_goalkeeper or r.player_id in (carrier.player_id, *short)
+                or fwd(r) < fwd(carrier) - c.max_backward_m or fwd(r) > max(offside, fwd(carrier)) + c.offside_tolerance_m):
+            continue
+        seg = xy(r) - ball
+        L = float(np.linalg.norm(seg))
+        if not c.max_length_m < L <= LONG_PASS_MAX_M:
+            continue
+        to_r = np.linalg.norm(d_xy - xy(r), axis=1)
+        presses = (to_r <= PRESSES_RECEIVER_M) & ((d_xy - ball) @ (seg / L) >= L - LEVEL_M)
+        s = np.arange(c.end_exclusion_m, L - c.end_exclusion_m + 1e-9, c.sample_step_m)
+        q = ball + np.outer(s / L, seg)
+        margin = c.reaction_s + np.linalg.norm(d_xy[~presses, None, :] - q[None, :, :], axis=-1) / c.defender_speed_mps \
+            - (s / c.ball_speed_mps)[None, :]
+        if margin.size and margin.min() < c.open_margin_s:
+            continue
+        out.append({"receiver_id": r.player_id, "length_m": round(L, 1),
+                    "pressed_by": [defs[i].player_id for i in np.argsort(to_r) if presses[i]][:2]})
+    return sorted(out, key=lambda x: x["length_m"])[:2]
+
+
 def _own_third(clip: Clip, pk: EvidencePacket) -> dict | None:
     """Numbers in the defending team's own third (outfield players), and the attacker furthest forward with the
     defenders within 10 m of him, when the defence fills that third (at least two more)."""
@@ -314,7 +361,7 @@ def breakdown(revs: list[EvidencePacket], clip: Clip, language: str, now_s: floa
                        [p for c in restricted for p in c.player_ids],
                        [t for k, cid, t in sents if cid in r_press.episode.restricted_claim_ids
                         and not any(m in k for m in PRESS_TEMPLATES)], **_blocks(r_press),
-                       own_third=_own_third(clip, r_press)))
+                       long_passes=_long_passes(clip, r_press), own_third=_own_third(clip, r_press)))
 
     # 3. what it leaves open (or that nothing open is supported yet)
     if r_open is not None:
