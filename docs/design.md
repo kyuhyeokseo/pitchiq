@@ -285,7 +285,7 @@ Results: [`docs/evaluation.md`](evaluation.md).
 
 | Spec | Build |
 |---|---|
-| Families A, B and C with counter-examples; clips of 24-36 s | Six set-ups (A, B, C, D, E, G; the letters are design labels, and there is no F), each with a counter-example; 12 clips of about 14-24 s (13.8-24.0 s). The set-ups are described in [`evaluation.md`](evaluation.md#set-ups). |
+| Families A, B and C with counter-examples; clips of 24-36 s | Six set-ups (A, B, C, D, E, G; the letters are design labels, and there is no F), each with a counter-example; 12 clips of about 11-24 s (10.6-24.4 s). The set-ups are described in [`evaluation.md`](evaluation.md#set-ups). |
 | Twelve claim codes | Ten are computed. `weak_side_accessible` and `second_ball_support_gap` are in the contract allowlist but not computed yet. |
 | Analyst and Producer read the packet through per-item tools (`get_claim`, `get_metric`, ...) | The packet is in the prompt, and Analyst and Producer have no tools. The Producer chooses sentence-option ids per audience, shared by both languages (`prompts-0.2.0`). |
 | Two agents | Plus Ask PitchIQ, a question-answering agent with three read-only tools bound to the question time. Plus a Recap agent inside an Agent Framework workflow, and an MCP server with five read-only tools (mounted at `/mcp` in the web app and live on the public demo). |
