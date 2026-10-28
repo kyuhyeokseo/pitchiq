@@ -201,6 +201,10 @@ The same check on image `sha-9afb2c2` (the fan-caption fix), 2026-10-25 about 16
   the restart), Ask 5.4 s, no page errors. Public walkthrough at 18:58: 60 passed, 0 failed, no console errors; the
   Ask agent's answer passed the code check, the Recap agent's choice was refused and the deterministic recap shown
   (kept as information). `/api/health` after the runs: 45 of the 300 daily runs used today, last call succeeded.
+- Image `sha-f10a119` (step 2 draws a longer pass that is on; a key for the timeline), deployed 10-27 21:56. The
+  demo video was recorded on it first. Public walkthrough at 23:47: 60 passed, 0 failed, no console errors; the Ask
+  agent's answer and the Recap agent's choice both passed the code check. `/api/health` after the runs: 48 of the
+  300 daily runs used today, last call succeeded: true.
 
 ## Application Insights tracing, from the development machine (2026-10-25, about 16:07 US Eastern)
 

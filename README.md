@@ -15,7 +15,7 @@ Each moment's evidence is kept as numbered revisions with a sha256 hash; what ha
 
 **Submitted for Best Enterprise Solution:** sign-off on exact evidence, a hashed evidence trail, bounded cost and keyless Azure sign-in are built in code, and most of these controls have named tests ([Enterprise controls](#enterprise-controls-in-code)). Not built yet: login and a producer role (Microsoft Entra ID); in this demo, whoever opens a replay acts as its producer.
 
-**Live demo:** [pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io](https://pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io) (no login; Azure Container Apps with Foundry agents on) · **Video (under 2 min):** _(link added at release)_ · **Try it:** [seven steps](#try-it) · **License:** [MIT](LICENSE)
+**Live demo:** [pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io](https://pitchiq.greenhill-d04ae279.swedencentral.azurecontainerapps.io) (no login; Azure Container Apps with Foundry agents on) · **Video (under 2 min):** [youtu.be/wLjy9OpWJjs](https://youtu.be/wLjy9OpWJjs) · **Try it:** [seven steps](#try-it) · **License:** [MIT](LICENSE)
 
 ![PitchIQ pitch view of a replay moment. Pink dashed lanes ending in a stop bar are the short passes Red's press screens; a faint lane crossed out is the one the presser cuts. A cyan hatched area marks the space behind Red's back line, where cover arrives 1.6 s late.](docs/images/hero_restricted_exposed.png)
 
@@ -178,7 +178,7 @@ Also built: an MCP server (Model Context Protocol, an open standard) that expose
 | Browser walkthrough | 62 of 62 checks passed, no browser console errors (74 before the clips the desk no longer offers were dropped) | 2026-10-27 | Headless Chromium drives the real UI in offline mode (`make walkthrough`), including the five steps of the guided breakdown (one moment per clip), Pause and seek-bar checks, and three checks over a slow link (400 ms per request, WebSocket frames held back as long). See `docs/walkthrough/report.json` and the screenshots |
 | Feature sweep over the 8 clips the desk offers | Each clip's breakdown (one moment, 4 steps), On air, the desk features and playback on each clip: no page errors or failed actions; while playing, players move at most 0.14 m per animation frame | 2026-10-27 | `evaluation/walkthrough/sweep.py` (offline), then a screenshot review; fixes and known limits in [`docs/evaluation.md`](docs/evaluation.md) |
 | Deployed app | Managed identity reached Foundry: an Ask answered in 5.9 s with 2 tool calls, a Recap in 8.2 s, both validated; `/mcp` listed its 5 tools over HTTPS; a 1× replay streamed over the WebSocket. | 2026-10-24 | Calls from the development machine to the public URL. Log: [`docs/foundry_live/MEASUREMENTS.md`](docs/foundry_live/MEASUREMENTS.md) |
-| Browser walkthrough on the public URL | 60 checks passed, 0 failed, no browser console errors. With Foundry on, 4 results are kept as information: 2 checks of particular template sentences (the agents may choose other validated sentences) and whether the Ask and Recap agents' choices passed the code check (the Ask answer did; the Recap was refused and the deterministic recap was shown with the agent run in its trace). | 2026-10-27 | The same walkthrough with `--base-url` against the live app (image `sha-0a66c42`). Same log |
+| Browser walkthrough on the public URL | 60 checks passed, 0 failed, no browser console errors. With Foundry on, 4 results are kept as information: 2 checks of particular template sentences (the agents may choose other validated sentences) and whether the Ask and Recap agents' choices passed the code check (both did). | 2026-10-27 | The same walkthrough with `--base-url` against the live app (image `sha-f10a119`). Same log |
 
 All of these are small samples. The live Foundry numbers come from one day: 8 smoke runs at minimal effort (plus 4 at low effort), a handful of questions and one full replay (11 pipelines). They are not a benchmark. Earlier versions and the full evaluation are in [`docs/evaluation.md`](docs/evaluation.md).
 
@@ -305,11 +305,12 @@ make walkthrough SRUN= # headless-browser walkthrough -> docs/walkthrough/
 |---|---|
 | Causal analytics, trade-off episodes, overlays, the evidence panel, approval with a decision record, the broadcast view, JSON export | |
 | The guided breakdown of a moment (four steps from the evidence, then on air) | |
-| Analyst → Producer (what they changed is shown, computed in code), Ask PitchIQ and the Recap workflow, with live Foundry calls | The demo video |
+| Analyst → Producer (what they changed is shown, computed in code), Ask PitchIQ and the Recap workflow, with live Foundry calls | |
 | Fan and Analyst wording in EN and KO; My club and Follow a player | |
 | MCP server (stdio and streamable HTTP), mounted at `/mcp` and live on the demo URL | |
 | Public deployment on Azure Container Apps with a managed identity; CI with the image on GitHub Container Registry; an uptime probe every 30 minutes that also checks the live build is the deployed commit (`.github/workflows/probe.yml`) | |
 | Robustness check, backend tests, browser walkthrough (offline and against the public URL) | |
+| The demo video ([YouTube](https://youtu.be/wLjy9OpWJjs)), recorded on the live app | |
 
 ## Repository map
 
